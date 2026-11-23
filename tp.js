@@ -1,0 +1,75 @@
+(() => {
+"use strict";
+const cfg=window.TP_CONFIG||{}, topics=window.TP_TOPICS||[];
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const fmt=n=>new Intl.NumberFormat().format(Math.round(n||0));
+const safe=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=new Date(); today.setUTCDate(today.getUTCDate()-2);
+const end=new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()));
+const ymd=d=>d.toISOString().slice(0,10).replace(/-/g,"");
+const end7=new Date(end); end7.setUTCDate(end7.getUTCDate()-6);
+const start7=new Date(end7); start7.setUTCDate(start7.getUTCDate()-7);
+const endPrev=new Date(end7); endPrev.setUTCDate(endPrev.getUTCDate()-1);
+const dateA=ymd(start7),dateB=ymd(end),dateC=ymd(start7),dateD=ymd(endPrev);
+const cacheKey="tp-data-v2";
+let records=[];
+function cacheRead(){try{const x=JSON.parse(localStorage.getItem(cacheKey)||"null");if(x&&Date.now()-x.time<6*3600000)return x.data;}catch(e){}return null;}
+async function loadOne(t){
+ const url=cfg.api+"/en.wikipedia/all-access/all/"+encodeURIComponent(t.article)+"/daily/"+dateA+"/"+dateB;
+ const res=await fetch(url,{headers:{Accept:"application/json"}});
+ if(!res.ok)throw new Error("API "+res.status);
+ const json=await res.json(), items=json.items||[];
+ const recent=items.filter(x=>x.timestamp>=dateA+"00"&&x.timestamp<=dateB+"00");
+ const previous=recent.filter(x=>x.timestamp.slice(0,8)>=dateC&&x.timestamp.slice(0,8)<=dateD);
+ const current=recent.filter(x=>x.timestamp.slice(0,8)>dateD);
+ const sum=a=>a.reduce((n,x)=>n+(x.views||0),0);
+ const currentViews=sum(current), previousViews=sum(previous);
+ return {...t,views:currentViews,previous:previousViews,avg:currentViews/7,growth:previousViews?((currentViews-previousViews)/previousViews)*100:(currentViews?100:0),series:recent.map(x=>x.views||0)};
+}
+async function loadData(){
+ const cached=cacheRead(); if(cached){records=cached;return records;}
+ const unique=[...new Map(topics.map(t=>[t.article,t])).values()];
+ const output=[];
+ for(let i=0;i<unique.length;i+=6){
+   const batch=await Promise.all(unique.slice(i,i+6).map(async t=>{try{return await loadOne(t);}catch(e){return {...t,views:0,previous:0,avg:0,growth:0,series:[],error:true};}}));
+   output.push(...batch);
+ }
+ const byArticle=new Map(output.map(x=>[x.article,x]));
+ records=topics.map(t=>({...byArticle.get(t.article),...t}));
+ try{localStorage.setItem(cacheKey,JSON.stringify({time:Date.now(),data:records}));}catch(e){}
+ return records;
+}
+function starButton(t){const saved=JSON.parse(localStorage.getItem("tp-follows")||"[]");const yes=saved.includes(t.article);return '<button class="star" type="button" data-star="'+safe(t.article)+'" aria-label="'+(yes?"Unfollow ":"Follow ")+safe(t.title)+'" aria-pressed="'+yes+'">'+(yes?"★":"☆")+'</button>';}
+function card(t){const rise=t.growth>=0;const trend=Math.round(t.growth);const series=t.series||[];const points=series.map((v,i)=>{const x=4+i*(92/Math.max(1,series.length-1));const max=Math.max(1,...series);const y=31-(v/max)*26;return x.toFixed(1)+","+y.toFixed(1)}).join(" ");
+return '<article class="card"><div class="top"><span class="tag">'+safe((cfg.categories||[]).find(c=>c[0]===t.category)?.[1]||t.category)+'</span>'+starButton(t)+'</div><h3><a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(t.article)+'" target="_blank" rel="noopener">'+safe(t.title)+'</a></h3><p class="avg"><b>'+fmt(t.avg)+'</b> avg views/day</p><span class="badge '+(rise?"up":"down")+'">'+(rise?"▲ ":"▼ ")+Math.abs(trend)+'% vs previous week</span>'+(points?'<svg class="spark" viewBox="0 0 100 36" role="img" aria-label="Recent page view trend"><polyline points="'+points+'"></polyline></svg>':"")+'</article>';}
+function bindStars(root=document){$$("[data-star]",root).forEach(b=>b.addEventListener("click",()=>{let a=[];try{a=JSON.parse(localStorage.getItem("tp-follows")||"[]")}catch(e){}const id=b.dataset.star;a=a.includes(id)?a.filter(x=>x!==id):[...a,id];localStorage.setItem("tp-follows",JSON.stringify(a));b.textContent=a.includes(id)?"★":"☆";b.setAttribute("aria-pressed",String(a.includes(id)));b.setAttribute("aria-label",(a.includes(id)?"Unfollow ":"Follow ")+(topics.find(t=>t.article===id)?.title||id));}));}
+function chips(active,fn){const ul=$("#chips");if(!ul)return;ul.innerHTML=(cfg.categories||[]).map(c=>'<li><button class="chip" type="button" data-cat="'+c[0]+'" aria-pressed="'+(c[0]===active)+'">'+safe(c[1])+'</button></li>').join("");$$("[data-cat]",ul).forEach(b=>b.addEventListener("click",()=>{active=b.dataset.cat;$$("[data-cat]",ul).forEach(x=>x.setAttribute("aria-pressed",String(x===b)));fn(active);}));}
+function renderList(target,list){if(!target)return;target.innerHTML=list.length?list.map(card).join(""):'<p class="demo">No page-view data was returned for these topics. Please try again later.</p>';bindStars(target);}
+function render(){
+ const page=document.body.dataset.page||"";
+ const all=records.filter(t=>t.views>0);
+ const trend=[...all].sort((a,b)=>b.avg-a.avg);
+ const rise=[...all].filter(t=>t.previous>=cfg.minimumViews).sort((a,b)=>b.growth-a.growth);
+ renderList($("#home-trend"),trend.slice(0,6));
+ renderList($("#home-rise"),rise.slice(0,6));
+ const out=$("#out");
+ if(out){
+   const isCategory=page==="category";
+   let category=document.body.dataset.cat||"all",mode="trend";
+   const draw=()=>{let list=category==="all"?all:all.filter(t=>t.category===category);list=mode==="rise"?[...list].sort((a,b)=>b.growth-a.growth):[...list].sort((a,b)=>b.avg-a.avg);renderList(out,list);const count=$("#count");if(count)count.textContent=list.length+" topics with page-view data · updated "+new Date().toLocaleString();};
+   if(!isCategory)chips("all",c=>{category=c;draw();});
+   else $$("[data-m]").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.m;$$("[data-m]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));draw();}));
+   draw();
+ }
+ const buzz=$("#buzz");
+ if(buzz){buzz.innerHTML=trend.slice(0,5).map((t,i)=>'<li><span class="n">'+(i+1)+'</span><a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(t.article)+'" target="_blank" rel="noopener">'+safe(t.title)+'</a><small>'+fmt(t.views)+' views</small></li>').join("")||"<li>Trend data is loading or unavailable.</li>";}
+ const date=$("#buzz-date");if(date)date.textContent=end.toLocaleDateString();
+ const note=$("#home-note");if(note&&all.length)note.textContent="Ranked by average daily Wikipedia page views for the latest complete 7-day period.";
+}
+function init(){
+ const placeholders=$$(".grid");placeholders.forEach(el=>{if(!el.children.length)el.innerHTML='<div class="card sk" aria-label="Loading trends"></div><div class="card sk" aria-hidden="true"></div><div class="card sk" aria-hidden="true"></div>';});
+ loadData().then(render).catch(()=>{ $$(".grid").forEach(el=>el.innerHTML='<p class="demo">Live trend data is temporarily unavailable. Please refresh in a little while.</p>');});
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
