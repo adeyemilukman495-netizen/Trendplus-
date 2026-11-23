@@ -85,7 +85,7 @@
     getPosts: async () => {
       const { data, error } = await client
         .from('posts')
-        .select('*, profiles:author_id(display_name, username, avatar_url)')
+        .select('*, profiles!posts_author_id_fkey(display_name, username, avatar_url)')
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -105,7 +105,7 @@
     getComments: async postId => {
       const { data, error } = await client
         .from('comments')
-        .select('*, profiles:author_id(display_name, username, avatar_url)')
+        .select('*, profiles!comments_author_id_fkey(display_name, username, avatar_url)')
         .eq('post_id', postId)
         .order('created_at');
       if (error) throw error;
@@ -176,7 +176,7 @@
       return data;
     },
     getReviews: async title => {
-      let query = client.from('reviews').select('*, profiles:author_id(display_name, username)').order('created_at', { ascending: false }).limit(50);
+      let query = client.from('reviews').select('*, profiles!reviews_author_id_fkey(display_name, username)').order('created_at', { ascending: false }).limit(50);
       if (title) query = query.ilike('title', '%' + title + '%');
       const { data, error } = await query;
       if (error) throw error;
@@ -253,7 +253,7 @@
 
     getShorts: async () => {
       const { data, error } = await client.from('shorts')
-        .select('*, profiles:author_id(display_name, username)')
+        .select('*, profiles!shorts_author_id_fkey(display_name, username)')
         .order('created_at', { ascending: false }).limit(50);
       if (error) throw error;
       return data;
