@@ -154,3 +154,9 @@ footer{border-top-color:rgba(124,247,212,.2)}
 #tvmaze-results .tv-summary{color:var(--mut);font-size:.9rem}
 #tvmaze-results .tv-card .btn{align-self:flex-start;margin-top:auto}
 #tvmaze-form input{border-radius:999px}
+
+#jikan-results .tv-card{display:flex;flex-direction:column;gap:.65rem}
+#jikan-results .tv-poster{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:13px;background:var(--s2)}
+#jikan-results .tv-meta{color:var(--mut);font-size:.86rem}
+#jikan-results .tv-summary{color:var(--mut);font-size:.9rem}
+#jikan-results .tv-card .btn{align-self:flex-start;margin-top:auto}
