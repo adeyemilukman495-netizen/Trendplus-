@@ -185,15 +185,15 @@
 
     startConversation: async otherUserId => {
       const user = await requireUser();
-      const { data: conversation, error: conversationError } = await client
-        .from('conversations').insert({ created_by: user.id }).select().single();
-      if (conversationError) throw conversationError;
-      const { error: memberError } = await client.from('conversation_members').insert([
-        { conversation_id: conversation.id, user_id: user.id },
-        { conversation_id: conversation.id, user_id: otherUserId },
-      ]);
-      if (memberError) throw memberError;
-      return conversation;
+      if (!otherUserId || otherUserId === user.id) throw new Error('Choose another member.');
+      const { data: conversationId, error } = await client.rpc('start_conversation', {
+        other_user: otherUserId,
+      });
+      if (error) throw error;
+      const { data, error: readError } = await client.from('conversations')
+        .select('*').eq('id', conversationId).single();
+      if (readError) throw readError;
+      return data;
     },
     getConversations: async () => {
       const user = await requireUser();
