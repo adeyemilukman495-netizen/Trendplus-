@@ -219,13 +219,27 @@ language sql
 stable
 security definer
 set search_path = public
-as $$
+as $
   select exists (
     select 1 from public.fan_club_members fm
     where fm.club_id = club_uuid
       and fm.user_id = (select auth.uid())
   );
-$$;
+$;
+
+create or replace function public.is_conversation_creator(conversation_uuid uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select exists (
+    select 1 from public.conversations c
+    where c.id = conversation_uuid
+      and c.created_by = (select auth.uid())
+  );
+$;
 
 create or replace function public.create_trendpulse_profile()
 returns trigger
@@ -343,10 +357,7 @@ drop policy if exists "Members read conversation membership" on public.conversat
 create policy "Members read conversation membership" on public.conversation_members for select to authenticated using (public.is_conversation_member(conversation_id) or user_id = (select auth.uid()));
 drop policy if exists "Conversation creators add participants" on public.conversation_members;
 create policy "Conversation creators add participants" on public.conversation_members for insert to authenticated with check (
-  user_id = (select auth.uid()) or exists (
-    select 1 from public.conversations c
-    where c.id = conversation_id and c.created_by = (select auth.uid())
-  )
+  user_id = (select auth.uid()) or public.is_conversation_creator(conversation_id)
 );
 drop policy if exists "Members leave conversations" on public.conversation_members;
 create policy "Members leave conversations" on public.conversation_members for delete to authenticated using (user_id = (select auth.uid()));
