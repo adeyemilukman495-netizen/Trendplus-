@@ -11,6 +11,7 @@ The GitHub Pages website is static, so it cannot run a database or authenticate 
 - Reports, blocks and private notifications.
 - Storage bucket for member-uploaded images/videos.
 - Realtime database publication for feed, messages, notifications and other live changes.
+- Private conversation channels with presence/typing support and a server-side read-receipt function.
 - Row Level Security (RLS) policies across every browser-accessible table.
 
 ## What is still needed from the account owner
@@ -35,4 +36,8 @@ The SQL schema is designed to be re-runnable: policies and trigger are replaced 
 
 The media bucket is public for content intentionally shared to the community. Upload, update and delete operations are restricted to each signed-in member's own folder. Do not upload private documents or sensitive personal files.
 
-The admin moderation dashboard is not enabled yet. It needs a confirmed owner account and a protected moderator role; it must not be secured with a public or hard-coded password.
+The Members page is the first page wired to the shared backend. The older Watchlist, Reviews, Shorts and Community preview pages still need their UI switched from browser-only storage to the shared backend before they behave as one connected social app.
+
+The admin moderation dashboard is not enabled yet. Reports are saved for review, but a protected moderator role and owner dashboard still need to be configured. It must not be secured with a public or hard-coded password.
+
+Supabase Free is $0, but includes limited database and file storage and pauses projects after a week of inactivity. Check the current limits before launch.
