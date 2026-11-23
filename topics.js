@@ -67,4 +67,19 @@ window.TP_TOPICS = [
  {title:"YouTube",article:"YouTube",category:"internet-culture"},
  {title:"MrBeast",article:"MrBeast",category:"internet-culture"},
  {title:"Meme",article:"Meme",category:"internet-culture"}
+,
+ {title:"The Godfather",article:"The_Godfather",category:"hollywood"},
+ {title:"The Dark Knight",article:"The_Dark_Knight_(film)",category:"hollywood"},
+ {title:"Inception",article:"Inception",category:"hollywood"},
+ {title:"Interstellar",article:"Interstellar_(film)",category:"hollywood"},
+ {title:"Avatar",article:"Avatar_(2009_film)",category:"hollywood"},
+ {title:"Top Gun: Maverick",article:"Top_Gun:_Maverick",category:"hollywood"},
+ {title:"Parasite",article:"Parasite_(2019_film)",category:"international-movies"},
+ {title:"Everything Everywhere All at Once",article:"Everything_Everywhere_All_at_Once",category:"international-movies"},
+ {title:"RRR",article:"RRR_(film)",category:"international-movies"},
+ {title:"Baahubali: The Beginning",article:"Baahubali:_The_Beginning",category:"international-movies"},
+ {title:"The Wandering Earth",article:"The_Wandering_Earth",category:"international-movies"},
+ {title:"Crouching Tiger, Hidden Dragon",article:"Crouching_Tiger,_Hidden_Dragon",category:"international-movies"},
+ {title:"City of God",article:"City_of_God_(2002_film)",category:"international-movies"},
+ {title:"Life Is Beautiful",article:"Life_Is_Beautiful",category:"international-movies"}
 ];
