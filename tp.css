@@ -145,3 +145,12 @@ header.top{background:rgba(9,13,24,.9);border-bottom-color:rgba(124,247,212,.2)}
 .chip[aria-pressed=true]{background:linear-gradient(110deg,var(--lime),#9fe9ff);color:var(--ink)}
 footer{border-top-color:rgba(124,247,212,.2)}
 @media(prefers-reduced-motion:reduce){.cats a{transition:none}}
+
+/* TVmaze discovery */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#tvmaze-results .tv-card{display:flex;flex-direction:column;gap:.65rem}
+#tvmaze-results .tv-poster{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:13px;background:var(--s2)}
+#tvmaze-results .tv-meta{color:var(--mut);font-size:.86rem}
+#tvmaze-results .tv-summary{color:var(--mut);font-size:.9rem}
+#tvmaze-results .tv-card .btn{align-self:flex-start;margin-top:auto}
+#tvmaze-form input{border-radius:999px}
