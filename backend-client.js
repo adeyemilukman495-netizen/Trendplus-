@@ -296,6 +296,92 @@
       });
       if (error) throw error;
     },
+    searchMembers: async term => {
+      const q = String(term || '').trim();
+      if (q.length < 2) return [];
+      const { data, error } = await client.from('profiles')
+        .select('id, username, display_name, bio, avatar_url')
+        .or('username.ilike.%' + q + '%,display_name.ilike.%' + q + '%')
+        .limit(20);
+      if (error) throw error;
+      return data;
+    },
+    followUser: async followedId => {
+      const user = await requireUser();
+      const { error } = await client.from('follows').insert({ follower_id: user.id, followed_id: followedId });
+      if (error && error.code !== '23505') throw error;
+    },
+    unfollowUser: async followedId => {
+      const user = await requireUser();
+      const { error } = await client.from('follows').delete().eq('follower_id', user.id).eq('followed_id', followedId);
+      if (error) throw error;
+    },
+    createClub: async values => {
+      const user = await requireUser();
+      const name = String(values.name || '').trim().slice(0, 70);
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + user.id.slice(0, 6);
+      const { data, error } = await client.from('fan_clubs').insert({
+        created_by: user.id,
+        name,
+        slug,
+        description: String(values.description || '').trim().slice(0, 500),
+        category: values.category || 'General',
+      }).select().single();
+      if (error) throw error;
+      const { error: memberError } = await client.from('fan_club_members').insert({
+        club_id: data.id, user_id: user.id, role: 'owner',
+      });
+      if (memberError) throw memberError;
+      return data;
+    },
+    getBattles: async () => {
+      const { data, error } = await client.from('battles').select('*').order('created_at', { ascending: false }).limit(50);
+      if (error) throw error;
+      return data;
+    },
+    createBattle: async values => {
+      const user = await requireUser();
+      const { data, error } = await client.from('battles').insert({
+        created_by: user.id,
+        title: String(values.title || '').trim().slice(0, 100),
+        left_title: String(values.left_title || '').trim().slice(0, 100),
+        right_title: String(values.right_title || '').trim().slice(0, 100),
+        category: values.category || 'General',
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    getStories: async () => {
+      const { data, error } = await client.from('stories')
+        .select('*, profiles:author_id(display_name, username)')
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false }).limit(100);
+      if (error) throw error;
+      return data;
+    },
+    createStory: async values => {
+      const user = await requireUser();
+      const { data, error } = await client.from('stories').insert({
+        author_id: user.id,
+        media_url: values.media_url,
+        caption: String(values.caption || '').trim().slice(0, 240),
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    getNotifications: async () => {
+      const user = await requireUser();
+      const { data, error } = await client.from('notifications').select('*')
+        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(50);
+      if (error) throw error;
+      return data;
+    },
+    markNotificationRead: async id => {
+      const user = await requireUser();
+      const { error } = await client.from('notifications').update({ is_read: true })
+        .eq('id', id).eq('user_id', user.id);
+      if (error) throw error;
+    },
     blockUser: async blockedId => {
       const user = await requireUser();
       const { error } = await client.from('blocks').insert({ blocker_id: user.id, blocked_id: blockedId });
