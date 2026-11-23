@@ -220,6 +220,55 @@
       await client.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
       return data;
     },
+    markMessageRead: async messageId => {
+      const { data, error } = await client.rpc('mark_message_read', { message_uuid: messageId });
+      if (error) throw error;
+      return data;
+    },
+    joinConversationRealtime: async (conversationId, handlers = {}) => {
+      const user = await requireUser();
+      const channel = client.channel('conversation:' + conversationId, {
+        config: { private: true, presence: { key: user.id } },
+      });
+      if (handlers.onPresence) {
+        channel.on('presence', { event: 'sync' }, () => {
+          handlers.onPresence(channel.presenceState());
+        });
+      }
+      if (handlers.onTyping) {
+        channel.on('broadcast', { event: 'typing' }, payload => {
+          if (payload.payload?.user_id !== user.id) handlers.onTyping(payload.payload);
+        });
+      }
+      if (handlers.onMessage) {
+        channel.on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: 'conversation_id=eq.' + conversationId,
+        }, payload => handlers.onMessage(payload.new));
+      }
+      const status = await new Promise(resolve => {
+        channel.subscribe(async state => {
+          if (state === 'SUBSCRIBED') {
+            await channel.track({ user_id: user.id, online_at: new Date().toISOString() });
+            resolve(state);
+          } else if (state === 'CHANNEL_ERROR' || state === 'TIMED_OUT') {
+            resolve(state);
+          }
+        });
+      });
+      return { channel, status };
+    },
+    sendTyping: async (channel, isTyping) => {
+      const user = await requireUser();
+      return channel.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { user_id: user.id, typing: Boolean(isTyping) },
+      });
+    },
+    leaveRealtime: channel => client.removeChannel(channel),
     subscribeToFeed: callback =>
       client.channel('trendpulse-public-feed')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, callback)
