@@ -1,0 +1,310 @@
+/* TrendPulse Supabase client bridge.
+ * Loads after the Supabase v2 browser bundle and supabase-config.js.
+ * The publishable key is designed for browser use; database RLS is the security boundary.
+ */
+(function () {
+  'use strict';
+
+  const configured = Boolean(
+    window.TRENDPULSE_SUPABASE_URL &&
+    window.TRENDPULSE_SUPABASE_PUBLISHABLE_KEY
+  );
+
+  if (!configured || !window.supabase) {
+    window.TPBackend = {
+      ready: false,
+      reason: 'Add your Supabase project URL and publishable key to supabase-config.js.',
+    };
+    return;
+  }
+
+  const client = window.supabase.createClient(
+    window.TRENDPULSE_SUPABASE_URL,
+    window.TRENDPULSE_SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+      realtime: {
+        params: { eventsPerSecond: 8 },
+      },
+    }
+  );
+
+  const currentUser = async () => {
+    const { data, error } = await client.auth.getUser();
+    if (error) throw error;
+    return data.user;
+  };
+
+  const requireUser = async () => {
+    const user = await currentUser();
+    if (!user) throw new Error('Please sign in first.');
+    return user;
+  };
+
+  window.TPBackend = {
+    ready: true,
+    client,
+    currentUser,
+    signUp: async (email, password, displayName) =>
+      client.auth.signUp({
+        email,
+        password,
+        options: { data: { display_name: displayName } },
+      }),
+    signIn: (email, password) =>
+      client.auth.signInWithPassword({ email, password }),
+    signOut: () => client.auth.signOut(),
+    onAuthChange: callback =>
+      client.auth.onAuthStateChange((_event, session) => callback(session?.user || null)),
+
+    getProfile: async userId => {
+      const id = userId || (await requireUser()).id;
+      const { data, error } = await client.from('profiles').select('*').eq('id', id).single();
+      if (error) throw error;
+      return data;
+    },
+    saveProfile: async values => {
+      const user = await requireUser();
+      const payload = {
+        id: user.id,
+        display_name: String(values.display_name || '').trim().slice(0, 40),
+        username: String(values.username || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24) || null,
+        bio: String(values.bio || '').trim().slice(0, 240),
+        updated_at: new Date().toISOString(),
+      };
+      if (!payload.display_name) throw new Error('Display name is required.');
+      const { data, error } = await client.from('profiles').upsert(payload).select().single();
+      if (error) throw error;
+      return data;
+    },
+
+    getPosts: async () => {
+      const { data, error } = await client
+        .from('posts')
+        .select('*, profiles:author_id(display_name, username, avatar_url)')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
+    createPost: async values => {
+      const user = await requireUser();
+      const { data, error } = await client.from('posts').insert({
+        author_id: user.id,
+        category: values.category || 'General',
+        content: String(values.content || '').trim().slice(0, 2000),
+        media_url: values.media_url || null,
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    getComments: async postId => {
+      const { data, error } = await client
+        .from('comments')
+        .select('*, profiles:author_id(display_name, username, avatar_url)')
+        .eq('post_id', postId)
+        .order('created_at');
+      if (error) throw error;
+      return data;
+    },
+    addComment: async (postId, content) => {
+      const user = await requireUser();
+      const { data, error } = await client.from('comments').insert({
+        post_id: postId,
+        author_id: user.id,
+        content: String(content || '').trim().slice(0, 1000),
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    toggleLike: async (postId, liked) => {
+      const user = await requireUser();
+      const query = client.from('post_likes');
+      const result = liked
+        ? await query.delete().eq('post_id', postId).eq('user_id', user.id)
+        : await query.insert({ post_id: postId, user_id: user.id });
+      if (result.error) throw result.error;
+      return !liked;
+    },
+
+    getWatchlist: async () => {
+      const user = await requireUser();
+      const { data, error } = await client.from('watchlist').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    addWatchlist: async values => {
+      const user = await requireUser();
+      const { data, error } = await client.from('watchlist').insert({
+        user_id: user.id,
+        external_id: values.external_id || null,
+        title: String(values.title || '').trim().slice(0, 160),
+        media_type: values.media_type || 'Other',
+        poster_url: values.poster_url || null,
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    updateWatchStatus: async (id, status) => {
+      const user = await requireUser();
+      const { data, error } = await client.from('watchlist').update({ status }).eq('id', id).eq('user_id', user.id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    removeWatchlist: async id => {
+      const user = await requireUser();
+      const { error } = await client.from('watchlist').delete().eq('id', id).eq('user_id', user.id);
+      if (error) throw error;
+    },
+
+    createReview: async values => {
+      const user = await requireUser();
+      const { data, error } = await client.from('reviews').insert({
+        author_id: user.id,
+        external_id: values.external_id || null,
+        title: String(values.title || '').trim().slice(0, 160),
+        media_type: values.media_type || 'Other',
+        rating: Number(values.rating),
+        content: String(values.content || '').trim().slice(0, 3000),
+        contains_spoilers: Boolean(values.contains_spoilers),
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    getReviews: async title => {
+      let query = client.from('reviews').select('*, profiles:author_id(display_name, username)').order('created_at', { ascending: false }).limit(50);
+      if (title) query = query.ilike('title', '%' + title + '%');
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+
+    startConversation: async otherUserId => {
+      const user = await requireUser();
+      const { data: conversation, error: conversationError } = await client
+        .from('conversations').insert({ created_by: user.id }).select().single();
+      if (conversationError) throw conversationError;
+      const { error: memberError } = await client.from('conversation_members').insert([
+        { conversation_id: conversation.id, user_id: user.id },
+        { conversation_id: conversation.id, user_id: otherUserId },
+      ]);
+      if (memberError) throw memberError;
+      return conversation;
+    },
+    getConversations: async () => {
+      const user = await requireUser();
+      const { data, error } = await client.from('conversation_members')
+        .select('conversation_id, conversations(id, created_at, updated_at)')
+        .eq('user_id', user.id);
+      if (error) throw error;
+      return data;
+    },
+    getMessages: async conversationId => {
+      const { data, error } = await client.from('messages').select('*')
+        .eq('conversation_id', conversationId).order('created_at').limit(100);
+      if (error) throw error;
+      return data;
+    },
+    sendMessage: async (conversationId, body) => {
+      const user = await requireUser();
+      const { data, error } = await client.from('messages').insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        body: String(body || '').trim().slice(0, 4000),
+      }).select().single();
+      if (error) throw error;
+      await client.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
+      return data;
+    },
+    subscribeToFeed: callback =>
+      client.channel('trendpulse-public-feed')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, callback)
+        .subscribe(),
+    subscribeToConversation: (conversationId, callback) =>
+      client.channel('trendpulse-conversation-' + conversationId)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: 'conversation_id=eq.' + conversationId,
+        }, callback)
+        .subscribe(),
+    removeChannel: channel => client.removeChannel(channel),
+
+    uploadMedia: async file => {
+      const user = await requireUser();
+      const allowed = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'];
+      if (!allowed.includes(file.type)) throw new Error('This file type is not supported.');
+      if (file.size > 50 * 1024 * 1024) throw new Error('Choose a file smaller than 50 MB.');
+      const extension = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
+      const path = user.id + '/' + crypto.randomUUID() + '.' + extension;
+      const { error } = await client.storage.from('trendpulse-media').upload(path, file, {
+        contentType: file.type,
+        upsert: false,
+      });
+      if (error) throw error;
+      const { data } = client.storage.from('trendpulse-media').getPublicUrl(path);
+      return data.publicUrl;
+    },
+
+    getShorts: async () => {
+      const { data, error } = await client.from('shorts')
+        .select('*, profiles:author_id(display_name, username)')
+        .order('created_at', { ascending: false }).limit(50);
+      if (error) throw error;
+      return data;
+    },
+    createShort: async values => {
+      const user = await requireUser();
+      const { data, error } = await client.from('shorts').insert({
+        author_id: user.id,
+        title: String(values.title || '').trim().slice(0, 100),
+        caption: String(values.caption || '').trim().slice(0, 280),
+        category: values.category || 'General',
+        video_url: values.video_url,
+        thumbnail_url: values.thumbnail_url || null,
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    getClubs: async () => {
+      const { data, error } = await client.from('fan_clubs').select('*').order('created_at', { ascending: false }).limit(100);
+      if (error) throw error;
+      return data;
+    },
+    joinClub: async clubId => {
+      const user = await requireUser();
+      const { error } = await client.from('fan_club_members').insert({ club_id: clubId, user_id: user.id });
+      if (error && error.code !== '23505') throw error;
+    },
+    castBattleVote: async (battleId, choice) => {
+      const user = await requireUser();
+      const { error } = await client.from('battle_votes').insert({ battle_id: battleId, user_id: user.id, choice });
+      if (error) throw error;
+    },
+    reportContent: async values => {
+      const user = await requireUser();
+      const { error } = await client.from('reports').insert({
+        reporter_id: user.id,
+        target_type: values.target_type,
+        target_id: values.target_id,
+        reason: String(values.reason || '').trim().slice(0, 1000),
+      });
+      if (error) throw error;
+    },
+    blockUser: async blockedId => {
+      const user = await requireUser();
+      const { error } = await client.from('blocks').insert({ blocker_id: user.id, blocked_id: blockedId });
+      if (error && error.code !== '23505') throw error;
+    },
+    unblockUser: async blockedId => {
+      const user = await requireUser();
+      const { error } = await client.from('blocks').delete().eq('blocker_id', user.id).eq('blocked_id', blockedId);
+      if (error) throw error;
+    },
+  };
+})();
