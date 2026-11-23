@@ -42,6 +42,14 @@
 </div>
 <div class="panel"><h2 style="font-size:1.5rem">Global buzz</h2><p class="note" style="margin:0 0 .5rem">Most-read Wikipedia articles on <span id="buzz-date">the latest day</span> (views)</p><ol class="buzz" id="buzz"><li><small>Loading…</small></li></ol></div>
 </div></div>
+
+<section class="block" id="tvmaze-discovery"><div class="wrap">
+  <div class="sec-head"><div><p class="kicker">TVmaze catalogue</p><h2>Find TV shows &amp; dramas worldwide</h2><p class="sub">Search available TV listings across Korean, Chinese, Japanese, Nigerian, Indian, American and other television. Coverage depends on the TVmaze catalogue.</p></div></div>
+  <form class="field" id="tvmaze-form" role="search"><label class="sr-only" for="tvmaze-query">Search TV shows</label><input id="tvmaze-query" type="search" placeholder="Search a show or drama, e.g. The Untamed" autocomplete="off"><button class="btn" type="submit">Search</button></form>
+  <p class="note" id="tvmaze-status" aria-live="polite">Search TVmaze's public catalogue. No API key required.</p>
+  <div class="grid" id="tvmaze-results"></div>
+  <p class="note">TV information supplied by <a href="https://www.tvmaze.com/" target="_blank" rel="noopener">TVmaze</a> under CC BY-SA. Channel details are not a guarantee that a title is currently available to stream.</p>
+</div></section>
 <section class="block"><div class="wrap"><div class="sec-head"><div><h2>Today’s Trend Battle</h2><p class="sub">Two topics, one question: who has the world’s attention this week? Vote, then check the data.</p></div><a class="btn ghost small" href="./battles.html">All battles</a></div><div id="today-battle"><div class="card sk"></div></div></div></section>
 <section class="block"><div class="wrap"><div class="sec-head"><div><p class="kicker" id="for-you" hidden>For you</p><h2>Trending now</h2><p class="sub" id="home-note">The most-read topics across every category this week.</p></div><a class="btn ghost small" href="./trending.html">See all trending</a></div><div class="grid" id="home-trend"></div></div></section>
 <div class="wrap"><aside class="slot" data-slot="inline" hidden></aside></div>
@@ -59,5 +67,6 @@
 <script src="./config.js?v=20261122"></script>
 <script src="./topics.js?v=20261122"></script>
 <script src="./tp.js?v=20261122"></script>
+<script src="./tvmaze.js?v=20261123"></script>
 </body>
 </html>
