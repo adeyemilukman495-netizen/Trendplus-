@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://adeyemilukman495-netizen.github.io/sitemap.xml
+Sitemap: https://adeyemilukman495-netizen.github.io/Trendplus-/sitemap.xml
