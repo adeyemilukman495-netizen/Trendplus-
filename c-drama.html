@@ -36,6 +36,14 @@
 <ul class="chips" style="margin-top:1.4rem"><li><button class="chip" type="button" data-m="trend" aria-pressed="true">Trending</button></li><li><button class="chip" type="button" data-m="rise" aria-pressed="false">Rising</button></li></ul>
 <div class="grid" id="out" style="margin-top:1rem"></div><aside class="slot" data-slot="inline" hidden></aside>
 <div class="plain"><h2>C-Drama topics we track</h2><ul><li>The Untamed</li><li>Love Between Fairy and Devil</li><li>Nirvana in Fire</li><li>Story of Yanxi Palace</li><li>Joy of Life</li></ul><p>Follow any topic with ☆, open its <a href="./history.html">trend history</a>, or compare favourites in <a href="./battles.html">Trend Battles</a>.</p></div></section></div>
+
+<section class="block" id="tvmaze-discovery"><div class="wrap">
+  <div class="sec-head"><div><p class="kicker">TVmaze catalogue</p><h2>Find TV shows &amp; dramas worldwide</h2><p class="sub">Search available TV listings across Korean, Chinese, Japanese, Nigerian, Indian, American and other television. Coverage depends on the TVmaze catalogue.</p></div></div>
+  <form class="field" id="tvmaze-form" role="search"><label class="sr-only" for="tvmaze-query">Search TV shows</label><input id="tvmaze-query" type="search" placeholder="Search a show or drama, e.g. The Untamed" autocomplete="off"><button class="btn" type="submit">Search</button></form>
+  <p class="note" id="tvmaze-status" aria-live="polite">Search TVmaze's public catalogue. No API key required.</p>
+  <div class="grid" id="tvmaze-results"></div>
+  <p class="note">TV information supplied by <a href="https://www.tvmaze.com/" target="_blank" rel="noopener">TVmaze</a> under CC BY-SA. Channel details are not a guarantee that a title is currently available to stream.</p>
+</div></section>
 <div class="wrap related"><p>More categories: <a href="./anime.html">Anime</a>, <a href="./movies.html">Movies</a>, <a href="./tv-series.html">TV Series</a>, <a href="./k-drama.html">K-Drama</a>, <a href="./j-drama.html">J-Drama</a>, <a href="./nollywood.html">Nollywood</a>, <a href="./bollywood.html">Bollywood</a>, <a href="./animation.html">Animation</a>, <a href="./gaming.html">Gaming</a>, <a href="./music.html">Music</a>, <a href="./technology.html">Technology</a>, <a href="./sports.html">Sports</a>, <a href="./internet-culture.html">Internet Culture</a>.</p></div>
 </main>
 <footer><div class="wrap foot">
@@ -47,5 +55,6 @@
 <script src="./config.js?v=20261122"></script>
 <script src="./topics.js?v=20261122"></script>
 <script src="./tp.js?v=20261122"></script>
+<script src="./tvmaze.js?v=20261123"></script>
 </body>
 </html>
