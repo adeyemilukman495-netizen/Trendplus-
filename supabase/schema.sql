@@ -356,9 +356,8 @@ create policy "Conversation participants update conversation metadata" on public
 drop policy if exists "Members read conversation membership" on public.conversation_members;
 create policy "Members read conversation membership" on public.conversation_members for select to authenticated using (public.is_conversation_member(conversation_id) or user_id = (select auth.uid()));
 drop policy if exists "Conversation creators add participants" on public.conversation_members;
-create policy "Conversation creators add participants" on public.conversation_members for insert to authenticated with check (
-  user_id = (select auth.uid()) or public.is_conversation_creator(conversation_id)
-);
+drop policy if exists "Members can add themselves to conversations" on public.conversation_members;
+-- Membership rows are inserted only inside the security-definer start_conversation() function.
 drop policy if exists "Members leave conversations" on public.conversation_members;
 create policy "Members leave conversations" on public.conversation_members for delete to authenticated using (user_id = (select auth.uid()));
 
@@ -369,9 +368,6 @@ create policy "Members send messages as themselves" on public.messages for inser
   sender_id = (select auth.uid()) and public.is_conversation_member(conversation_id)
 );
 drop policy if exists "Members update messages in their conversations" on public.messages;
-create policy "Members update messages in their conversations" on public.messages for update to authenticated using (
-  public.is_conversation_member(conversation_id)
-) with check (public.is_conversation_member(conversation_id));
 
 -- Shorts, fan clubs and stories.
 drop policy if exists "Shorts are publicly readable" on public.shorts;
@@ -393,7 +389,14 @@ create policy "Club owners delete their clubs" on public.fan_clubs for delete to
 drop policy if exists "Fan club members are visible to signed-in members" on public.fan_club_members;
 create policy "Fan club members are visible to signed-in members" on public.fan_club_members for select to authenticated using (true);
 drop policy if exists "Members join fan clubs as themselves" on public.fan_club_members;
-create policy "Members join fan clubs as themselves" on public.fan_club_members for insert to authenticated with check (user_id = (select auth.uid()));
+create policy "Members join fan clubs as themselves" on public.fan_club_members for insert to authenticated with check (
+  user_id = (select auth.uid()) and (
+    role = 'member' or exists (
+      select 1 from public.fan_clubs fc
+      where fc.id = club_id and fc.created_by = (select auth.uid())
+    )
+  )
+);
 drop policy if exists "Members leave fan clubs" on public.fan_club_members;
 create policy "Members leave fan clubs" on public.fan_club_members for delete to authenticated using (user_id = (select auth.uid()));
 
