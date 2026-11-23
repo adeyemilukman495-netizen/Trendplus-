@@ -443,6 +443,140 @@ drop policy if exists "Members read their own notifications" on public.notificat
 create policy "Members read their own notifications" on public.notifications for select to authenticated using (user_id = (select auth.uid()));
 drop policy if exists "Members update their own notifications" on public.notifications;
 create policy "Members update their own notifications" on public.notifications for update to authenticated using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+
+-- Private Realtime channels: set private: true in the client and disable public channel access
+-- in Supabase Dashboard → Realtime Settings.
+drop policy if exists "TrendPulse conversation realtime read" on realtime.messages;
+create policy "TrendPulse conversation realtime read"
+on realtime.messages for select to authenticated
+using (
+  realtime.topic() = 'trendpulse:presence'
+  or (
+    realtime.topic() ~ '^conversation:[0-9a-fA-F-]{36}drop policy if exists "Members delete their own notifications" on public.notifications;
+create policy "Members delete their own notifications" on public.notifications for delete to authenticated using (user_id = (select auth.uid()));
+
+-- Public community media bucket. Upload/change/delete are restricted to the owner's folder.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'trendpulse-media',
+  'trendpulse-media',
+  true,
+  52428800,
+  array['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "TrendPulse media is publicly viewable" on storage.objects;
+create policy "TrendPulse media is publicly viewable" on storage.objects for select using (bucket_id = 'trendpulse-media');
+drop policy if exists "Members upload into their own media folder" on storage.objects;
+create policy "Members upload into their own media folder" on storage.objects for insert to authenticated with check (
+  bucket_id = 'trendpulse-media' and (storage.foldername(name))[1] = (select auth.uid())::text
+);
+drop policy if exists "Members update their own media" on storage.objects;
+create policy "Members update their own media" on storage.objects for update to authenticated using (
+  bucket_id = 'trendpulse-media' and owner_id = (select auth.uid())::text
+) with check (
+  bucket_id = 'trendpulse-media' and owner_id = (select auth.uid())::text
+);
+drop policy if exists "Members delete their own media" on storage.objects;
+create policy "Members delete their own media" on storage.objects for delete to authenticated using (
+  bucket_id = 'trendpulse-media' and owner_id = (select auth.uid())::text
+);
+
+-- Enable database change streams for the social feed and chat.
+do $$
+declare
+  tbl text;
+begin
+  foreach tbl in array array['posts','comments','post_likes','messages','notifications','shorts','stories','battle_votes'] loop
+    if not exists (
+      select 1
+      from pg_publication_tables
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = tbl
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', tbl);
+    end if;
+  end loop;
+end $$;
+
+    and exists (
+      select 1 from public.conversation_members cm
+      where cm.conversation_id = split_part(realtime.topic(), ':', 2)::uuid
+        and cm.user_id = (select auth.uid())
+    )
+  )
+);
+
+drop policy if exists "TrendPulse conversation realtime write" on realtime.messages;
+create policy "TrendPulse conversation realtime write"
+on realtime.messages for insert to authenticated
+with check (
+  realtime.topic() = 'trendpulse:presence'
+  or (
+    realtime.topic() ~ '^conversation:[0-9a-fA-F-]{36}drop policy if exists "Members delete their own notifications" on public.notifications;
+create policy "Members delete their own notifications" on public.notifications for delete to authenticated using (user_id = (select auth.uid()));
+
+-- Public community media bucket. Upload/change/delete are restricted to the owner's folder.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'trendpulse-media',
+  'trendpulse-media',
+  true,
+  52428800,
+  array['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "TrendPulse media is publicly viewable" on storage.objects;
+create policy "TrendPulse media is publicly viewable" on storage.objects for select using (bucket_id = 'trendpulse-media');
+drop policy if exists "Members upload into their own media folder" on storage.objects;
+create policy "Members upload into their own media folder" on storage.objects for insert to authenticated with check (
+  bucket_id = 'trendpulse-media' and (storage.foldername(name))[1] = (select auth.uid())::text
+);
+drop policy if exists "Members update their own media" on storage.objects;
+create policy "Members update their own media" on storage.objects for update to authenticated using (
+  bucket_id = 'trendpulse-media' and owner_id = (select auth.uid())::text
+) with check (
+  bucket_id = 'trendpulse-media' and owner_id = (select auth.uid())::text
+);
+drop policy if exists "Members delete their own media" on storage.objects;
+create policy "Members delete their own media" on storage.objects for delete to authenticated using (
+  bucket_id = 'trendpulse-media' and owner_id = (select auth.uid())::text
+);
+
+-- Enable database change streams for the social feed and chat.
+do $$
+declare
+  tbl text;
+begin
+  foreach tbl in array array['posts','comments','post_likes','messages','notifications','shorts','stories','battle_votes'] loop
+    if not exists (
+      select 1
+      from pg_publication_tables
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = tbl
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', tbl);
+    end if;
+  end loop;
+end $$;
+
+    and exists (
+      select 1 from public.conversation_members cm
+      where cm.conversation_id = split_part(realtime.topic(), ':', 2)::uuid
+        and cm.user_id = (select auth.uid())
+    )
+  )
+);
 drop policy if exists "Members delete their own notifications" on public.notifications;
 create policy "Members delete their own notifications" on public.notifications for delete to authenticated using (user_id = (select auth.uid()));
 
