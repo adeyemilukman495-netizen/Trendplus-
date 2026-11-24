@@ -1,4 +1,4 @@
-name: Supabase connection check
+name: Supabase post-migration schema verification
 
 on:
   push:
