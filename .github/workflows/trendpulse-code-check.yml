@@ -1,0 +1,26 @@
+name: TrendPulse code validation
+
+on:
+  push:
+    paths:
+      - '.github/workflows/trendpulse-code-check.yml'
+      - 'features.js'
+      - 'backend-client.js'
+      - 'members.js'
+      - '*.html'
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          set -euo pipefail
+          node --check features.js
+          node --check backend-client.js
+          node --check members.js
+          echo "JavaScript syntax checks passed."
