@@ -182,7 +182,7 @@ as $$
     select 1 from public.conversation_members cm
     where cm.conversation_id = conversation_uuid and cm.user_id = (select auth.uid())
   );
-$;
+$$;
 revoke all on function public.is_conversation_member(uuid) from public;
 grant execute on function public.is_conversation_member(uuid) to authenticated;
 
