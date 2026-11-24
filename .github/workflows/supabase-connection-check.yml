@@ -31,6 +31,35 @@ jobs:
           fi
 
           response_file="$(mktemp)"
+          payload_file="$(mktemp)"
+          SQL_QUERY="$(cat <<'SQL'
+          select json_build_object(
+            'existing_tables', count(*),
+            'missing_tables', (
+              select coalesce(json_agg(expected.table_name order by expected.table_name), '[]'::json)
+              from (values
+                ('profiles'),('posts'),('comments'),('post_likes'),('follows'),
+                ('watchlist'),('reviews'),('conversations'),('conversation_members'),
+                ('messages'),('shorts'),('fan_clubs'),('fan_club_members'),('battles'),
+                ('battle_votes'),('stories'),('story_views'),('reports'),('blocks'),('notifications')
+              ) as expected(table_name)
+              where not exists (
+                select 1 from information_schema.tables t
+                where t.table_schema='public' and t.table_name=expected.table_name
+              )
+            )
+          ) as trendpulse_schema_audit
+          from information_schema.tables
+          where table_schema='public'
+          and table_name in (
+            'profiles','posts','comments','post_likes','follows','watchlist','reviews',
+            'conversations','conversation_members','messages','shorts','fan_clubs',
+            'fan_club_members','battles','battle_votes','stories','story_views',
+            'reports','blocks','notifications'
+          )
+          SQL
+          )"
+          jq -n --arg query "$SQL_QUERY" '{query:$query,read_only:true}' > "$payload_file"
           status="$(curl --silent --show-error \
             --output "$response_file" \
             --write-out "%{http_code}" \
@@ -38,12 +67,18 @@ jobs:
             "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query" \
             --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
             --header "Content-Type: application/json" \
-            --data '{"query":"select json_build_object(\n  'existing_tables', count(*),\n  'missing_tables', (\n    select coalesce(json_agg(expected.table_name order by expected.table_name), '[]'::json)\n    from (values\n      ('profiles'),('posts'),('comments'),('post_likes'),('follows'),\n      ('watchlist'),('reviews'),('conversations'),('conversation_members'),\n      ('messages'),('shorts'),('fan_clubs'),('fan_club_members'),('battles'),\n      ('battle_votes'),('stories'),('story_views'),('reports'),('blocks'),('notifications')\n    ) as expected(table_name)\n    where not exists (\n      select 1 from information_schema.tables t\n      where t.table_schema='public' and t.table_name=expected.table_name\n    )\n  )\n) as trendpulse_schema_audit\nfrom information_schema.tables\nwhere table_schema='public'\nand table_name in (\n  'profiles','posts','comments','post_likes','follows','watchlist','reviews',\n  'conversations','conversation_members','messages','shorts','fan_clubs',\n  'fan_club_members','battles','battle_votes','stories','story_views',\n  'reports','blocks','notifications'\n)","read_only":true}')"
+            --data-binary @"$payload_file")"
 
           if [ "$status" != "201" ]; then
-            echo "Supabase check failed (HTTP $status)."
+            echo "Supabase schema audit failed (HTTP $status)."
             cat "$response_file"
-            rm -f "$response_file"
+            rm -f "$response_file" "$payload_file"
+            exit 1
+          fi
+
+          echo "Supabase connection succeeded. Read-only schema audit result:"
+          cat "$response_file"
+          rm -f "$response_file" "$payload_file"
             exit 1
           fi
 
