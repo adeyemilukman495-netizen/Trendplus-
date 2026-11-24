@@ -34,7 +34,7 @@ jobs:
           payload_file="$(mktemp)"
           SQL_QUERY="$(cat <<'SQL'
           select json_build_object(
-            'existing_tables', count(*),
+            'existing_tables', coalesce((select json_agg(t.table_name order by t.table_name) from information_schema.tables t where t.table_schema='public' and t.table_name in ('profiles','posts','comments','post_likes','follows','watchlist','reviews','conversations','conversation_members','messages','shorts','fan_clubs','fan_club_members','battles','battle_votes','stories','story_views','reports','blocks','notifications')), '[]'::json),
             'missing_tables', (
               select coalesce(json_agg(expected.table_name order by expected.table_name), '[]'::json)
               from (values
@@ -79,8 +79,3 @@ jobs:
           echo "Supabase connection succeeded. Read-only schema audit result:"
           cat "$response_file"
           rm -f "$response_file" "$payload_file"
-            exit 1
-          fi
-
-          echo "Supabase Management API connection succeeded. Read-only schema audit result:"\n          cat "$response_file"
-          rm -f "$response_file"
