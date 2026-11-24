@@ -121,14 +121,21 @@
       if (error) throw error;
       return data;
     },
-    toggleLike: async (postId, liked) => {
+    toggleLike: async postId => {
       const user = await requireUser();
-      const query = client.from('post_likes');
-      const result = liked
-        ? await query.delete().eq('post_id', postId).eq('user_id', user.id)
-        : await query.insert({ post_id: postId, user_id: user.id });
-      if (result.error) throw result.error;
-      return !liked;
+      const { data: existing, error: readError } = await client
+        .from('post_likes').select('post_id')
+        .eq('post_id', postId).eq('user_id', user.id).maybeSingle();
+      if (readError) throw readError;
+      if (existing) {
+        const { error } = await client.from('post_likes').delete()
+          .eq('post_id', postId).eq('user_id', user.id);
+        if (error) throw error;
+        return false;
+      }
+      const { error } = await client.from('post_likes').insert({ post_id: postId, user_id: user.id });
+      if (error) throw error;
+      return true;
     },
 
     getWatchlist: async () => {
@@ -348,9 +355,11 @@
     searchMembers: async term => {
       const q = String(term || '').trim();
       if (q.length < 2) return [];
+      const user = await requireUser();
       const { data, error } = await client.from('profiles')
         .select('id, username, display_name, bio, avatar_url')
         .or('username.ilike.%' + q + '%,display_name.ilike.%' + q + '%')
+        .neq('id', user.id)
         .limit(20);
       if (error) throw error;
       return data;
@@ -402,7 +411,7 @@
     },
     getStories: async () => {
       const { data, error } = await client.from('stories')
-        .select('*, profiles:author_id(display_name, username)')
+        .select('*, profiles!stories_author_id_fkey(display_name, username)')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false }).limit(100);
       if (error) throw error;
