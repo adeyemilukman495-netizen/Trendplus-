@@ -1,4 +1,5 @@
-// Fill these two values after creating your free Supabase project.
-// Never put a Supabase secret/service_role key in this file.
-window.TRENDPULSE_SUPABASE_URL = '';
-window.TRENDPULSE_SUPABASE_PUBLISHABLE_KEY = '';
+// TrendPulse Supabase browser configuration.
+// The publishable key is intended for public browser use.
+// Keep database access protected with correctly configured Row Level Security.
+window.TRENDPULSE_SUPABASE_URL = 'https://ndldroodunoxlitifymo.supabase.co';
+window.TRENDPULSE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_SVfXK8tYaYhRHp3tgQL3Mw_tg2F2DKl';
