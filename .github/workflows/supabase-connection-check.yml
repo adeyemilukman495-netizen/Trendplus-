@@ -1,6 +1,9 @@
 name: Supabase connection check
 
 on:
+  push:
+    paths:
+      - '.github/workflows/supabase-connection-check.yml'
   workflow_dispatch:
     inputs:
       confirm:
@@ -13,7 +16,7 @@ permissions:
 
 jobs:
   check:
-    if: ${{ inputs.confirm == 'CHECK' }}
+    if: ${{ github.event_name == 'push' || inputs.confirm == 'CHECK' }}
     runs-on: ubuntu-latest
     steps:
       - name: Verify Supabase Management API access (read-only)
