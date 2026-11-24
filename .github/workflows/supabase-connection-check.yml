@@ -38,7 +38,7 @@ jobs:
             "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query" \
             --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
             --header "Content-Type: application/json" \
-            --data '{"query":"select current_database() is not null as connected","read_only":true}')"
+            --data '{"query":"select json_build_object(\n  'existing_tables', count(*),\n  'missing_tables', (\n    select coalesce(json_agg(expected.table_name order by expected.table_name), '[]'::json)\n    from (values\n      ('profiles'),('posts'),('comments'),('post_likes'),('follows'),\n      ('watchlist'),('reviews'),('conversations'),('conversation_members'),\n      ('messages'),('shorts'),('fan_clubs'),('fan_club_members'),('battles'),\n      ('battle_votes'),('stories'),('story_views'),('reports'),('blocks'),('notifications')\n    ) as expected(table_name)\n    where not exists (\n      select 1 from information_schema.tables t\n      where t.table_schema='public' and t.table_name=expected.table_name\n    )\n  )\n) as trendpulse_schema_audit\nfrom information_schema.tables\nwhere table_schema='public'\nand table_name in (\n  'profiles','posts','comments','post_likes','follows','watchlist','reviews',\n  'conversations','conversation_members','messages','shorts','fan_clubs',\n  'fan_club_members','battles','battle_votes','stories','story_views',\n  'reports','blocks','notifications'\n)","read_only":true}')"
 
           if [ "$status" != "201" ]; then
             echo "Supabase check failed (HTTP $status)."
@@ -47,5 +47,5 @@ jobs:
             exit 1
           fi
 
-          echo "Supabase Management API connection succeeded. Read-only test passed."
+          echo "Supabase Management API connection succeeded. Read-only schema audit result:"\n          cat "$response_file"
           rm -f "$response_file"
