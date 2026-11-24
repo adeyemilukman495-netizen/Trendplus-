@@ -182,7 +182,9 @@ as $$
     select 1 from public.conversation_members cm
     where cm.conversation_id = conversation_uuid and cm.user_id = (select auth.uid())
   );
-$$;
+$;
+revoke all on function public.is_conversation_member(uuid) from public;
+grant execute on function public.is_conversation_member(uuid) to authenticated;
 
 create or replace function public.create_trendpulse_profile()
 returns trigger language plpgsql security definer set search_path = public
@@ -220,6 +222,7 @@ begin
   return new_conversation;
 end;
 $$;
+revoke all on function public.start_conversation(uuid) from public;
 grant execute on function public.start_conversation(uuid) to authenticated;
 
 create or replace function public.mark_message_read(message_uuid uuid)
@@ -237,6 +240,7 @@ begin
   return changed > 0;
 end;
 $$;
+revoke all on function public.mark_message_read(uuid) from public;
 grant execute on function public.mark_message_read(uuid) to authenticated;
 
 alter table public.profiles enable row level security;
