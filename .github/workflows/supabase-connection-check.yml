@@ -34,7 +34,20 @@ jobs:
           payload_file="$(mktemp)"
           SQL_QUERY="$(cat <<'SQL'
           select json_build_object(
-            'existing_tables', coalesce((select json_agg(t.table_name order by t.table_name) from information_schema.tables t where t.table_schema='public' and t.table_name in ('profiles','posts','comments','post_likes','follows','watchlist','reviews','conversations','conversation_members','messages','shorts','fan_clubs','fan_club_members','battles','battle_votes','stories','story_views','reports','blocks','notifications')), '[]'::json),
+            'columns', coalesce((
+              select json_agg(json_build_object('table',table_name,'column',column_name,'type',data_type,'nullable',is_nullable,'default',column_default) order by table_name,ordinal_position)
+              from information_schema.columns
+              where table_schema='public' and table_name in ('profiles','posts','comments','post_likes','follows','watchlist','reviews','conversations','conversation_members','messages','shorts','fan_clubs','fan_club_members','battles','battle_votes','stories','story_views','reports','blocks','notifications')
+            ), '[]'::json),
+            'policies', coalesce((
+              select json_agg(json_build_object('table',tablename,'name',policyname,'command',cmd,'roles',roles,'using',qual,'check',with_check) order by tablename,policyname)
+              from pg_policies where schemaname='public'
+            ), '[]'::json),
+            'rls', coalesce((
+              select json_agg(json_build_object('table',c.relname,'enabled',c.relrowsecurity) order by c.relname)
+              from pg_class c join pg_namespace n on n.oid=c.relnamespace
+              where n.nspname='public' and c.relkind='r'
+            ), '[]'::json),
             'missing_tables', (
               select coalesce(json_agg(expected.table_name order by expected.table_name), '[]'::json)
               from (values
@@ -43,22 +56,11 @@ jobs:
                 ('messages'),('shorts'),('fan_clubs'),('fan_club_members'),('battles'),
                 ('battle_votes'),('stories'),('story_views'),('reports'),('blocks'),('notifications')
               ) as expected(table_name)
-              where not exists (
-                select 1 from information_schema.tables t
-                where t.table_schema='public' and t.table_name=expected.table_name
-              )
+              where not exists (select 1 from information_schema.tables t where t.table_schema='public' and t.table_name=expected.table_name)
             )
-          ) as trendpulse_schema_audit
-          from information_schema.tables
-          where table_schema='public'
-          and table_name in (
-            'profiles','posts','comments','post_likes','follows','watchlist','reviews',
-            'conversations','conversation_members','messages','shorts','fan_clubs',
-            'fan_club_members','battles','battle_votes','stories','story_views',
-            'reports','blocks','notifications'
-          )
+          ) as trendpulse_schema_inspection
           SQL
-          )"
+          )""
           jq -n --arg query "$SQL_QUERY" '{query:$query,read_only:true}' > "$payload_file"
           status="$(curl --silent --show-error \
             --output "$response_file" \
