@@ -40,7 +40,8 @@
       like.className = 'secondary';
       like.textContent = '♥ Like';
       like.onclick = () => run(async () => {
-        await backend.toggleLike(post.id, false);
+        const liked = await backend.toggleLike(post.id);
+        like.textContent = liked ? '♥ Liked' : '♥ Like';
         feedback('Your like was saved.');
       });
       const commentForm = document.createElement('form');
