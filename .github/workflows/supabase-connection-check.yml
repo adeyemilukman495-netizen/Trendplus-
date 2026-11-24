@@ -60,7 +60,7 @@ jobs:
             )
           ) as trendpulse_schema_inspection
           SQL
-          )""
+          )"
           jq -n --arg query "$SQL_QUERY" '{query:$query,read_only:true}' > "$payload_file"
           status="$(curl --silent --show-error \
             --output "$response_file" \
