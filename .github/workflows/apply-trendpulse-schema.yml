@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/apply-trendpulse-schema.yml'
+      - 'supabase/migrations/20261124230000_trendpulse_initial_schema.sql'
 
 permissions:
   contents: read
