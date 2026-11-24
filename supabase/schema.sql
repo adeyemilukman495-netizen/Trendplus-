@@ -263,6 +263,8 @@ alter table public.notifications enable row level security;
 -- Public catalogue/community reads; writes are limited to the signed-in owner.
 drop policy if exists "Profiles are publicly readable" on public.profiles;
 create policy "Profiles are publicly readable" on public.profiles for select using (true);
+drop policy if exists "Members create their own profile" on public.profiles;
+create policy "Members create their own profile" on public.profiles for insert to authenticated with check (id = auth.uid());
 drop policy if exists "Members update their own profile" on public.profiles;
 create policy "Members update their own profile" on public.profiles for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 
@@ -337,7 +339,14 @@ create policy "Club owners manage their clubs" on public.fan_clubs for update to
 drop policy if exists "Fan club membership is readable" on public.fan_club_members;
 create policy "Fan club membership is readable" on public.fan_club_members for select to authenticated using (true);
 drop policy if exists "Members join fan clubs as themselves" on public.fan_club_members;
-create policy "Members join fan clubs as themselves" on public.fan_club_members for insert to authenticated with check (user_id = auth.uid() and role = 'member');
+create policy "Members join fan clubs as themselves" on public.fan_club_members for insert to authenticated with check (
+  user_id = auth.uid() and (
+    role = 'member' or exists (
+      select 1 from public.fan_clubs fc
+      where fc.id = club_id and fc.created_by = auth.uid() and role = 'owner'
+    )
+  )
+);
 drop policy if exists "Members leave fan clubs" on public.fan_club_members;
 create policy "Members leave fan clubs" on public.fan_club_members for delete to authenticated using (user_id = auth.uid());
 
