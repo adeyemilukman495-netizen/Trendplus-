@@ -218,3 +218,5 @@ body[data-feature="community"] .community-tabs a.active{background:#b9e7d0;color
  .library-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
  .library-info{padding:10px}
 }
+
+.community-auth-card{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:0 0 1rem;padding:1rem 1.2rem;border:1px solid var(--line,rgba(255,255,255,.12));border-radius:16px;background:var(--surface,rgba(255,255,255,.04))}.community-auth-card strong{display:block;font-size:1.05rem}.community-auth-card p{margin:.35rem 0 0;color:var(--muted,#aab)}@media(max-width:600px){.community-auth-card{align-items:flex-start;flex-direction:column}}
