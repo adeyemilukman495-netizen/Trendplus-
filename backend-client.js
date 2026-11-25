@@ -87,6 +87,7 @@
       };
       if (!payload.display_name) throw new Error('Display name is required.');
       const { data, error } = await client.from('profiles').upsert(payload).select().single();
+      if (error?.code === '23505') throw new Error('That username is already taken. Please choose another one.');
       if (error) throw error;
       return data;
     },
