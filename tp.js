@@ -41,8 +41,15 @@ async function loadData(){
  return records;
 }
 function starButton(t){const saved=JSON.parse(localStorage.getItem("tp-follows")||"[]");const yes=saved.includes(t.article);return '<button class="star" type="button" data-star="'+safe(t.article)+'" aria-label="'+(yes?"Unfollow ":"Follow ")+safe(t.title)+'" aria-pressed="'+yes+'">'+(yes?"★":"☆")+'</button>';}
-function card(t){const rise=t.growth>=0;const trend=t.growth===null?null:Math.round(t.growth);const series=t.series||[];const points=series.map((v,i)=>{const x=4+i*(92/Math.max(1,series.length-1));const max=Math.max(1,...series);const y=31-(v/max)*26;return x.toFixed(1)+","+y.toFixed(1)}).join(" ");
-return '<article class="card"><div class="top"><span class="tag">'+safe((cfg.categories||[]).find(c=>c[0]===t.category)?.[1]||t.category)+'</span>'+starButton(t)+'</div><h3><a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(t.article)+'" target="_blank" rel="noopener">'+safe(t.title)+'</a></h3><p class="avg"><b>'+fmt(t.avg)+'</b> avg views/day</p><span class="badge '+(rise?"up":"down")+'">'+(rise?"▲ ":"▼ ")+Math.abs(trend)+'% vs previous week</span>'+(points?'<svg class="spark" viewBox="0 0 100 36" role="img" aria-label="Recent page view trend"><polyline points="'+points+'"></polyline></svg>':"")+'</article>';}
+function card(t){
+ const hasBaseline=t.growth!==null&&Number.isFinite(t.growth);
+ const rise=hasBaseline&&t.growth>=0;
+ const trend=hasBaseline?Math.round(t.growth):null;
+ const series=t.series||[];
+ const points=series.map((v,i)=>{const x=4+i*(92/Math.max(1,series.length-1));const max=Math.max(1,...series);const y=31-(v/max)*26;return x.toFixed(1)+","+y.toFixed(1)}).join(" ");
+ const badge=hasBaseline?(rise?"▲ ":"▼ ")+Math.abs(trend)+"% vs previous week":"NEW · no previous-week baseline";
+ return '<article class="card"><div class="top"><span class="tag">'+safe((cfg.categories||[]).find(c=>c[0]===t.category)?.[1]||t.category)+'</span>'+starButton(t)+'</div><h3><a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(t.article)+'" target="_blank" rel="noopener">'+safe(t.title)+'</a></h3><p class="avg"><b>'+fmt(t.avg)+'</b> avg views/day</p><span class="badge '+(hasBaseline?(rise?"up":"down"):"up")+'">'+badge+'</span>'+(points?'<svg class="spark" viewBox="0 0 100 36" role="img" aria-label="Recent page view trend"><polyline points="'+points+'"></polyline></svg>':"")+'</article>';
+}
 function bindStars(root=document){$$("[data-star]",root).forEach(b=>b.addEventListener("click",()=>{let a=[];try{a=JSON.parse(localStorage.getItem("tp-follows")||"[]")}catch(e){}const id=b.dataset.star;a=a.includes(id)?a.filter(x=>x!==id):[...a,id];localStorage.setItem("tp-follows",JSON.stringify(a));b.textContent=a.includes(id)?"★":"☆";b.setAttribute("aria-pressed",String(a.includes(id)));b.setAttribute("aria-label",(a.includes(id)?"Unfollow ":"Follow ")+(topics.find(t=>t.article===id)?.title||id));}));}
 function chips(active,fn){const ul=$("#chips");if(!ul)return;ul.innerHTML=(cfg.categories||[]).map(c=>'<li><button class="chip" type="button" data-cat="'+c[0]+'" aria-pressed="'+(c[0]===active)+'">'+safe(c[1])+'</button></li>').join("");$$("[data-cat]",ul).forEach(b=>b.addEventListener("click",()=>{active=b.dataset.cat;$$("[data-cat]",ul).forEach(x=>x.setAttribute("aria-pressed",String(x===b)));fn(active);}));}
 function renderList(target,list){if(!target)return;target.innerHTML=list.length?list.map(card).join(""):'<p class="demo">No page-view data was returned for these topics. Please try again later.</p>';bindStars(target);}
