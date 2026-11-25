@@ -60,7 +60,9 @@
     signInWithGoogle: () => client.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + window.location.pathname,
+        // Always return OAuth users to the published GitHub Pages site.
+        // This prevents a local preview hostname (localhost) becoming the callback.
+        redirectTo: 'https://adeyemilukman495-netizen.github.io/Trendplus-/profile.html',
       },
     }),
     signOut: () => client.auth.signOut(),
