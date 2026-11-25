@@ -52,6 +52,7 @@ create policy "Members comment on shorts" on public.short_comments for insert to
       (s.visibility = 'followers' and exists (select 1 from public.follows f where f.follower_id = (select auth.uid()) and f.followed_id = s.author_id)))
   )
 );
+drop policy if exists "Authors delete own short comments" on public.short_comments;
 create policy "Authors delete own short comments" on public.short_comments for delete to authenticated using (author_id = (select auth.uid()));
 
 grant select on public.short_likes, public.short_comments to anon, authenticated;
