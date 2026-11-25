@@ -101,6 +101,7 @@ function render(){
  const note=$("#home-note");if(note&&all.length)note.textContent="Ranked by average daily Wikipedia page views for the latest complete 7-day period.";
 }
 function init(){
+ const siteNav=document.querySelector('header.top nav');if(siteNav&&!document.querySelector('.site-menu-toggle')){const toggle=document.createElement('button');toggle.type='button';toggle.className='site-menu-toggle';toggle.setAttribute('aria-label','Open navigation');toggle.setAttribute('aria-expanded','false');toggle.innerHTML='<span></span><span></span><span></span>';siteNav.parentElement.insertBefore(toggle,siteNav);toggle.addEventListener('click',()=>{const open=toggle.getAttribute('aria-expanded')!=='true';toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Close navigation':'Open navigation');siteNav.classList.toggle('is-open',open)});siteNav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{toggle.setAttribute('aria-expanded','false');siteNav.classList.remove('is-open')}));}
  const placeholders=$$(".grid");placeholders.forEach(el=>{if(!el.children.length)el.innerHTML='<div class="card sk" aria-label="Loading trends"></div><div class="card sk" aria-hidden="true"></div><div class="card sk" aria-hidden="true"></div>';});
  loadData().then(render).catch(()=>{ $$(".grid").forEach(el=>el.innerHTML='<p class="demo">Live trend data is temporarily unavailable. Please refresh in a little while.</p>');});
 }
