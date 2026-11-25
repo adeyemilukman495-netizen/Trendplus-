@@ -419,3 +419,31 @@ body[data-page="rising"] #out>.card .spark{max-width:230px}
 .site-menu-toggle{display:none;background:transparent;border:1px solid var(--line);border-radius:11px;padding:9px;min-width:44px;min-height:44px;color:var(--text)}
 .site-menu-toggle span{display:block;width:21px;height:2px;background:var(--text);margin:4px auto;border-radius:4px}
 @media(max-width:760px){.bar{position:relative}.site-menu-toggle{display:block;margin-left:auto}header.top nav{display:none!important;position:absolute;top:100%;left:0;right:0;width:100%;padding:10px;background:rgba(12,15,11,.98);border:1px solid var(--line);border-radius:0 0 16px 16px;box-shadow:0 16px 35px #0008;z-index:30}header.top nav.is-open{display:block!important}header.top nav ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}header.top nav a{padding:11px 10px;border-radius:10px}}
+
+
+/* Home, Discover and Trending visual hierarchy pass */
+body[data-page="home"] .hero .cta{gap:12px;flex-wrap:wrap}
+body[data-page="home"] .hero .cta .btn{min-height:52px;padding:14px 21px}
+body[data-page="home"] .home-hub .sec-head .sub{max-width:620px}
+body[data-page="home"] .hub-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+body[data-page="home"] .hub-card:focus-visible{outline:3px solid var(--accent2);outline-offset:3px}
+body[data-page="discover"] main>.wrap>section.block{max-width:1120px;margin-inline:auto}
+body[data-page="discover"] .page-h{font-size:clamp(2.6rem,7vw,4.5rem);letter-spacing:-.055em}
+body[data-page="discover"] #pick{display:flex;flex-wrap:wrap;gap:10px;padding:18px;border:1px solid rgba(139,124,255,.25);border-radius:22px;background:linear-gradient(135deg,rgba(139,124,255,.1),rgba(67,217,232,.045))}
+body[data-page="discover"] #pick .chip{min-height:46px;padding:10px 17px}
+body[data-page="discover"] #fy-trend,body[data-page="discover"] #fy-rise,body[data-page="discover"] #watch{align-items:stretch;gap:16px}
+body[data-page="discover"] #fy-trend>.card,body[data-page="discover"] #fy-rise>.card,body[data-page="discover"] #watch>.card{min-width:0;border-radius:20px;display:flex;flex-direction:column}
+body[data-page="discover"] #fy-trend>.card h3,body[data-page="discover"] #fy-rise>.card h3,body[data-page="discover"] #watch>.card h3{font-size:1.25rem;line-height:1.25}
+body[data-page="discover"] #fy-empty{padding:22px;border:1px dashed var(--accent2);border-radius:18px;background:rgba(139,124,255,.07)}
+body[data-page="trending"] .page-h{font-size:clamp(2.6rem,7vw,4.5rem);letter-spacing:-.055em}
+body[data-page="trending"] #chips{display:flex;flex-wrap:wrap;gap:9px;padding:16px;border:1px solid rgba(139,124,255,.25);border-radius:20px;background:rgba(139,124,255,.07)}
+body[data-page="trending"] #count{padding:8px 2px;font-weight:700;color:#b8c5e3}
+body[data-page="trending"] #out{grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:16px}
+body[data-page="trending"] #out>.card{min-width:0;min-height:220px;border-radius:21px;display:flex;flex-direction:column;gap:9px}
+body[data-page="trending"] #out>.card h3{font-size:1.3rem;line-height:1.25}
+body[data-page="trending"] #out>.card .actions{margin-top:auto}
+@media(max-width:600px){
+ body[data-page="discover"] #pick,body[data-page="trending"] #chips{padding:12px;gap:8px}
+ body[data-page="discover"] #pick .chip,body[data-page="trending"] .chip{font-size:.9rem}
+ body[data-page="discover"] #fy-trend,body[data-page="discover"] #fy-rise,body[data-page="discover"] #watch,body[data-page="trending"] #out{grid-template-columns:1fr}
+}
