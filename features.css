@@ -408,3 +408,9 @@ body[data-feature="shorts"] .short-comment-form button{min-width:66px;min-height
  body[data-feature="shorts"] .short-action{width:46px;min-height:46px}
  body[data-feature="shorts"] .short-overlay{left:13px;right:72px}
 }
+
+/* Shorts interaction feedback and thumb-friendly action controls */
+.short-action:disabled{opacity:.6;cursor:wait}
+.short-action.is-liked{color:#ff8da8;transform:scale(1.04)}
+.short-follow:disabled{opacity:.8}
+@media(max-width:420px){.short-creator-actions{left:12px;gap:7px}.short-actions{right:9px;gap:13px}.short-action{width:46px;min-height:46px}}
