@@ -272,6 +272,21 @@ form.onsubmit=async e=>{
  }catch(err){message(err.message||'Your profile could not be saved. Please try again.','error')}
  finally{btn.disabled=false}
 };
+const passwordForm=$('#password-change-form');
+if(passwordForm){passwordForm.onsubmit=async e=>{
+ e.preventDefault();
+ const next=$('#new-account-password').value;
+ const confirm=$('#confirm-account-password').value;
+ const button=passwordForm.querySelector('button[type=submit]');
+ const note=$('#password-change-status');
+ note.textContent='';
+ if(next.length<8){note.textContent='Use at least 8 characters.';return}
+ if(next!==confirm){note.textContent='The passwords do not match.';return}
+ button.disabled=true;note.textContent='Updating password…';
+ try{await backend.updatePassword(next);passwordForm.reset();note.textContent='Password updated successfully.'}
+ catch(err){note.textContent=err.message||'Password could not be updated.'}
+ finally{button.disabled=false}
+};}
 setMode('signin');refresh();
 if(backend?.onAuthChange)backend.onAuthChange(()=>refresh());
 }
