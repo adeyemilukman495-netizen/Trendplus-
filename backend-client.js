@@ -113,6 +113,17 @@
       if (error) throw error;
       return data || [];
     },
+    createGroupRoom: async values => {
+      await requireUser();
+      const name=String(values.name||'').trim();
+      const description=String(values.description||'').trim();
+      const category=String(values.category||'General').trim();
+      const {data,error}=await client.rpc('create_group_room',{
+        room_name:name,room_description:description,room_category:category
+      });
+      if(error)throw error;
+      return data;
+    },
     getGroupRoomMemberships: async () => {
       const user = await requireUser();
       const { data, error } = await client.from('group_room_members')

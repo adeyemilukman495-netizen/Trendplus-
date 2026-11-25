@@ -275,3 +275,26 @@ body[data-feature="profile"] .owner-admin-link>span:first-child{font-size:1.4rem
 body[data-feature="profile"] .owner-admin-link>span:nth-child(2){display:grid;gap:4px;flex:1}
 body[data-feature="profile"] .owner-admin-link small{color:#a8c8ba;font-size:.78rem}
 body[data-feature="profile"] .owner-admin-link>span:last-child{font-size:1.5rem;color:#9ed9bd}
+
+/* User-created communities */
+.wa-community-actions{border-top:1px solid #26353d;padding-bottom:10px}
+.wa-community-actions .wa-filter-label{border:0;padding-bottom:8px}
+.wa-create-button{display:block;width:calc(100% - 30px);margin:0 15px 4px;padding:12px 14px;border:1px solid #367b65;border-radius:12px;background:#173c32;color:#a9f1d4;font:inherit;font-weight:800;text-align:left;cursor:pointer}
+.wa-create-button:hover,.wa-create-button:focus{background:#205242}
+.wa-empty-communities{padding:25px 20px;color:#e9edef}
+.wa-empty-communities strong{font-size:.95rem}
+.wa-empty-communities p{color:#9fb0b7;font-size:.83rem;line-height:1.5}
+.wa-create-dialog{width:min(460px,calc(100% - 28px));padding:0;border:1px solid #38534d;border-radius:18px;background:#111b21;color:#e9edef;box-shadow:0 24px 80px #0009}
+.wa-create-dialog::backdrop{background:#02080bd9;backdrop-filter:blur(3px)}
+.wa-create-form{display:grid;gap:10px;padding:22px}
+.wa-create-heading{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.wa-create-heading .eyebrow{margin:0;color:#8fa4ac;font-size:.68rem;letter-spacing:.12em}
+.wa-create-heading h2{margin:5px 0;font-size:1.35rem}
+.wa-dialog-close{border:0;background:transparent;color:#cbd8d9;font-size:1.7rem;cursor:pointer}
+.wa-create-form label{font-size:.84rem;font-weight:700;color:#dbe6e5}
+.wa-create-form label span{font-weight:400;color:#91a3aa}
+.wa-create-form input,.wa-create-form select,.wa-create-form textarea{width:100%;box-sizing:border-box;border:1px solid #34464d;border-radius:10px;padding:12px;background:#202c33;color:#e9edef;font:inherit}
+.wa-create-form textarea{resize:vertical}
+.wa-create-error{min-height:1em;margin:0;color:#ffaaa5;font-size:.82rem}
+.wa-create-submit{border:0;border-radius:12px;padding:13px;background:#70d8b0;color:#09251e;font:inherit;font-weight:900;cursor:pointer}
+.wa-create-submit:disabled{opacity:.6;cursor:wait}

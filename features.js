@@ -62,6 +62,7 @@ async function openRoom(room){
 async function drawRooms(){
  const [rooms,memberships]=await Promise.all([backend.getGroupRooms(),backend.getGroupRoomMemberships()]);
  roomList.replaceChildren();
+ if(!rooms.length){const empty=document.createElement('div');empty.className='wa-empty-communities';empty.innerHTML='<strong>No communities yet</strong><p>Be the first to create one and start a conversation.</p>';roomList.append(empty);return}
  rooms.forEach(room=>{
   const member=memberships.includes(room.id),item=document.createElement('button');
   item.type='button';item.className='wa-room';item.innerHTML='<span class="wa-room-avatar">'+esc((room.name||'T').slice(0,1).toUpperCase())+'</span><span class="wa-room-copy"><b></b><small></small></span><span class="wa-room-count"></span>';
@@ -86,6 +87,20 @@ back.onclick=closeChat;
   currentUser=await backend.currentUser();
   if(!currentUser){signIn.hidden=false;roomList.innerHTML='<p class="wa-muted">Sign in to join conversations.</p>';return}
   signIn.hidden=true;await drawRooms();
+  const createDialog=$('#community-create-dialog'),createForm=$('#community-create-form'),createOpen=$('#community-create-open');
+  createOpen.onclick=()=>createDialog.showModal();
+  $('#community-create-close').onclick=()=>createDialog.close();
+  createDialog.addEventListener('click',event=>{if(event.target===createDialog)createDialog.close()});
+  createForm.onsubmit=async event=>{
+   event.preventDefault();
+   const submit=$('#community-create-submit'),error=$('#community-create-error');
+   error.textContent='';submit.disabled=true;submit.textContent='Creating…';
+   try{
+    const room=await backend.createGroupRoom({name:$('#community-create-name').value,category:$('#community-create-category').value,description:$('#community-create-description').value});
+    createForm.reset();createDialog.close();await drawRooms();await openRoom(room);
+   }catch(err){error.textContent=err.message||'Could not create this community.'}
+   finally{submit.disabled=false;submit.textContent='Create community'}
+  };
  }catch(e){roomList.innerHTML='<p class="wa-muted">'+esc(e.message)+'</p>'}
 })();
 window.addEventListener('pagehide',()=>{if(activeChannel)backend.leaveGroupRoom(activeChannel)});
