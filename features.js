@@ -29,9 +29,40 @@ form.onsubmit=async e=>{e.preventDefault();try{await backend.createPost({categor
 draw();
 }
 function shorts(){
-const form=$('#short-form'),root=$('#content');
-async function draw(){try{const items=await backend.getShorts();root.innerHTML=items.length?items.map(x=>'<article class="card"><div class="video-box"><div><b>'+esc(x.title)+'</b><p>'+esc(x.caption)+'</p><a class="btn secondary" href="'+esc(x.video_url)+'" target="_blank" rel="noopener noreferrer">Open video</a></div></div><p><span class="tag">'+esc(x.category)+'</span> · '+esc(x.profiles?.display_name||'Member')+'</p></article>').join(''):'<div class="empty">No shared videos yet.</div>'}catch(e){root.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
-form.onsubmit=async e=>{e.preventDefault();try{const u=new URL($('#url').value.trim());if(!['https:','http:'].includes(u.protocol))throw new Error('Use a valid public http or https video link.');await backend.createShort({title:$('#short-title').value.trim(),caption:$('#caption').value.trim(),category:$('#short-topic').value,video_url:u.href});form.reset();await draw()}catch(err){alert(err.message)}};
+const form=$('#short-form'),root=$('#content'),fileInput=$('#short-file'),preview=$('#short-preview'),status=$('#upload-status'),button=$('#upload-button');
+fileInput.addEventListener('change',()=>{
+ const file=fileInput.files?.[0];
+ if(!file){preview.hidden=true;preview.removeAttribute('src');return}
+ if(!['video/mp4','video/webm'].includes(file.type)){status.textContent='Choose an MP4 or WebM video.';fileInput.value='';return}
+ if(file.size>50*1024*1024){status.textContent='This video is over the 50 MB limit.';fileInput.value='';return}
+ preview.src=URL.createObjectURL(file);preview.hidden=false;status.textContent='Video ready. Sign in and upload when you are ready.';
+});
+async function draw(){
+ try{
+  const items=await backend.getShorts();
+  root.innerHTML=items.length?items.map(x=>'<article class="card short-card"><video class="short-player" controls playsinline preload="metadata" src="'+esc(x.video_url)+'"></video><div class="short-copy"><h3>'+esc(x.title)+'</h3><p>'+esc(x.caption||'')+'</p><span class="tag">'+esc(x.category)+'</span> · '+esc(x.profiles?.display_name||'TrendPulse member')+'<p class="muted small">'+new Date(x.created_at).toLocaleDateString()+'</p></div></article>').join(''):'<div class="empty">No Shorts yet. Be the first to share one.</div>';
+ }catch(e){root.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+}
+form.onsubmit=async e=>{
+ e.preventDefault();
+ const file=fileInput.files?.[0];
+ try{
+  if(!file)throw new Error('Choose a video first.');
+  if(!['video/mp4','video/webm'].includes(file.type))throw new Error('Only MP4 and WebM videos are supported.');
+  if(file.size>50*1024*1024)throw new Error('Choose a video smaller than 50 MB.');
+  if(!$('#short-title').value.trim())throw new Error('Add a title for your Short.');
+  button.disabled=true;status.textContent='Checking your account…';
+  const user=await backend.currentUser();if(!user)throw new Error('Please sign in before uploading.');
+  status.textContent='Uploading your video… please keep this page open.';
+  const videoUrl=await backend.uploadMedia(file);
+  status.textContent='Saving your Short…';
+  await backend.createShort({title:$('#short-title').value.trim(),caption:$('#caption').value.trim(),category:$('#short-topic').value,video_url:videoUrl});
+  form.reset();preview.pause();preview.removeAttribute('src');preview.load();preview.hidden=true;
+  status.textContent='Your Short has been uploaded and published.';
+  await draw();
+ }catch(err){status.textContent=err.message||'Upload failed. Please try again.'}
+ finally{button.disabled=false}
+};
 draw();
 }
 function messages(){
