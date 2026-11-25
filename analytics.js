@@ -9,7 +9,7 @@
  const get=(key,store)=>{try{let value=store.getItem(key);if(!value){value=uuid();store.setItem(key,value)}return value}catch(e){return uuid()}};
  const visitor=get('tp_analytics_visitor_v1',localStorage);
  const session=get('tp_analytics_session_v1',sessionStorage);
- const path=location.pathname.replace(/\\/{2,}/g,'/').slice(0,300)||'/';
+ const path=location.pathname.slice(0,300)||'/';
  const dedupe='tp_analytics_last_'+path;
  try{const last=Number(sessionStorage.getItem(dedupe)||0);if(Date.now()-last<30000)return;sessionStorage.setItem(dedupe,String(Date.now()))}catch(e){}
  const referrer=(()=>{try{return document.referrer?new URL(document.referrer).hostname.slice(0,255):null}catch(e){return null}})();
