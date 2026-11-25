@@ -403,3 +403,19 @@ section.block:not(.home-hub) .sec-head{align-items:center}
   .hero h1{font-size:clamp(2.45rem,10.8vw,3.3rem)}
   .cats a{min-height:116px}
 }
+
+
+/* Rising is a ranked momentum leaderboard, not another trending-card grid */
+body[data-page="rising"] #out{counter-reset:rising-rank;display:grid;grid-template-columns:1fr;gap:12px}
+body[data-page="rising"] #out>.card{counter-increment:rising-rank;position:relative;padding:18px 20px 18px 78px;min-height:108px;border-radius:16px;background:linear-gradient(100deg,#19251b,var(--s) 45%);display:block}
+body[data-page="rising"] #out>.card:before{content:"# " counter(rising-rank);position:absolute;left:17px;top:22px;color:var(--lime);font:800 1.25rem 'Bricolage Grotesque',sans-serif}
+body[data-page="rising"] #out>.card>a:first-child img{display:none}
+body[data-page="rising"] #out>.card>small{display:none!important}
+body[data-page="rising"] #out>.card h3{font-size:1.35rem;margin:.55rem 0}
+body[data-page="rising"] #out>.card .avg{display:inline-block;margin-right:14px}
+body[data-page="rising"] #out>.card .spark{max-width:230px}
+@media(max-width:600px){body[data-page="rising"] #out>.card{padding:16px 14px 16px 62px}body[data-page="rising"] #out>.card:before{left:12px;font-size:1.05rem}}
+/* Three-line menu for the trend catalogue pages */
+.site-menu-toggle{display:none;background:transparent;border:1px solid var(--line);border-radius:11px;padding:9px;min-width:44px;min-height:44px;color:var(--text)}
+.site-menu-toggle span{display:block;width:21px;height:2px;background:var(--text);margin:4px auto;border-radius:4px}
+@media(max-width:760px){.bar{position:relative}.site-menu-toggle{display:block;margin-left:auto}header.top nav{display:none!important;position:absolute;top:100%;left:0;right:0;width:100%;padding:10px;background:rgba(12,15,11,.98);border:1px solid var(--line);border-radius:0 0 16px 16px;box-shadow:0 16px 35px #0008;z-index:30}header.top nav.is-open{display:block!important}header.top nav ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}header.top nav a{padding:11px 10px;border-radius:10px}}
