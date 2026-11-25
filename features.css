@@ -517,3 +517,39 @@ body[data-feature="shorts"]{
     transform:translateX(-50%);
   }
 }
+
+
+/* Unified TrendPulse palette and profile refresh */
+:root{--bg:#080b16;--surface:#111a2b;--surface2:#1a2942;--line:rgba(168,190,230,.2);--text:#f7f8ff;--muted:#aab8d2;--lime:#72f5d0;--lime-ink:#071a20;--profile-violet:#a78bfa}
+body{background:radial-gradient(ellipse at 12% 0%,rgba(114,245,208,.13),transparent 34rem),radial-gradient(ellipse at 92% 12%,rgba(167,139,250,.16),transparent 32rem),var(--bg);color:var(--text)}
+header{background:rgba(8,11,22,.92);border-bottom-color:rgba(114,245,208,.2)}
+.btn,button.primary{background:linear-gradient(110deg,#72f5d0,#a9eaff);color:#071a20}
+body[data-feature="profile"]{background:radial-gradient(ellipse at 12% 0%,rgba(114,245,208,.13),transparent 34rem),radial-gradient(ellipse at 92% 12%,rgba(167,139,250,.16),transparent 32rem),#080b16;color:#f7f8ff}
+body[data-feature="profile"] .profile-page{width:min(100% - 28px,760px);padding:30px 18px 125px}
+body[data-feature="profile"] .auth-screen{gap:26px;justify-content:flex-start;padding-top:clamp(24px,7vh,72px)}
+body[data-feature="profile"] .auth-brand{color:#72f5d0;font-size:2.1rem}
+body[data-feature="profile"] .auth-card{max-width:560px;padding:clamp(20px,4vw,34px);border:1px solid rgba(114,245,208,.2);border-radius:26px;background:linear-gradient(145deg,rgba(27,43,70,.97),rgba(15,23,40,.98));box-shadow:0 24px 70px rgba(0,0,0,.28)}
+body[data-feature="profile"] .auth-heading{text-align:left;margin-bottom:24px}
+body[data-feature="profile"] .auth-kicker{color:#72f5d0}
+body[data-feature="profile"] .auth-heading p:last-child{color:#aab8d2}
+body[data-feature="profile"] .auth-form label{color:#e7edff}
+body[data-feature="profile"] .auth-form input,body[data-feature="profile"] .auth-google{background:#0b1324;border-color:rgba(168,190,230,.25);color:#f7f8ff}
+body[data-feature="profile"] .auth-form input:focus{border-color:#72f5d0;box-shadow:0 0 0 3px rgba(114,245,208,.15)}
+body[data-feature="profile"] .auth-forgot,body[data-feature="profile"] .auth-switch button{color:#72f5d0}
+body[data-feature="profile"] .auth-submit{background:linear-gradient(110deg,#72f5d0,#a9eaff);color:#071a20;box-shadow:0 10px 28px rgba(114,245,208,.16)}
+body[data-feature="profile"] .auth-google:hover{border-color:#72f5d0}
+body[data-feature="profile"] .auth-divider{color:#aab8d2}
+body[data-feature="profile"] .auth-divider:before,body[data-feature="profile"] .auth-divider:after{background:rgba(168,190,230,.2)}
+body[data-feature="profile"] .auth-terms,body[data-feature="profile"] .auth-hint{color:#aab8d2}
+body[data-feature="profile"] .auth-terms a{color:#72f5d0}
+body[data-feature="profile"] #profile-panel{padding:clamp(18px,4vw,30px);border:1px solid rgba(114,245,208,.22);border-radius:25px;background:linear-gradient(145deg,rgba(27,43,70,.97),rgba(15,23,40,.98));box-shadow:0 24px 70px rgba(0,0,0,.25)}
+body[data-feature="profile"] .profile-panel-head{padding-bottom:18px;border-bottom:1px solid rgba(168,190,230,.17);margin-bottom:18px}
+body[data-feature="profile"] #profile-panel h2{letter-spacing:-.03em}
+body[data-feature="profile"] #profile-form input,body[data-feature="profile"] #profile-form textarea,body[data-feature="profile"] .account-security-form input{background:#0b1324;border-color:rgba(168,190,230,.24);color:#f7f8ff}
+body[data-feature="profile"] #profile-form input:focus,body[data-feature="profile"] #profile-form textarea:focus{outline:2px solid rgba(114,245,208,.25);border-color:#72f5d0}
+body[data-feature="profile"] #stats .card{background:linear-gradient(145deg,#1a2942,#121c30);border-color:rgba(114,245,208,.18)}
+body[data-feature="profile"] #stats .card>b{color:#72f5d0}
+body[data-feature="profile"] .profile-settings{border-top-color:rgba(168,190,230,.18)}
+body[data-feature="profile"] .settings-kicker{color:#72f5d0}
+body[data-feature="profile"] .account-security-form{background:rgba(8,14,27,.65);border-color:rgba(168,190,230,.18)}
+@media(max-width:560px){body[data-feature="profile"] .profile-page{padding-inline:14px}body[data-feature="profile"] .auth-card{padding:20px;border-radius:21px}body[data-feature="profile"] .profile-panel-head{gap:12px}}
