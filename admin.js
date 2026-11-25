@@ -32,7 +32,9 @@ async function refresh(){
  $('#total-income').textContent=fmt('income');$('#ads-income').textContent=fmt('ads');$('#tools-income').textContent=fmt('tools');$('#points-income').textContent=fmt('points');$('#total-expenses').textContent=fmt('expense');$('#net-balance').textContent=currencies.length>1?'Multiple currencies':money(totals.income-totals.expense,currencies[0]||'NGN');
  
  const number=n=>new Intl.NumberFormat().format(Number(n)||0);
- $('#traffic-today-visitors').textContent=number(analytics.today_visitors);\n $('#traffic-today-views').textContent=number(analytics.today_views);\n $('#traffic-total-visitors').textContent=number(analytics.total_visitors);
+ $('#traffic-today-visitors').textContent=number(analytics.today_visitors);
+ $('#traffic-today-views').textContent=number(analytics.today_views);
+ $('#traffic-total-visitors').textContent=number(analytics.total_visitors);
  $('#traffic-total-views').textContent=number(analytics.total_views);
  $('#traffic-week-visitors').textContent=number(analytics.seven_day_visitors);
  $('#traffic-week-views').textContent=number(analytics.seven_day_views);
@@ -42,7 +44,8 @@ async function refresh(){
  const days=analytics.daily||[], max=Math.max(1,...days.map(d=>Number(d.views)||0));
  $('#traffic-chart').innerHTML=days.map(d=>{const h=Math.max(2,Math.round((Number(d.views)||0)/max*100));const v=Math.max(1,Math.round((Number(d.visitors)||0)/max*100));return '<div class="traffic-day" title="'+esc(d.date)+': '+number(d.visitors)+' visitors, '+number(d.views)+' views"><div class="traffic-bars"><i class="traffic-view-bar" style="height:'+h+'%"></i><i class="traffic-visitor-bar" style="height:'+v+'%"></i></div><small>'+esc(d.date.slice(5))+'</small></div>'}).join('');
  $('#traffic-top-pages').innerHTML=(analytics.top_pages||[]).length?analytics.top_pages.map(p=>'<tr><td><span class="traffic-path">'+esc(p.path)+'</span></td><td>'+number(p.views)+'</td></tr>').join(''):'<tr><td colspan="2">No page views recorded yet.</td></tr>';
-\n $('#finance-rows').innerHTML=entries.length?entries.map(x=>'<tr><td>'+esc(x.entry_date)+'</td><td><span class="pill '+esc(x.entry_type)+'">'+esc(x.entry_type)+'</span></td><td>'+esc(x.source)+'</td><td>'+esc(x.note||'—')+'</td><td class="amount">'+(x.entry_type==='expense'?'−':'+')+money(x.amount,x.currency)+'</td></tr>').join(''):'<tr><td colspan="5">No financial entries yet. Add your first record above.</td></tr>';
+
+ $('#finance-rows').innerHTML=entries.length?entries.map(x=>'<tr><td>'+esc(x.entry_date)+'</td><td><span class="pill '+esc(x.entry_type)+'">'+esc(x.entry_type)+'</span></td><td>'+esc(x.source)+'</td><td>'+esc(x.note||'—')+'</td><td class="amount">'+(x.entry_type==='expense'?'−':'+')+money(x.amount,x.currency)+'</td></tr>').join(''):'<tr><td colspan="5">No financial entries yet. Add your first record above.</td></tr>';
  $('#service-list').innerHTML=services.length?services.map(x=>{const low=Number(x.points_remaining)<=Number(x.low_points_at);return '<article class="service-item '+(low?'low':'')+'"><div><strong>'+esc(x.service_name)+'</strong><small>'+(x.website_url?'<a href="'+esc(x.website_url)+'" target="_blank" rel="noopener">Open website ↗</a>':'No website link')+'</small><p>'+esc(x.notes||'')+'</p></div><div class="service-balance"><b>'+Number(x.points_remaining).toLocaleString()+' pts</b><span>'+ (low?'LOW BALANCE':'Balance OK')+'</span><small>Alert at '+Number(x.low_points_at).toLocaleString()+' pts</small><small>Top-up estimate: '+money(x.topup_cost,x.currency)+'</small></div><button type="button" class="remove-service" data-delete-service="'+x.id+'" aria-label="Remove '+esc(x.service_name)+'">×</button></article>'}).join(''):'<p class="empty-admin">No services added yet.</p>';
  document.querySelectorAll('[data-delete-service]').forEach(b=>b.onclick=async()=>{if(!confirm('Remove this service from monitoring?'))return;const {error}=await db.from('admin_services').delete().eq('id',b.dataset.deleteService);if(error)alert(error.message);else refresh()});
 }
