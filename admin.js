@@ -32,7 +32,7 @@ async function refresh(){
  $('#total-income').textContent=fmt('income');$('#ads-income').textContent=fmt('ads');$('#tools-income').textContent=fmt('tools');$('#points-income').textContent=fmt('points');$('#total-expenses').textContent=fmt('expense');$('#net-balance').textContent=currencies.length>1?'Multiple currencies':money(totals.income-totals.expense,currencies[0]||'NGN');
  
  const number=n=>new Intl.NumberFormat().format(Number(n)||0);
- $('#traffic-total-visitors').textContent=number(analytics.total_visitors);
+ $('#traffic-today-visitors').textContent=number(analytics.today_visitors);\n $('#traffic-today-views').textContent=number(analytics.today_views);\n $('#traffic-total-visitors').textContent=number(analytics.total_visitors);
  $('#traffic-total-views').textContent=number(analytics.total_views);
  $('#traffic-week-visitors').textContent=number(analytics.seven_day_visitors);
  $('#traffic-week-views').textContent=number(analytics.seven_day_views);
