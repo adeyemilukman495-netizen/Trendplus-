@@ -106,6 +106,74 @@
       return data;
     },
 
+    getGroupRooms: async () => {
+      const { data, error } = await client.from('group_rooms')
+        .select('id,name,slug,description,category,created_at,updated_at,group_room_members(count)')
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+    getGroupRoomMemberships: async () => {
+      const user = await requireUser();
+      const { data, error } = await client.from('group_room_members')
+        .select('room_id').eq('user_id', user.id);
+      if (error) throw error;
+      return (data || []).map(row => row.room_id);
+    },
+    joinGroupRoom: async roomId => {
+      const { data, error } = await client.rpc('join_group_room', { room_uuid: roomId });
+      if (error) throw error;
+      return data;
+    },
+    getGroupMessages: async roomId => {
+      const { data, error } = await client.from('group_messages')
+        .select('id,room_id,sender_id,body,created_at,profiles!group_messages_sender_id_fkey(display_name,username,avatar_url)')
+        .eq('room_id', roomId).order('created_at', { ascending: true }).limit(150);
+      if (error) throw error;
+      return data || [];
+    },
+    sendGroupMessage: async (roomId, body) => {
+      const user = await requireUser();
+      const text = String(body || '').trim().slice(0, 4000);
+      if (!text) throw new Error('Write a message first.');
+      const { data, error } = await client.from('group_messages')
+        .insert({ room_id: roomId, sender_id: user.id, body: text })
+        .select('id,room_id,sender_id,body,created_at,profiles!group_messages_sender_id_fkey(display_name,username,avatar_url)')
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    subscribeGroupRoom: async (roomId, handlers = {}) => {
+      const user = await requireUser();
+      const channel = client.channel('trendpulse-group-' + roomId, {
+        config: { presence: { key: user.id } },
+      });
+      channel.on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'group_messages',
+        filter: 'room_id=eq.' + roomId,
+      }, payload => handlers.onMessage && handlers.onMessage(payload.new));
+      channel.on('presence', { event: 'sync' }, () => {
+        if (handlers.onPresence) handlers.onPresence(Object.keys(channel.presenceState()).length);
+      });
+      channel.on('broadcast', { event: 'typing' }, payload => {
+        if (payload.payload?.user_id !== user.id && handlers.onTyping) handlers.onTyping(payload.payload);
+      });
+      const status = await new Promise(resolve => {
+        channel.subscribe(async state => {
+          if (state === 'SUBSCRIBED') {
+            await channel.track({ user_id: user.id, online_at: new Date().toISOString() });
+            resolve(state);
+          } else if (state === 'CHANNEL_ERROR' || state === 'TIMED_OUT') resolve(state);
+        });
+      });
+      return { channel, status };
+    },
+    sendGroupTyping: async (channel, typing) => {
+      const user = await requireUser();
+      return channel.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id, typing: !!typing } });
+    },
+    leaveGroupRoom: channel => client.removeChannel(channel),
+
     getPosts: async () => {
       const { data, error } = await client
         .from('posts')
