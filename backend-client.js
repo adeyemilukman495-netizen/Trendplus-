@@ -67,6 +67,14 @@
     }),
     resetPassword: email => client.auth.resetPasswordForEmail(email, { redirectTo: 'https://adeyemilukman495-netizen.github.io/Trendplus-/profile.html' }),
     signOut: () => client.auth.signOut(),
+    updatePassword: async password => {
+      await requireUser();
+      const value = String(password || '');
+      if (value.length < 8) throw new Error('Use at least 8 characters for your new password.');
+      const { data, error } = await client.auth.updateUser({ password: value });
+      if (error) throw error;
+      return data.user;
+    },
     onAuthChange: callback =>
       client.auth.onAuthStateChange((_event, session) => callback(session?.user || null)),
 
@@ -103,13 +111,30 @@
       // The profile is loaded (or recovered) before editing. Pin the upsert
       // conflict target to the auth user's primary key so edits update the
       // existing row rather than relying on PostgREST conflict inference.
-      const { data, error } = await client.from('profiles')
-        .upsert(payload, { onConflict: 'id' })
+      // Update the existing profile row first. This avoids an upsert taking
+      // the INSERT path (and failing when only the UPDATE policy is applicable).
+      const { data: updated, error: updateError } = await client.from('profiles')
+        .update({
+          display_name: payload.display_name,
+          username: payload.username,
+          bio: payload.bio,
+          updated_at: payload.updated_at,
+        })
+        .eq('id', user.id)
+        .select('id,display_name,username,bio,avatar_url,updated_at')
+        .maybeSingle();
+      if (updateError?.code === '23505') throw new Error('That username is already taken. Please choose another one.');
+      if (updateError) throw updateError;
+      if (updated) return updated;
+
+      // Older accounts may have no profile row; insert only in that case.
+      const { data: created, error: insertError } = await client.from('profiles')
+        .insert(payload)
         .select('id,display_name,username,bio,avatar_url,updated_at')
         .single();
-      if (error?.code === '23505') throw new Error('That username is already taken. Please choose another one.');
-      if (error) throw error;
-      return data;
+      if (insertError?.code === '23505') throw new Error('That username is already taken. Please choose another one.');
+      if (insertError) throw insertError;
+      return created;
     },
 
     getGroupRooms: async () => {
