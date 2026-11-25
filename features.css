@@ -434,3 +434,86 @@ body[data-feature="shorts"] .short-comment-form button{min-width:66px;min-height
 .short-upload-back{min-height:52px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--text);font-weight:700}
 #short-next:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:560px){.short-film-upload{width:calc(100vw - 20px);padding:16px}.short-film-upload .short-upload-preview{max-height:38dvh}}
+
+/* Stable, evenly spaced bottom navigation across mobile feature pages */
+.shorts-bottom,
+.community-bottom,
+.profile-bottom{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  width:100%;
+  max-width:none;
+  height:calc(68px + env(safe-area-inset-bottom));
+  margin:0;
+  padding:7px max(12px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-right));
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  justify-items:stretch;
+  align-items:center;
+  gap:0;
+  box-sizing:border-box;
+  z-index:50;
+  background:rgba(11,16,32,.97);
+  border-top:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+.shorts-bottom a,
+.community-bottom a,
+.profile-bottom a{
+  width:100%;
+  min-width:0;
+  min-height:48px;
+  margin:0;
+  padding:3px 2px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  justify-self:stretch;
+  gap:2px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-align:center;
+  line-height:1.15;
+  font-size:1.2rem;
+  box-sizing:border-box;
+}
+.shorts-bottom small,
+.community-bottom small,
+.profile-bottom small{
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:.68rem;
+  line-height:1.15;
+}
+body[data-feature="profile"],
+body[data-feature="community"],
+body[data-feature="shorts"]{
+  padding-bottom:calc(82px + env(safe-area-inset-bottom));
+}
+@media(max-width:380px){
+  .shorts-bottom,
+  .community-bottom,
+  .profile-bottom{padding-left:5px;padding-right:5px}
+  .shorts-bottom a,
+  .community-bottom a,
+  .profile-bottom a{font-size:1.1rem}
+  .shorts-bottom small,
+  .community-bottom small,
+  .profile-bottom small{font-size:.62rem}
+}
+@media(min-width:761px){
+  .shorts-bottom,
+  .community-bottom,
+  .profile-bottom{
+    left:50%;
+    right:auto;
+    width:min(100%,760px);
+    transform:translateX(-50%);
+  }
+}
