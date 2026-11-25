@@ -367,3 +367,39 @@ section.block:not(.home-hub) .sec-head{align-items:center}
  .hub-feature:before{width:135px;height:135px;right:7%;top:8%;font-size:4rem;border-radius:32px}
  .hub-card h3{font-size:1.15rem}
 }
+
+
+/* Responsive readability pass: roomier layouts and larger touch targets. */
+@media(max-width:760px){
+  html{font-size:17px}
+  .wrap{width:calc(100% - 1.5rem)}
+  .bar{gap:.6rem;padding:.85rem 0}
+  nav ul{gap:.35rem}
+  nav a{padding:.65rem .9rem;font-size:.98rem}
+  .hero{gap:1.5rem;padding:2rem 0 2.4rem}
+  .hero h1{font-size:clamp(2.65rem,11vw,4rem);line-height:1.02}
+  .lead{font-size:1.12rem;line-height:1.75}
+  section.block{padding:2.5rem 0}
+  .sec-head{gap:.85rem;margin-bottom:1.4rem}
+  h2{font-size:clamp(1.8rem,7vw,2.45rem)}
+  .sub{font-size:1.02rem;line-height:1.7}
+  .panel{padding:1.25rem;border-radius:22px}
+  .card{padding:1.2rem;min-height:205px}
+  .card h3{font-size:1.4rem}
+  .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,265px),1fr));gap:1rem}
+  .cats{grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+  .cats a{min-height:124px;padding:1rem;font-size:1rem}
+  .btn{min-height:50px;padding:.85rem 1.2rem}
+  .btn.small{min-height:44px;padding:.65rem .95rem;font-size:.95rem}
+  .chip{min-height:44px;padding:.65rem 1rem}
+  .field input{min-height:54px;font-size:1rem}
+  .mobile-dock{padding:.55rem .35rem calc(.55rem + env(safe-area-inset-bottom))}
+  .mobile-dock a{font-size:.74rem;gap:.15rem}
+  .mobile-dock a span{font-size:1.4rem}
+  footer{font-size:1rem}
+}
+@media(max-width:420px){
+  .wrap{width:calc(100% - 1.25rem)}
+  .hero h1{font-size:clamp(2.45rem,10.8vw,3.3rem)}
+  .cats a{min-height:116px}
+}
