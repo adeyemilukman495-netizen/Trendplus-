@@ -165,6 +165,11 @@
       feedback('Account created. Check your email if confirmation is enabled, then sign in.');
     });
   };
+  $('google-signin').onclick = () => run(async () => {
+    feedback('Redirecting to Google…');
+    const result = await backend.signInWithGoogle();
+    if (result.error) throw result.error;
+  });
   $('signin-form').onsubmit = event => {
     event.preventDefault();
     run(async () => {
