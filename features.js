@@ -108,7 +108,19 @@ window.addEventListener('pagehide',()=>{if(activeChannel)backend.leaveGroupRoom(
 function shorts(){
 const root=$('#content'),form=$('#short-form'),fileInput=$('#short-file'),preview=$('#short-preview'),status=$('#upload-status'),button=$('#upload-button'),dialog=$('#upload-dialog'),commentPanel=$('#short-comments-panel'),commentList=$('#short-comments-list'),commentForm=$('#short-comment-form');
 $('#open-upload').onclick=()=>dialog.showModal();$('#close-upload').onclick=()=>dialog.close();dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
-fileInput.addEventListener('change',()=>{const file=fileInput.files?.[0];if(!file){preview.hidden=true;preview.removeAttribute('src');return}if(!['video/mp4','video/webm'].includes(file.type)||file.size>50*1024*1024){status.textContent='Choose an MP4 or WebM video up to 50 MB.';fileInput.value='';return}preview.src=URL.createObjectURL(file);preview.hidden=false;status.textContent='Preview ready.'});
+let previewObjectUrl=null;
+fileInput.addEventListener('change',()=>{
+ const file=fileInput.files?.[0];
+ if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null}
+ if(!file){preview.hidden=true;preview.removeAttribute('src');return}
+ const ext=String(file.name||'').split('.').pop().toLowerCase();
+ const allowed=['mp4','webm'].includes(ext)||['video/mp4','video/webm'].includes(file.type);
+ if(!allowed||file.size>50*1024*1024||!file.size){
+  status.textContent=!allowed?'Choose an MP4 or WebM video from Gallery or Files.':file.size>50*1024*1024?'This video is over the 50 MB upload limit.':'The selected video could not be read.';
+  fileInput.value='';preview.hidden=true;preview.removeAttribute('src');return
+ }
+ previewObjectUrl=URL.createObjectURL(file);preview.src=previewObjectUrl;preview.hidden=false;status.textContent='Preview ready. Add a title, then post your Short.'
+});
 let activeShort=null,activeSettingsId=null;
 async function showComments(short){activeShort=short;commentPanel.hidden=false;$('#short-comments-title').textContent='Comments · '+(short.title||'Short');await loadComments()}
 async function loadComments(){if(!activeShort)return;try{const rows=await backend.getShortComments(activeShort.id);commentList.innerHTML=rows.length?rows.map(c=>'<article class="short-comment"><b>'+esc(c.profiles?.display_name||'Member')+'</b><p>'+esc(c.content)+'</p></article>').join(''):'<p class="muted">No comments yet. Start the conversation.</p>'}catch(e){commentList.textContent=e.message}}
@@ -121,7 +133,7 @@ function card(x){
  const creator=document.createElement('div');creator.className='short-creator-actions';const creatorLink=document.createElement('a');creatorLink.href='./profile.html?user='+encodeURIComponent(x.author_id);creatorLink.textContent='@'+(x.profiles?.username||x.profiles?.display_name||'member');creator.append(creatorLink);
  const follow=document.createElement('button');follow.className='short-follow';follow.type='button';follow.textContent='＋ Follow';follow.onclick=async()=>{try{const user=await backend.currentUser();if(!user)throw Error('Sign in from Profile to follow creators.');if(user.id===x.author_id)throw Error("You can't follow your own account.");await backend.followUser(x.author_id);follow.textContent='✓ Following';follow.disabled=true}catch(e){alert(e.message)}};creator.append(follow);
  const actions=document.createElement('div');actions.className='short-actions';
- const like=document.createElement('button');like.className='short-action';like.type='button';const initialLikes=x.like_count||0;like.innerHTML=(x.liked_by_me?'♥':'♡')+'<small>'+initialLikes+' Likes</small>';if(x.liked_by_me)like.classList.add('is-liked');like.onclick=async()=>{try{const liked=await backend.toggleShortLike(x.id);like.classList.toggle('is-liked',liked);const count=Math.max(0,(Number(like.dataset.count)||initialLikes)+(liked?1:-1));like.dataset.count=count;like.innerHTML=(liked?'♥':'♡')+'<small>'+count+' Likes</small>'}catch(e){alert(e.message)}};
+ const like=document.createElement('button');like.className='short-action';like.type='button';const initialLikes=x.like_count||0;like.dataset.count=String(initialLikes);like.innerHTML=(x.liked_by_me?'♥':'♡')+'<small>'+initialLikes+' Likes</small>';if(x.liked_by_me)like.classList.add('is-liked');like.setAttribute('aria-label',(x.liked_by_me?'Unlike':'Like')+' this Short');like.onclick=async()=>{if(like.disabled)return;like.disabled=true;try{const liked=await backend.toggleShortLike(x.id);const count=Math.max(0,Number(like.dataset.count||0)+(liked?1:-1));like.dataset.count=String(count);like.classList.toggle('is-liked',liked);like.innerHTML=(liked?'♥':'♡')+'<small>'+count+' Likes</small>';like.setAttribute('aria-label',(liked?'Unlike':'Like')+' this Short')}catch(e){alert(e.message)}finally{like.disabled=false}};
  const comments=document.createElement('button');comments.className='short-action';comments.type='button';comments.innerHTML='▤<small>Comment</small>';comments.onclick=()=>{if(x.allow_comments===false){alert('Comments are turned off for this Short.');return}showComments(x)};
  const sound=document.createElement('button');sound.className='short-action';sound.type='button';sound.textContent='🔇';sound.onclick=()=>{video.muted=!video.muted;sound.textContent=video.muted?'🔇':'🔊'};
  const share=document.createElement('button');share.className='short-action';share.type='button';share.innerHTML='↗<small>Share</small>';share.onclick=async()=>{const url=location.origin+location.pathname+'#'+encodeURIComponent(x.id);try{if(navigator.share)await navigator.share({title:x.title,text:x.caption||'Watch on TrendPulse',url});else{await navigator.clipboard.writeText(url);share.querySelector('small').textContent='Copied'}}catch(e){}};
@@ -132,7 +144,26 @@ function card(x){
  const meta=document.createElement('div');meta.className='short-overlay';const title=document.createElement('h3');title.textContent=x.title||'TrendPulse Short';const caption=document.createElement('p');caption.textContent=x.caption||'';const category=document.createElement('span');category.className='short-category';category.textContent=x.category||'Entertainment';meta.append(title,caption,category);el.append(video,tap,creator,actions,meta);return {el,video};
 }
 async function draw(){try{if(!backend?.ready)throw Error('Video service is unavailable.');const items=await backend.getShorts();root.replaceChildren();if(!items.length){root.innerHTML='<div class="shorts-empty"><div><strong>Your Shorts feed starts here.</strong><p>Be the first to share a video.</p><button type="button" class="publish-short" id="empty-create">＋ Create a Short</button></div></div>';$('#empty-create').onclick=()=>dialog.showModal();return}const entries=items.map(card);entries.forEach(x=>root.append(x.el));const observer=new IntersectionObserver(changes=>changes.forEach(change=>{const v=change.target.querySelector('video');if(change.isIntersecting&&change.intersectionRatio>.7)v.play().catch(()=>{});else v.pause()}),{root,threshold:[.2,.7]});entries.forEach(x=>observer.observe(x.el))}catch(e){root.innerHTML='<div class="shorts-empty">'+esc(e.message)+'</div>'}}
-form.onsubmit=async e=>{e.preventDefault();const file=fileInput.files?.[0];try{if(!file)throw Error('Choose a video first.');if(!['video/mp4','video/webm'].includes(file.type)||file.size>50*1024*1024)throw Error('Choose an MP4 or WebM video up to 50 MB.');if(!$('#short-title').value.trim())throw Error('Add a title.');button.disabled=true;status.textContent='Checking account…';if(!await backend.currentUser())throw Error('Sign in from Profile before uploading.');status.textContent='Uploading video securely…';const videoPath=await backend.uploadShortMedia(file);await backend.createShort({title:$('#short-title').value.trim(),caption:$('#caption').value.trim(),category:$('#short-topic').value,video_path:videoPath,visibility:$('#short-visibility-upload').value,allow_comments:$('#short-allow-comments-upload').checked,allow_download:$('#short-allow-download-upload').checked});form.reset();preview.pause();preview.removeAttribute('src');preview.load();preview.hidden=true;status.textContent='Short published.';dialog.close();await draw()}catch(err){status.textContent=err.message||'Upload failed.'}finally{button.disabled=false}};
+form.onsubmit=async e=>{
+ e.preventDefault();const file=fileInput.files?.[0];
+ try{
+  if(!file)throw Error('Choose a video from Gallery or Files first.');
+  const ext=String(file.name||'').split('.').pop().toLowerCase();
+  if(!(['mp4','webm'].includes(ext)||['video/mp4','video/webm'].includes(file.type)))throw Error('Choose an MP4 or WebM video.');
+  if(file.size>50*1024*1024)throw Error('This video is over the 50 MB upload limit.');
+  if(!$('#short-title').value.trim())throw Error('Add a title for your Short.');
+  button.disabled=true;status.textContent='Checking your account…';
+  if(!await backend.currentUser())throw Error('Sign in from Profile before uploading.');
+  status.textContent='Uploading video… Keep TrendPulse open until it finishes.';
+  const videoPath=await backend.uploadShortMedia(file);
+  status.textContent='Saving your Short…';
+  await backend.createShort({title:$('#short-title').value.trim(),caption:$('#caption').value.trim(),category:$('#short-topic').value,video_path:videoPath,visibility:$('#short-visibility-upload').value,allow_comments:$('#short-allow-comments-upload').checked,allow_download:$('#short-allow-download-upload').checked});
+  form.reset();preview.pause();preview.removeAttribute('src');preview.load();preview.hidden=true;
+  if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null}
+  status.textContent='Short published successfully.';dialog.close();await draw()
+ }catch(err){status.textContent=err.message||'Upload failed. Your video was not published.'}
+ finally{button.disabled=false}
+};
 $('#short-settings-form').onsubmit=async e=>{e.preventDefault();try{await backend.updateShortSettings(activeSettingsId,$('#short-visibility').value,$('#short-comments-enabled').checked,$('#short-download-enabled').checked);$('#short-settings-dialog').close();await draw()}catch(err){alert(err.message)}};
 draw();
 }

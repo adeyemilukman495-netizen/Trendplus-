@@ -417,3 +417,8 @@ body[data-feature="shorts"] .short-comment-form button{min-width:66px;min-height
 .account-security-form button{min-height:48px;justify-self:start;padding:10px 18px}
 #password-change-status:empty{display:none}
 @media(max-width:560px){.account-security-form{padding:15px}.account-security-form button{width:100%}}
+/* Shorts interaction feedback and thumb-friendly action controls */
+.short-action:disabled{opacity:.6;cursor:wait}
+.short-action.is-liked{color:#ff8da8;transform:scale(1.04)}
+.short-follow:disabled{opacity:.8}
+@media(max-width:420px){.short-creator-actions{left:12px;gap:7px}.short-actions{right:9px;gap:13px}.short-action{width:46px;min-height:46px}}
