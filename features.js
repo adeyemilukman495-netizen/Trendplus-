@@ -108,19 +108,39 @@ window.addEventListener('pagehide',()=>{if(activeChannel)backend.leaveGroupRoom(
 function shorts(){
 const root=$('#content'),form=$('#short-form'),fileInput=$('#short-file'),preview=$('#short-preview'),status=$('#upload-status'),button=$('#upload-button'),dialog=$('#upload-dialog'),commentPanel=$('#short-comments-panel'),commentList=$('#short-comments-list'),commentForm=$('#short-comment-form');
 $('#open-upload').onclick=()=>dialog.showModal();$('#close-upload').onclick=()=>dialog.close();dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
-let previewObjectUrl=null;
-fileInput.addEventListener('change',()=>{
- const file=fileInput.files?.[0];
+let previewObjectUrl=null,selectedDuration=null;
+const nextButton=$('#short-next'),stepOne=$('#short-step-one'),stepTwo=$('#short-step-two'),durationNote=$('#short-duration'),detailPreview=$('#short-preview-details');
+function resetShortUpload(){
+ selectedDuration=null;nextButton.disabled=true;stepOne.hidden=false;stepTwo.hidden=true;durationNote.textContent='Your film must be 10 minutes or less.';
  if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null}
- if(!file){preview.hidden=true;preview.removeAttribute('src');return}
+ preview.pause();preview.removeAttribute('src');preview.load();preview.hidden=true;
+ detailPreview.pause();detailPreview.removeAttribute('src');detailPreview.load();detailPreview.hidden=true;
+}
+fileInput.addEventListener('change',()=>{
+ const file=fileInput.files?.[0];selectedDuration=null;nextButton.disabled=true;
+ if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null}
+ if(!file){preview.hidden=true;preview.removeAttribute('src');durationNote.textContent='Your film must be 10 minutes or less.';return}
  const ext=String(file.name||'').split('.').pop().toLowerCase();
  const allowed=['mp4','webm'].includes(ext)||['video/mp4','video/webm'].includes(file.type);
  if(!allowed||file.size>50*1024*1024||!file.size){
-  status.textContent=!allowed?'Choose an MP4 or WebM video from Gallery or Files.':file.size>50*1024*1024?'This video is over the 50 MB upload limit.':'The selected video could not be read.';
-  fileInput.value='';preview.hidden=true;preview.removeAttribute('src');return
+  status.textContent=!allowed?'Choose an MP4 or WebM short film.':file.size>50*1024*1024?'This film is over the 50 MB upload limit.':'The selected film could not be read.';
+  durationNote.textContent=status.textContent;fileInput.value='';preview.hidden=true;preview.removeAttribute('src');return
  }
- previewObjectUrl=URL.createObjectURL(file);preview.src=previewObjectUrl;preview.hidden=false;status.textContent='Preview ready. Add a title, then post your Short.'
+ previewObjectUrl=URL.createObjectURL(file);preview.src=previewObjectUrl;preview.hidden=false;
+ preview.onloadedmetadata=()=>{
+  const seconds=preview.duration;
+  if(!Number.isFinite(seconds)||seconds<=0){durationNote.textContent='We could not read this film’s duration. Please choose another file.';return}
+  if(seconds>600){durationNote.textContent='This film is '+Math.ceil(seconds/60)+' minutes long. Choose a film that is 10 minutes or shorter.';status.textContent=durationNote.textContent;return}
+  selectedDuration=seconds;durationNote.textContent='Film length: '+Math.floor(seconds/60)+':'+String(Math.floor(seconds%60)).padStart(2,'0')+' · Ready for the next step.';status.textContent='Preview ready.';nextButton.disabled=false
+ };
+ preview.onerror=()=>{durationNote.textContent='This video could not be previewed. Choose another MP4 or WebM file.';nextButton.disabled=true};
 });
+nextButton.addEventListener('click',()=>{
+ if(!fileInput.files?.[0]||!selectedDuration||selectedDuration>600)return;
+ stepOne.hidden=true;stepTwo.hidden=false;detailPreview.src=preview.src;detailPreview.hidden=false;
+ status.textContent='Add the details for your short film.';
+});
+$('#short-back').addEventListener('click',()=>{stepTwo.hidden=true;stepOne.hidden=false;status.textContent='Check your film preview before continuing.'});
 let activeShort=null,activeSettingsId=null;
 async function showComments(short){activeShort=short;commentPanel.hidden=false;$('#short-comments-title').textContent='Comments · '+(short.title||'Short');await loadComments()}
 async function loadComments(){if(!activeShort)return;try{const rows=await backend.getShortComments(activeShort.id);commentList.innerHTML=rows.length?rows.map(c=>'<article class="short-comment"><b>'+esc(c.profiles?.display_name||'Member')+'</b><p>'+esc(c.content)+'</p></article>').join(''):'<p class="muted">No comments yet. Start the conversation.</p>'}catch(e){commentList.textContent=e.message}}
@@ -147,21 +167,21 @@ async function draw(){try{if(!backend?.ready)throw Error('Video service is unava
 form.onsubmit=async e=>{
  e.preventDefault();const file=fileInput.files?.[0];
  try{
-  if(!file)throw Error('Choose a video from Gallery or Files first.');
+  if(!file)throw Error('Choose your short film from Gallery or Files first.');
+  if(!selectedDuration||selectedDuration>600)throw Error('Choose a film that is 10 minutes or shorter and wait for its preview to load.');
+  if(stepTwo.hidden)throw Error('Tap Next and complete your film details first.');
   const ext=String(file.name||'').split('.').pop().toLowerCase();
-  if(!(['mp4','webm'].includes(ext)||['video/mp4','video/webm'].includes(file.type)))throw Error('Choose an MP4 or WebM video.');
-  if(file.size>50*1024*1024)throw Error('This video is over the 50 MB upload limit.');
-  if(!$('#short-title').value.trim())throw Error('Add a title for your Short.');
+  if(!(['mp4','webm'].includes(ext)||['video/mp4','video/webm'].includes(file.type)))throw Error('Choose an MP4 or WebM short film.');
+  if(file.size>50*1024*1024)throw Error('This film is over the 50 MB upload limit.');
+  if(!$('#short-title').value.trim())throw Error('Add a title for your short film.');
   button.disabled=true;status.textContent='Checking your account…';
   if(!await backend.currentUser())throw Error('Sign in from Profile before uploading.');
-  status.textContent='Uploading video… Keep TrendPulse open until it finishes.';
+  status.textContent='Uploading your film… Keep TrendPulse open until it finishes.';
   const videoPath=await backend.uploadShortMedia(file);
-  status.textContent='Saving your Short…';
+  status.textContent='Publishing your short film…';
   await backend.createShort({title:$('#short-title').value.trim(),caption:$('#caption').value.trim(),category:$('#short-topic').value,video_path:videoPath,visibility:$('#short-visibility-upload').value,allow_comments:$('#short-allow-comments-upload').checked,allow_download:$('#short-allow-download-upload').checked});
-  form.reset();preview.pause();preview.removeAttribute('src');preview.load();preview.hidden=true;
-  if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null}
-  status.textContent='Short published successfully.';dialog.close();await draw()
- }catch(err){status.textContent=err.message||'Upload failed. Your video was not published.'}
+  form.reset();resetShortUpload();status.textContent='Your short film has been published.';dialog.close();await draw()
+ }catch(err){status.textContent=err.message||'Upload failed. Your film was not published.'}
  finally{button.disabled=false}
 };
 $('#short-settings-form').onsubmit=async e=>{e.preventDefault();try{await backend.updateShortSettings(activeSettingsId,$('#short-visibility').value,$('#short-comments-enabled').checked,$('#short-download-enabled').checked);$('#short-settings-dialog').close();await draw()}catch(err){alert(err.message)}};
