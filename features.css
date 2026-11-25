@@ -587,3 +587,16 @@ body[data-feature="profile"] .account-security-form{background:rgba(8,14,27,.65)
 /* TikTok-inspired palette: black, white, electric cyan and vivid pink */
 :root{--bg:#080808;--s:#141414;--s2:#202020;--line:#303030;--text:#f7f7f7;--mut:#b8b8b8;--lime:#25f4ee;--ink:#050505;--accent2:#fe2c55;--accent3:#fe2c55;--up:#25f4ee;--down:#fe2c55}
 body{background:#080808!important;color:#f7f7f7}
+
+@media(max-width:760px){
+ body[data-feature="community"]{background:#080808!important;color:#f7f7f7!important}
+ body[data-feature="community"] .community-app{background:#080808!important}
+ body[data-feature="community"] .community-head{background:#111!important;border-color:#292929!important}
+ body[data-feature="community"] .community-feed{background:#080808!important}
+ body[data-feature="community"] .social-post{background:#151515!important;border-color:#303030!important}
+ body[data-feature="community"] .social-post-text{background:#202020!important;color:#f7f7f7!important}
+ body[data-feature="community"] .social-post-actions button{background:#202020!important;border-color:#383838!important;color:#f7f7f7!important}
+ body[data-feature="community"] .social-comments{background:#111!important;color:#eee!important}
+ body[data-feature="community"] .community-tabs a{background:#202020!important;color:#eee!important}
+ body[data-feature="community"] .community-tabs a.active{background:#25f4ee!important;color:#050505!important}
+}
