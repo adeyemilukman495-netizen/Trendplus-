@@ -95,3 +95,17 @@ Review was static only. No live database, browser, upload, or workflow execution
 - **Production impact:** None. Changes are on the review branch only.
 - **Tests:** Static code review only so far. Must test mobile layout, email signup/confirmation, password login, Google OAuth callback, password reset, and profile save against the published preview after approval.
 - **Next:** Independent diff review, correct any issues, then continue the separate Shorts privacy/upload and migration-workflow fixes.
+
+## Shorts, migration safety, and profile follow-up — 2026-11-25
+
+- **Status:** Code changes staged on ai-team/setup; live Supabase migration and browser verification are still pending.
+- **Shorts upload:** New Shorts upload to a new private Storage bucket (trendpulse-short-media). The app stores the object path, creates a one-hour signed playback URL after the Shorts row is visible under RLS, and removes the uploaded object if the database insert fails.
+- **Shorts settings:** New Shorts persist visibility, comment permission, and download preference. The additive migration creates/ensures the privacy columns, short_likes and short_comments tables, row-level policies, private bucket, and Storage policies.
+- **Legacy media:** Existing videos in the old public bucket are not moved or deleted; their original public URLs remain accessible. This avoids breaking already-posted videos. Owners should re-upload if they need private media storage.
+- **Download note:** The download toggle controls the in-app download button only. It cannot prevent screen recording or copying media after a viewer has playback access.
+- **Migration safety:** The former push-triggered production migration workflow is disabled. The canonical workflow is manual, restricted to main, serialized, uses the production GitHub Environment, and requires explicit confirmation that the existing manually-applied baseline is reconciled in Supabase migration history. The production Environment still needs required reviewers configured in GitHub repository settings.
+- **Code checks:** JavaScript syntax validation now runs on pull requests and main pushes.
+- **Profile save:** Duplicate usernames now return a clear message rather than a raw database error. Existing upsert/profile form remains.
+- **Static tests:** backend-client.js and features.js parse successfully with JavaScript syntax checks; static assertions confirmed private upload, signed playback, persisted settings, migration policy, and PR workflow triggers.
+- **Not tested:** Live Supabase SQL execution, Storage policy behaviour, email signup/confirmation, Google OAuth callback, password reset, profile save against the live database, and real device video playback. Do not mark these as passed until run.
+- **No production changes:** No migration was executed, no Supabase secrets/settings were accessed, no production files were modified, and no user data was changed.
