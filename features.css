@@ -265,13 +265,22 @@ body[data-feature="community"] .wa-app{width:min(1280px,100%);height:100dvh;min-
 }
 
 
-/* Owner-only entry inside Profile settings */
-body[data-feature="profile"] .profile-settings{margin-top:30px;padding-top:22px;border-top:1px solid var(--line,#303747)}
-body[data-feature="profile"] .profile-settings h2{margin:3px 0 6px}
-body[data-feature="profile"] .settings-kicker{margin:0;color:#91a0b8;font-size:.7rem;font-weight:800;letter-spacing:.14em}
-body[data-feature="profile"] .owner-admin-link{display:flex;align-items:center;gap:13px;margin-top:16px;padding:15px 17px;border:1px solid #356b59;border-radius:16px;background:linear-gradient(120deg,#15372d,#182a2a);color:#e9fff4;text-decoration:none}
-body[data-feature="profile"] .owner-admin-link[hidden]{display:none!important}
-body[data-feature="profile"] .owner-admin-link>span:first-child{font-size:1.4rem;color:#8be2b8}
-body[data-feature="profile"] .owner-admin-link>span:nth-child(2){display:grid;gap:4px;flex:1}
-body[data-feature="profile"] .owner-admin-link small{color:#a8c8ba;font-size:.78rem}
-body[data-feature="profile"] .owner-admin-link>span:last-child{font-size:1.5rem;color:#9ed9bd}
+
+/* Watchlist clarity, responsive cards and accessible feedback */
+.library-loading,.library-status{padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--muted);margin:0 0 16px}
+.library-status[data-state="success"]{border-color:#3b9b75;color:#9ce8c5}
+.library-status[data-state="error"],.library-error{border-color:#c66b73;color:#ffd1d4}
+.library-toolbar{align-items:center}
+.library-tabs{scrollbar-width:thin}
+.library-tab{cursor:pointer;min-height:42px}
+.library-tab:focus-visible,.library-remove:focus-visible,.library-info select:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+.library-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.library-card:hover{transform:translateY(-3px);border-color:var(--lime);box-shadow:0 14px 32px #0003}
+.library-info select{width:100%;min-height:42px;border-radius:10px;background:var(--surface2);color:var(--text);border:1px solid var(--line)}
+.library-remove{cursor:pointer}
+.library-remove:disabled{opacity:.55;cursor:wait}
+.library-empty{text-align:center}
+.library-empty p{color:var(--muted);margin-inline:auto}
+.library-error p{color:inherit}
+@media(max-width:520px){.library-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.library-info{padding:10px}.library-toolbar{align-items:stretch}.library-toolbar>.btn{align-self:flex-start}.library-tabs{padding-bottom:6px}}
+@media(prefers-reduced-motion:reduce){.library-card{transition:none}}
