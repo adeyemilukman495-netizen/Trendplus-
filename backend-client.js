@@ -313,12 +313,59 @@
       return data.publicUrl;
     },
 
-    getShorts: async () => {
-      const { data, error } = await client.from('shorts')
-        .select('*, profiles!shorts_author_id_fkey(display_name, username)')
-        .order('created_at', { ascending: false }).limit(50);
+    getShortComments: async shortId => {
+      const { data, error } = await client.from('short_comments')
+        .select('*, profiles!short_comments_author_id_fkey(display_name, username, avatar_url)')
+        .eq('short_id', shortId).order('created_at', { ascending: true });
       if (error) throw error;
       return data;
+    },
+    addShortComment: async (shortId, content) => {
+      const user = await requireUser();
+      const body = String(content || '').trim().slice(0, 1000);
+      if (!body) throw new Error('Write a comment first.');
+      const { data, error } = await client.from('short_comments')
+        .insert({ short_id: shortId, author_id: user.id, content: body }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    toggleShortLike: async shortId => {
+      const user = await requireUser();
+      const { data: existing, error: readError } = await client.from('short_likes')
+        .select('short_id').eq('short_id', shortId).eq('user_id', user.id).maybeSingle();
+      if (readError) throw readError;
+      if (existing) {
+        const { error } = await client.from('short_likes').delete()
+          .eq('short_id', shortId).eq('user_id', user.id);
+        if (error) throw error;
+        return false;
+      }
+      const { error } = await client.from('short_likes').insert({ short_id: shortId, user_id: user.id });
+      if (error) throw error;
+      return true;
+    },
+    updateShortSettings: async (shortId, visibility, allowComments, allowDownload) => {
+      const user = await requireUser();
+      const { data, error } = await client.from('shorts').update({
+        visibility, allow_comments: !!allowComments, allow_download: !!allowDownload
+      }).eq('id', shortId).eq('author_id', user.id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    getShorts: async () => {
+      const user = await currentUser();
+      const { data, error } = await client.from('shorts')
+        .select('*, profiles!shorts_author_id_fkey(display_name, username), short_likes(count)')
+        .order('created_at', { ascending: false }).limit(50);
+      if (error) throw error;
+      let liked = new Set();
+      if (user && data.length) {
+        const { data: mine, error: likeError } = await client.from('short_likes')
+          .select('short_id').eq('user_id', user.id).in('short_id', data.map(x => x.id));
+        if (likeError) throw likeError;
+        liked = new Set(mine.map(x => x.short_id));
+      }
+      return data.map(x => ({ ...x, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id) }));
     },
     createShort: async values => {
       const user = await requireUser();
