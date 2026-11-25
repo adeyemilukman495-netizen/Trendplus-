@@ -73,3 +73,6 @@ body[data-feature="community"]>header,body[data-feature="community"]>footer{disp
 .short-comments-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #34425f}.short-comments-head button{font-size:1.6rem;background:none;border:0;color:#fff}.short-comments-list{overflow:auto;flex:1;padding:10px 0}.short-comment{padding:9px 0;border-bottom:1px solid #293751}.short-comment p{margin:4px 0 0;white-space:pre-wrap}.short-comment-form{display:flex;gap:8px}.short-comment-form input{min-width:0;flex:1}.short-comment-form button{border:0;border-radius:12px;padding:8px 15px;background:#a995ff;color:#171327;font-weight:800}
 .setting-check{display:flex;align-items:center;gap:10px}.setting-check input{width:auto}
 @media(max-width:600px){.auth-columns{grid-template-columns:1fr}.short-comments-panel{width:100%;bottom:65px}.short-creator-actions{bottom:122px}}
+
+body[data-feature="profile"]>header{display:none}
+body[data-feature="profile"]{padding-bottom:100px}
