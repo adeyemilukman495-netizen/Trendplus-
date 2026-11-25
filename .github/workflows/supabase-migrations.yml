@@ -2,6 +2,12 @@ name: Apply Supabase migrations
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_database_history_reconciled:
+        description: Confirm the existing manually-applied baseline migration is recorded in Supabase migration history before applying pending files.
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -12,7 +18,7 @@ concurrency:
 
 jobs:
   migrate:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && inputs.confirm_database_history_reconciled == true
     runs-on: ubuntu-latest
     environment: production
     steps:
