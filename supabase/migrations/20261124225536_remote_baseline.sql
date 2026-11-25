@@ -1,0 +1,4 @@
+-- Historical migration marker for version 20261124225536.
+-- Supabase reports this version as already applied remotely.
+-- The original SQL for this historical migration was not present in the repository.
+-- This marker intentionally performs no database changes; it aligns local migration history only.
