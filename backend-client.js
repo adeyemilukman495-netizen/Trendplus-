@@ -316,6 +316,19 @@
       return data.publicUrl;
     },
 
+    uploadShortMedia: async file => {
+      const user = await requireUser();
+      if (!['video/mp4', 'video/webm'].includes(file.type)) throw new Error('Choose an MP4 or WebM video.');
+      if (file.size > 50 * 1024 * 1024) throw new Error('Choose a video up to 50 MB.');
+      const extension = file.type === 'video/webm' ? 'webm' : 'mp4';
+      const path = user.id + '/' + crypto.randomUUID() + '.' + extension;
+      const { error } = await client.storage.from('trendpulse-short-media').upload(path, file, {
+        contentType: file.type, upsert: false,
+      });
+      if (error) throw error;
+      return path;
+    },
+
     getShortComments: async shortId => {
       const { data, error } = await client.from('short_comments')
         .select('*, profiles!short_comments_author_id_fkey(display_name, username, avatar_url)')
@@ -368,19 +381,37 @@
         if (likeError) throw likeError;
         liked = new Set(mine.map(x => x.short_id));
       }
-      return data.map(x => ({ ...x, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id) }));
+      return Promise.all(data.map(async x => {
+        let playbackUrl = x.video_url;
+        if (x.video_path) {
+          const { data: signed, error: signedError } = await client.storage
+            .from('trendpulse-short-media').createSignedUrl(x.video_path, 3600);
+          if (signedError) throw signedError;
+          playbackUrl = signed.signedUrl;
+        }
+        return { ...x, video_url: playbackUrl, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id) };
+      }));
     },
     createShort: async values => {
       const user = await requireUser();
-      const { data, error } = await client.from('shorts').insert({
+      const payload = {
         author_id: user.id,
         title: String(values.title || '').trim().slice(0, 100),
         caption: String(values.caption || '').trim().slice(0, 280),
         category: values.category || 'General',
-        video_url: values.video_url,
+        video_url: values.video_path ? '' : values.video_url,
+        video_path: values.video_path || null,
+        visibility: ['public', 'followers', 'private'].includes(values.visibility) ? values.visibility : 'public',
+        allow_comments: values.allow_comments !== false,
+        allow_download: values.allow_download !== false,
         thumbnail_url: values.thumbnail_url || null,
-      }).select().single();
-      if (error) throw error;
+      };
+      const { data, error } = await client.from('shorts').insert(payload).select().single();
+      if (error) {
+        if (values.video_path) await client.storage.from('trendpulse-short-media').remove([values.video_path]);
+        if (error.code === '23505') throw new Error('That Short could not be saved because of a duplicate record.');
+        throw error;
+      }
       return data;
     },
     getClubs: async () => {
