@@ -27,16 +27,68 @@ form.onsubmit=async e=>{e.preventDefault();try{await backend.createReview({title
 draw();
 }
 function posts(){
-const form=$('#post-form'),root=$('#content'),dialog=$('#community-compose');
-$('#open-compose').onclick=async()=>{try{const user=await backend.currentUser();if(!user){location.href='./profile.html?next=community';return}dialog.showModal()}catch(e){alert(e.message)}};$('#close-compose').onclick=()=>dialog.close();
-dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
-async function draw(){try{const user=await backend.currentUser();const items=await backend.getPosts();root.innerHTML=(!user?'<section class="community-auth-card"><div><strong>Join the conversation</strong><p>Sign in or create a free TrendPulse account to publish posts, comment and follow creators.</p></div><a class="btn" href="./profile.html?next=community">Sign in / Sign up</a></section>':'')+(items.length?items.map(x=>'<article class="social-post"><div class="social-post-head"><a class="social-avatar" href="./profile.html?user='+encodeURIComponent(x.author_id)+'">'+esc((x.profiles?.display_name||'M').slice(0,1).toUpperCase())+'</a><div class="social-author"><a href="./profile.html?user='+encodeURIComponent(x.author_id)+'">'+esc(x.profiles?.display_name||'TrendPulse member')+'</a><small>@'+esc(x.profiles?.username||'member')+' · '+new Date(x.created_at).toLocaleDateString()+'</small></div><span class="tag">'+esc(x.category)+'</span></div><p class="social-post-text">'+esc(x.content)+'</p><div class="social-post-actions"><button class="secondary" data-like="'+x.id+'">♡ Like</button><button class="secondary" data-comments="'+x.id+'">Comments</button><button class="secondary" data-follow="'+x.author_id+'">＋ Follow</button></div><div class="social-comments" id="comments-'+x.id+'" hidden></div></article>').join(''):'<div class="empty">No posts yet. Start the first conversation in your fandom.</div>');
-root.querySelectorAll('[data-like]').forEach(btn=>btn.onclick=async()=>{try{const liked=await backend.toggleLike(btn.dataset.like);btn.textContent=liked?'♥ Liked':'♡ Like';btn.classList.toggle('is-liked',liked)}catch(e){alert(e.message)}});
-root.querySelectorAll('[data-follow]').forEach(btn=>btn.onclick=async()=>{try{await backend.followUser(btn.dataset.follow);btn.textContent='✓ Following';btn.disabled=true}catch(e){alert(e.message)}});
-root.querySelectorAll('[data-comments]').forEach(btn=>btn.onclick=async()=>{const box=$('#comments-'+btn.dataset.comments);box.hidden=!box.hidden;if(!box.hidden){try{const list=await backend.getComments(btn.dataset.comments);box.innerHTML=list.map(v=>'<p><b>'+esc(v.profiles?.display_name||'Member')+'</b> '+esc(v.content)+'</p>').join('')+'<form class="comment-form"><input maxlength="1000" required placeholder="Add a comment…"><button class="secondary">Send</button></form>';box.querySelector('form').onsubmit=async e=>{e.preventDefault();try{await backend.addComment(btn.dataset.comments,box.querySelector('input').value);btn.click();btn.click()}catch(err){alert(err.message)}}}catch(e){box.textContent=e.message}}});
-}catch(e){root.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
-form.onsubmit=async e=>{e.preventDefault();try{if(!await backend.currentUser())throw Error('Sign in from your Profile before posting.');await backend.createPost({category:$('#topic').value,content:$('#post').value.trim()});form.reset();dialog.close();draw()}catch(err){alert(err.message)}};
-draw();
+const root=$('#community-root'),roomList=$('#community-room-list'),chat=$('#community-chat'),welcome=$('#community-welcome');
+const signIn=$('#community-signin'),title=$('#community-room-title'),subtitle=$('#community-room-subtitle'),feed=$('#community-chat-messages'),form=$('#community-message-form'),input=$('#community-message-input'),send=$('#community-send'),back=$('#community-back');
+let currentUser=null,activeRoom=null,activeChannel=null,typingTimer=null;
+const stamp=value=>new Date(value).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+function appendMessage(item){
+ if(feed.querySelector('[data-message="'+item.id+'"]'))return;
+ const mine=item.sender_id===currentUser?.id,wrap=document.createElement('article');
+ wrap.className='wa-message '+(mine?'mine':'theirs');wrap.dataset.message=item.id;
+ const name=document.createElement('strong');name.textContent=mine?'You':(item.profiles?.display_name||'TrendPulse member');
+ const body=document.createElement('p');body.textContent=item.body;
+ const time=document.createElement('time');time.textContent=stamp(item.created_at);
+ wrap.append(name,body,time);feed.append(wrap);feed.scrollTop=feed.scrollHeight;
+}
+function showChat(){root.classList.add('chat-open');welcome.hidden=true;chat.hidden=false}
+function closeChat(){root.classList.remove('chat-open');chat.hidden=true;welcome.hidden=false}
+async function stopChannel(){if(activeChannel){await backend.leaveGroupRoom(activeChannel);activeChannel=null}}
+async function openRoom(room){
+ try{
+  await backend.joinGroupRoom(room.id);await stopChannel();activeRoom=room;showChat();
+  title.textContent=room.name;subtitle.textContent=room.description||room.category+' community';
+  feed.replaceChildren();$('#community-presence').textContent='Connecting…';$('#community-typing').textContent='';
+  const rows=await backend.getGroupMessages(room.id);rows.forEach(appendMessage);
+  const result=await backend.subscribeGroupRoom(room.id,{
+   onMessage:async msg=>{try{const rows=await backend.getGroupMessages(room.id);const latest=rows.find(x=>x.id===msg.id);if(latest)appendMessage(latest);else appendMessage(msg)}catch(e){}},
+   onPresence:count=>$('#community-presence').textContent=count+' online',
+   onTyping:payload=>{if(payload.typing){$('#community-typing').textContent='Someone is typing…';clearTimeout(typingTimer);typingTimer=setTimeout(()=>$('#community-typing').textContent='',2200)}}
+  });
+  activeChannel=result.channel;
+  if(result.status!=='SUBSCRIBED')$('#community-presence').textContent='Live connection unavailable';
+  input.focus();
+ }catch(e){alert(e.message||'Could not open this community.')}
+}
+async function drawRooms(){
+ const [rooms,memberships]=await Promise.all([backend.getGroupRooms(),backend.getGroupRoomMemberships()]);
+ roomList.replaceChildren();
+ rooms.forEach(room=>{
+  const member=memberships.includes(room.id),item=document.createElement('button');
+  item.type='button';item.className='wa-room';item.innerHTML='<span class="wa-room-avatar">'+esc((room.name||'T').slice(0,1).toUpperCase())+'</span><span class="wa-room-copy"><b></b><small></small></span><span class="wa-room-count"></span>';
+  item.querySelector('b').textContent=room.name;
+  item.querySelector('small').textContent=room.description||room.category;
+  item.querySelector('.wa-room-count').textContent=member?((room.group_room_members?.[0]?.count||0)+' members'):'Join';
+  item.onclick=()=>openRoom(room);roomList.append(item);
+ });
+}
+form.onsubmit=async e=>{
+ e.preventDefault();if(!activeRoom)return;const body=input.value.trim();if(!body)return;
+ send.disabled=true;
+ try{await backend.sendGroupMessage(activeRoom.id,body);input.value='';await backend.sendGroupTyping(activeChannel,false)}
+ catch(err){alert(err.message||'Message could not be sent.')}
+ finally{send.disabled=false;input.focus()}
+};
+input.addEventListener('input',()=>{if(activeChannel)backend.sendGroupTyping(activeChannel,true).catch(()=>{});});
+back.onclick=closeChat;
+(async()=>{
+ try{
+  if(!backend?.ready)throw new Error('Messaging is temporarily unavailable.');
+  currentUser=await backend.currentUser();
+  if(!currentUser){signIn.hidden=false;roomList.innerHTML='<p class="wa-muted">Sign in to join conversations.</p>';return}
+  signIn.hidden=true;await drawRooms();
+ }catch(e){roomList.innerHTML='<p class="wa-muted">'+esc(e.message)+'</p>'}
+})();
+window.addEventListener('pagehide',()=>{if(activeChannel)backend.leaveGroupRoom(activeChannel)});
 }
 function shorts(){
 const root=$('#content'),form=$('#short-form'),fileInput=$('#short-file'),preview=$('#short-preview'),status=$('#upload-status'),button=$('#upload-button'),dialog=$('#upload-dialog'),commentPanel=$('#short-comments-panel'),commentList=$('#short-comments-list'),commentForm=$('#short-comment-form');
@@ -76,7 +128,7 @@ form.onsubmit=async e=>{e.preventDefault();try{const users=await backend.searchM
 send.onsubmit=async e=>{e.preventDefault();try{const id=chat.dataset.conversationId;if(!id)throw new Error('Choose a member first.');await backend.sendMessage(id,$('#message-content').value.trim());$('#message-content').value='';await loadMessages(id)}catch(err){alert(err.message)}};
 }
 function profile(){
-const auth=$('#profile-auth'),form=$('#profile-form'),status=$('#profile-status'),panel=$('#profile-panel'),stats=$('#stats'),signup=$('#signup-form'),signin=$('#signin-form');
+const auth=$('#profile-auth'),form=$('#profile-form'),status=$('#profile-status'),panel=$('#profile-panel'),stats=$('#stats'),signup=$('#signup-form'),signin=$('#signin-form'),ownerAdminLink=$('#owner-admin-link');
 const title=$('#auth-title'),subtitle=$('#auth-subtitle'),switchText=$('#auth-switch');
 let authMode='signin';
 function message(text,kind='info'){
@@ -108,12 +160,14 @@ async function refresh(){
   // explicitly chosen Sign up. The toggle signs out any existing session.
   if(authMode==='signup'){auth.hidden=false;panel.hidden=true;return}
   auth.hidden=!!user;panel.hidden=!user;
-  if(!user){message('');return}
+  if(!user){if(ownerAdminLink)ownerAdminLink.hidden=true;message('');return}
   const p=await backend.getProfile(user.id);
   $('#name').value=p.display_name||'';
   $('#username').value=p.username||'';
   $('#bio').value=p.bio||'';
   message('Signed in as '+(user.email||'TrendPulse member'),'success');
+  // Reveal the admin entry only when Supabase confirms this signed-in account is on the owner allowlist. Fail closed on any error.
+  if(ownerAdminLink){ownerAdminLink.hidden=true;try{const {data:ownerAllowed,error:ownerError}=await backend.client.rpc('is_trendpulse_admin');if(!ownerError&&ownerAllowed===true)ownerAdminLink.hidden=false}catch(ownerCheckError){ownerAdminLink.hidden=true}}
   try{
    const [w,r,posts,shorts]=await Promise.all([backend.getWatchlist(),backend.getReviews(),backend.getPosts(),backend.getShorts()]);
    stats.innerHTML='<div class="grid">'+[['Watchlist',w.length],['Reviews',r.filter(x=>x.author_id===user.id).length],['Posts',posts.filter(x=>x.author_id===user.id).length],['Shorts',shorts.filter(x=>x.author_id===user.id).length]].map(x=>'<div class="card"><b>'+x[1]+'</b><p class="muted">'+x[0]+'</p></div>').join('')+'</div>';
