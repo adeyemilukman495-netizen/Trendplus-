@@ -78,23 +78,35 @@ send.onsubmit=async e=>{e.preventDefault();try{const id=chat.dataset.conversatio
 function profile(){
 const auth=$('#profile-auth'),form=$('#profile-form'),status=$('#profile-status'),panel=$('#profile-panel'),stats=$('#stats'),signup=$('#signup-form'),signin=$('#signin-form');
 const title=$('#auth-title'),subtitle=$('#auth-subtitle'),switchText=$('#auth-switch');
+let authMode='signin';
 function message(text,kind='info'){
  status.textContent=text;
  status.hidden=!text;
  status.setAttribute('data-state',kind);
 }
 function setMode(mode){
+ authMode=mode;
  const joining=mode==='signup';signup.hidden=!joining;signin.hidden=joining;
  title.textContent=joining?'Create your account':'Welcome back';
  subtitle.textContent=joining?'Join the TrendPulse community.':'Sign in to continue to TrendPulse.';
  switchText.innerHTML=joining?'Already have an account? <button type="button" id="show-signin">Log in</button>':'New to TrendPulse? <button type="button" id="show-signup">Sign up</button>';
- const toggle=$('#show-signup');if(toggle)toggle.onclick=()=>{message('');setMode('signup')};
+ const toggle=$('#show-signup');if(toggle)toggle.onclick=async()=>{
+  message('');
+  try{
+   const user=await backend.currentUser();
+   if(user){const {error}=await backend.signOut();if(error)throw error}
+   auth.hidden=false;panel.hidden=true;setMode('signup');
+  }catch(e){message(e.message||'Could not switch to sign-up. Please try again.','error')}
+ };
  const back=$('#show-signin');if(back)back.onclick=()=>{message('');setMode('signin')};
 }
 async function refresh(){
  if(!backend?.ready){auth.hidden=false;panel.hidden=true;message(backend?.reason||'TrendPulse could not connect to Supabase. Please try again later.','error');return}
  try{
   const user=await backend.currentUser();
+  // A late auth refresh must not replace the sign-up form after the user has
+  // explicitly chosen Sign up. The toggle signs out any existing session.
+  if(authMode==='signup'){auth.hidden=false;panel.hidden=true;return}
   auth.hidden=!!user;panel.hidden=!user;
   if(!user){message('');return}
   const p=await backend.getProfile(user.id);
@@ -117,7 +129,7 @@ signup.onsubmit=async e=>{
   const {data,error}=await backend.signUp(email,$('#signup-password').value,$('#signup-name').value.trim());
   if(error)throw error;
   signup.reset();
-  if(data.session){message('Account created successfully.','success');await refresh()}
+  if(data.session){setMode('signin');message('Account created successfully.','success');await refresh()}
   else{setMode('signin');$('#signin-email').value=email;message('Account created. Check your email for the confirmation link, then log in.','success')}
  }catch(err){message(err.message||'Sign-up failed. Please try again.','error')}
  finally{btn.disabled=false}
