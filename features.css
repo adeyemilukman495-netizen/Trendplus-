@@ -122,3 +122,55 @@ body[data-feature="profile"] .profile-status[data-state="success"]{border-color:
 body[data-feature="profile"] .profile-status[data-state="error"]{border-color:#8a4650;background:#301b22;color:#ffbec5}
 body[data-feature="profile"] #profile-panel{margin:26px auto 0}
 body[data-feature="profile"] #save-profile-button:disabled{opacity:.65;cursor:wait}
+
+
+/* Larger, more comfortable sizing across account, feed and feature pages. */
+@media(max-width:760px){
+  html{font-size:17px}
+  .wrap{width:calc(100% - 24px)}
+  main{padding:26px 0 90px}
+  h1{font-size:clamp(2.2rem,8vw,3.3rem)}
+  h2{font-size:1.65rem}
+  .panel,.card{padding:19px;border-radius:20px}
+  .grid{grid-template-columns:1fr;gap:16px}
+  .btn,button.primary,button.secondary,.btn.secondary{min-height:48px;padding:12px 18px}
+  input,textarea,select{min-height:52px;padding:14px;font-size:1rem}
+  label{font-size:1rem}
+  .small{font-size:.92rem}
+  .community-app{padding-inline:13px}
+  .community-intro{padding:30px 2px 20px}
+  .community-intro h1{font-size:clamp(2.25rem,9vw,3.2rem)}
+  .social-post{padding:18px}
+  .social-post-text{font-size:1.05rem;line-height:1.7}
+  .social-avatar{width:46px;height:46px}
+  .social-post-actions button,.comment-form button{min-height:42px;padding:9px 14px;font-size:.9rem}
+  .short-action{width:52px;min-height:52px;font-size:1.55rem}
+  .short-overlay h3{font-size:1.15rem}
+  .short-overlay p{font-size:1rem;line-height:1.5}
+  .shorts-bottom{height:72px}
+  .shorts-bottom a{font-size:1.4rem;min-width:52px}
+  .shorts-bottom small{font-size:.7rem}
+  .profile-page{padding-bottom:120px}
+  body[data-feature="profile"] .profile-page{width:min(100%,620px);padding:30px 22px 125px}
+  body[data-feature="profile"] .auth-screen{gap:38px}
+  .auth-brand{font-size:2.1rem}
+  .auth-card{max-width:560px}
+  .auth-heading{margin-bottom:32px}
+  .auth-heading h1{font-size:clamp(2.35rem,9vw,3.1rem)}
+  .auth-heading p:last-child{font-size:1.05rem;line-height:1.65}
+  .auth-form{gap:13px}
+  .auth-form label{font-size:1rem;margin-top:10px}
+  .auth-form input{min-height:64px;padding:17px 20px;font-size:1.05rem}
+  .password-toggle{width:48px;height:48px}
+  .auth-forgot{font-size:1rem;padding:10px 2px}
+  .auth-submit{min-height:64px;font-size:1.1rem}
+  .auth-switch{font-size:1rem;margin:25px 0}
+  .auth-google{min-height:60px;font-size:1rem}
+  .auth-divider{margin:25px 0;font-size:.76rem}
+  .auth-terms,.auth-hint{font-size:.88rem;line-height:1.6}
+  body[data-feature="profile"] #profile-panel{padding:20px}
+  body[data-feature="profile"] #profile-panel h2{font-size:1.6rem}
+  body[data-feature="profile"] #profile-panel input,
+  body[data-feature="profile"] #profile-panel textarea{min-height:56px;font-size:1rem}
+  .profile-bottom{height:72px;padding-bottom:env(safe-area-inset-bottom)}
+}
