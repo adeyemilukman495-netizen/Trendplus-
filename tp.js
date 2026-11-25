@@ -12,9 +12,10 @@ const end7=new Date(end); end7.setUTCDate(end7.getUTCDate()-6);
 const start7=new Date(end7); start7.setUTCDate(start7.getUTCDate()-7);
 const endPrev=new Date(end7); endPrev.setUTCDate(endPrev.getUTCDate()-1);
 const dateA=ymd(start7),dateB=ymd(end),dateC=ymd(start7),dateD=ymd(endPrev);
-const cacheKey="tp-data-v3";
+const cacheKey="tp-data-v4";
+const imageCacheKey="tp-images-v1";
 let records=[];
-function cacheRead(){try{const x=JSON.parse(localStorage.getItem(cacheKey)||"null");if(x&&Date.now()-x.time<6*3600000)return x.data;}catch(e){}return null;}
+function cacheRead(){try{const x=JSON.parse(localStorage.getItem(cacheKey)||"null");if(x&&Date.now()-x.time<30*60000)return x.data;}catch(e){}return null;}
 async function loadOne(t){
  const url=cfg.api+"/en.wikipedia/all-access/all/"+encodeURIComponent(t.article)+"/daily/"+dateA+"/"+dateB;
  const res=await fetch(url,{headers:{Accept:"application/json"}});
@@ -27,17 +28,42 @@ async function loadOne(t){
  const currentViews=sum(current), previousViews=sum(previous);
  return {...t,views:currentViews,previous:previousViews,avg:currentViews/7,growth:previousViews?((currentViews-previousViews)/previousViews)*100:(currentViews?null:0),series:recent.map(x=>x.views||0)};
 }
-async function loadData(){
- const cached=cacheRead(); if(cached){records=cached;return records;}
+async function loadImages(){
+ let saved={};
+ try{const raw=JSON.parse(localStorage.getItem(imageCacheKey)||"null");if(raw&&Date.now()-raw.time<7*86400000)saved=raw.data||{};}catch(e){}
  const unique=[...new Map(topics.map(t=>[t.article,t])).values()];
- const output=[];
- for(let i=0;i<unique.length;i+=6){
-   const batch=await Promise.all(unique.slice(i,i+6).map(async t=>{try{return await loadOne(t);}catch(e){return {...t,views:0,previous:0,avg:0,growth:0,series:[],error:true};}}));
-   output.push(...batch);
+ const missing=unique.filter(t=>!Object.prototype.hasOwnProperty.call(saved,t.article));
+ for(let i=0;i<missing.length;i+=6){
+   const batch=await Promise.all(missing.slice(i,i+6).map(async t=>{
+     try{
+       const url="https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(t.article.replace(/_/g," "));
+       const res=await fetch(url,{headers:{Accept:"application/json"}});
+       if(!res.ok)return [t.article,null];
+       const data=await res.json();
+       const src=data.thumbnail&&data.thumbnail.source||data.originalimage&&data.originalimage.source||null;
+       return [t.article,typeof src==="string"&&src.startsWith("https://")?src:null];
+     }catch(e){return [t.article,null];}
+   }));
+   batch.forEach(([key,value])=>{saved[key]=value;});
  }
- const byArticle=new Map(output.map(x=>[x.article,x]));
- records=topics.map(t=>({...byArticle.get(t.article),...t}));
- try{localStorage.setItem(cacheKey,JSON.stringify({time:Date.now(),data:records}));}catch(e){}
+ try{localStorage.setItem(imageCacheKey,JSON.stringify({time:Date.now(),data:saved}));}catch(e){}
+ records=records.map(t=>({...t,image:saved[t.article]||null}));
+}
+async function loadData(){
+ const cached=cacheRead();
+ if(cached){records=cached;}
+ else{
+   const unique=[...new Map(topics.map(t=>[t.article,t])).values()];
+   const output=[];
+   for(let i=0;i<unique.length;i+=6){
+     const batch=await Promise.all(unique.slice(i,i+6).map(async t=>{try{return await loadOne(t);}catch(e){return {...t,views:0,previous:0,avg:0,growth:0,series:[],error:true};}}));
+     output.push(...batch);
+   }
+   const byArticle=new Map(output.map(x=>[x.article,x]));
+   records=topics.map(t=>({...byArticle.get(t.article),...t}));
+   try{localStorage.setItem(cacheKey,JSON.stringify({time:Date.now(),data:records}));}catch(e){}
+ }
+ await loadImages();
  return records;
 }
 function starButton(t){const saved=JSON.parse(localStorage.getItem("tp-follows")||"[]");const yes=saved.includes(t.article);return '<button class="star" type="button" data-star="'+safe(t.article)+'" aria-label="'+(yes?"Unfollow ":"Follow ")+safe(t.title)+'" aria-pressed="'+yes+'">'+(yes?"★":"☆")+'</button>';}
@@ -48,7 +74,7 @@ function card(t){
  const series=t.series||[];
  const points=series.map((v,i)=>{const x=4+i*(92/Math.max(1,series.length-1));const max=Math.max(1,...series);const y=31-(v/max)*26;return x.toFixed(1)+","+y.toFixed(1)}).join(" ");
  const badge=hasBaseline?(rise?"▲ ":"▼ ")+Math.abs(trend)+"% vs previous week":"NEW · no previous-week baseline";
- return '<article class="card"><div class="top"><span class="tag">'+safe((cfg.categories||[]).find(c=>c[0]===t.category)?.[1]||t.category)+'</span>'+starButton(t)+'</div><h3><a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(t.article)+'" target="_blank" rel="noopener">'+safe(t.title)+'</a></h3><p class="avg"><b>'+fmt(t.avg)+'</b> avg views/day</p><span class="badge '+(hasBaseline?(rise?"up":"down"):"up")+'">'+badge+'</span>'+(points?'<svg class="spark" viewBox="0 0 100 36" role="img" aria-label="Recent page view trend"><polyline points="'+points+'"></polyline></svg>':"")+'</article>';
+ return '<article class="card">'+(t.image?'<a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(t.article)+'" target="_blank" rel="noopener" aria-label="View image source for '+safe(t.title)+'"><img src="'+safe(t.image)+'" alt="'+safe(t.title)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="display:block;width:100%;height:170px;object-fit:cover;border-radius:12px;margin-bottom:12px"></a><small style="display:block;margin:-6px 0 10px;opacity:.7">Image via Wikipedia · see article for image credits</small>':"")+'<div class="top"><span class="tag">'+safe((cfg.categories||[]).find(c=>c[0]===t.category)?.[1]||t.category)+'</span>'+starButton(t)+'</div><h3><a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(t.article)+'" target="_blank" rel="noopener">'+safe(t.title)+'</a></h3><p class="avg"><b>'+fmt(t.avg)+'</b> avg views/day</p><span class="badge '+(hasBaseline?(rise?"up":"down"):"up")+'">'+badge+'</span>'+(points?'<svg class="spark" viewBox="0 0 100 36" role="img" aria-label="Recent page view trend"><polyline points="'+points+'"></polyline></svg>':"")+'</article>';
 }
 function bindStars(root=document){$$("[data-star]",root).forEach(b=>b.addEventListener("click",()=>{let a=[];try{a=JSON.parse(localStorage.getItem("tp-follows")||"[]")}catch(e){}const id=b.dataset.star;a=a.includes(id)?a.filter(x=>x!==id):[...a,id];localStorage.setItem("tp-follows",JSON.stringify(a));b.textContent=a.includes(id)?"★":"☆";b.setAttribute("aria-pressed",String(a.includes(id)));b.setAttribute("aria-label",(a.includes(id)?"Unfollow ":"Follow ")+(topics.find(t=>t.article===id)?.title||id));}));}
 function chips(active,fn){const ul=$("#chips");if(!ul)return;ul.innerHTML=(cfg.categories||[]).map(c=>'<li><button class="chip" type="button" data-cat="'+c[0]+'" aria-pressed="'+(c[0]===active)+'">'+safe(c[1])+'</button></li>').join("");$$("[data-cat]",ul).forEach(b=>b.addEventListener("click",()=>{active=b.dataset.cat;$$("[data-cat]",ul).forEach(x=>x.setAttribute("aria-pressed",String(x===b)));fn(active);}));}
@@ -64,7 +90,7 @@ function render(){
  if(out){
    const isCategory=page==="category";
    let category=document.body.dataset.cat||"all",mode="trend";
-   const draw=()=>{let list=category==="all"?all:category==="movies"?all.filter(t=>["movies","hollywood","international-movies"].includes(t.category)):all.filter(t=>t.category===category);list=mode==="rise"?[...list].sort((a,b)=>b.growth-a.growth):[...list].sort((a,b)=>b.avg-a.avg);renderList(out,list);const count=$("#count");if(count){const failed=records.filter(t=>t.error).length;count.textContent=list.length+" topics with page-view data"+(failed?" · "+failed+" topic lookups unavailable":"")+" · updated "+new Date().toLocaleString();}};
+   const draw=()=>{let list=category==="all"?all:category==="movies"?all.filter(t=>["movies","hollywood","international-movies"].includes(t.category)):all.filter(t=>t.category===category);list=mode==="rise"?[...list].sort((a,b)=>b.growth-a.growth):[...list].sort((a,b)=>b.avg-a.avg);renderList(out,list);const count=$("#count");if(count){const failed=records.filter(t=>t.error).length;count.textContent=list.length+" topics with page-view data"+(failed?" · "+failed+" topic lookups unavailable":"")+" · refreshed "+new Date().toLocaleString();}};
    if(!isCategory)chips("all",c=>{category=c;draw();});
    else $$("[data-m]").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.m;$$("[data-m]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));draw();}));
    draw();
@@ -79,4 +105,5 @@ function init(){
  loadData().then(render).catch(()=>{ $$(".grid").forEach(el=>el.innerHTML='<p class="demo">Live trend data is temporarily unavailable. Please refresh in a little while.</p>');});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+setInterval(()=>{if(document.visibilityState==="visible")loadData().then(render).catch(()=>{});},30*60*1000);
 })();
