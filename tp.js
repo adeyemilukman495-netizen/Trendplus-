@@ -90,7 +90,7 @@ function render(){
  if(out){
    const isCategory=page==="category";
    let category=document.body.dataset.cat||"all",mode="trend";
-   const draw=()=>{let list=category==="all"?all:category==="movies"?all.filter(t=>["movies","hollywood","international-movies"].includes(t.category)):all.filter(t=>t.category===category);list=mode==="rise"?[...list].sort((a,b)=>b.growth-a.growth):[...list].sort((a,b)=>b.avg-a.avg);renderList(out,list);const count=$("#count");if(count){const failed=records.filter(t=>t.error).length;count.textContent=list.length+" topics with page-view data"+(failed?" · "+failed+" topic lookups unavailable":"")+" · refreshed "+new Date().toLocaleString();}};
+   const draw=()=>{let list=category==="all"?all:category==="movies"?all.filter(t=>["movies","hollywood","international-movies"].includes(t.category)):all.filter(t=>t.category===category);list=mode==="rise"?[...list].sort((a,b)=>b.growth-a.growth):[...list].sort((a,b)=>b.avg-a.avg);renderList(out,list);const count=$("#count");if(count){const failed=records.filter(t=>t.error).length;count.textContent=list.length+" topics with page-view data"+(failed?" · "+failed+" topic lookups unavailable":"")+" · latest stats through "+end.toLocaleDateString()+" · checked "+new Date().toLocaleTimeString()+" · auto-refresh 30m";}};
    if(!isCategory)chips("all",c=>{category=c;draw();});
    else $$("[data-m]").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.m;$$("[data-m]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));draw();}));
    draw();
