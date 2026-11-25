@@ -56,7 +56,7 @@ Copy this template for each task:
 - Repository: `adeyemilukman495-netizen/Trendplus-`
 - Production/default branch: `main`
 - Team setup branch: `ai-team/setup`
-- This setup adds documentation only. It does not change application code, Supabase configuration, schema, or production data.
+- This branch contains the shared workflow documentation, initial security review, and a staged authentication UI update. It has not changed main, deployed the site, or modified Supabase configuration, schema, or production data.
 
 ## Initial review queue
 
@@ -82,3 +82,16 @@ Highest-priority findings:
 - Syntax validation currently runs on pushes, not pull requests.
 
 Review was static only. No live database, browser, upload, or workflow execution was performed. No application code or database was changed. All fixes remain pending owner approval.
+
+
+## Authentication screen implementation — 2026-11-25
+
+- **Status:** Implemented on ai-team/setup; pending review and live testing.
+- **Scope:** Reworked the existing Profile authentication area to match the supplied DeepSeek-style reference: dark full-screen layout, centered TrendPulse branding, rounded email/password fields, primary blue login button, clear sign-up switch, Google sign-in, password visibility toggle, and password-reset request.
+- **Files changed:** profile.html, features.css, features.js, backend-client.js.
+- **Preserved:** Existing profile editor, activity statistics, sign-out, Supabase email/password sign-up/sign-in, and Google OAuth flow.
+- **Important provider note:** Apple sign-in is not displayed because the current client only implements Google OAuth and Apple provider setup has not been verified. Do not show a nonfunctional Apple button.
+- **Database impact:** None. No SQL migration or Supabase schema change.
+- **Production impact:** None. Changes are on the review branch only.
+- **Tests:** Static code review only so far. Must test mobile layout, email signup/confirmation, password login, Google OAuth callback, password reset, and profile save against the published preview after approval.
+- **Next:** Independent diff review, correct any issues, then continue the separate Shorts privacy/upload and migration-workflow fixes.
