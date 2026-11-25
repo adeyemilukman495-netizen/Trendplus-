@@ -128,7 +128,7 @@ form.onsubmit=async e=>{e.preventDefault();try{const users=await backend.searchM
 send.onsubmit=async e=>{e.preventDefault();try{const id=chat.dataset.conversationId;if(!id)throw new Error('Choose a member first.');await backend.sendMessage(id,$('#message-content').value.trim());$('#message-content').value='';await loadMessages(id)}catch(err){alert(err.message)}};
 }
 function profile(){
-const auth=$('#profile-auth'),form=$('#profile-form'),status=$('#profile-status'),panel=$('#profile-panel'),stats=$('#stats'),signup=$('#signup-form'),signin=$('#signin-form');
+const auth=$('#profile-auth'),form=$('#profile-form'),status=$('#profile-status'),panel=$('#profile-panel'),stats=$('#stats'),signup=$('#signup-form'),signin=$('#signin-form'),ownerAdminLink=$('#owner-admin-link');
 const title=$('#auth-title'),subtitle=$('#auth-subtitle'),switchText=$('#auth-switch');
 let authMode='signin';
 function message(text,kind='info'){
@@ -160,12 +160,14 @@ async function refresh(){
   // explicitly chosen Sign up. The toggle signs out any existing session.
   if(authMode==='signup'){auth.hidden=false;panel.hidden=true;return}
   auth.hidden=!!user;panel.hidden=!user;
-  if(!user){message('');return}
+  if(!user){if(ownerAdminLink)ownerAdminLink.hidden=true;message('');return}
   const p=await backend.getProfile(user.id);
   $('#name').value=p.display_name||'';
   $('#username').value=p.username||'';
   $('#bio').value=p.bio||'';
   message('Signed in as '+(user.email||'TrendPulse member'),'success');
+  // Reveal the admin entry only when Supabase confirms this signed-in account is on the owner allowlist. Fail closed on any error.
+  if(ownerAdminLink){ownerAdminLink.hidden=true;try{const {data:ownerAllowed,error:ownerError}=await backend.client.rpc('is_trendpulse_admin');if(!ownerError&&ownerAllowed===true)ownerAdminLink.hidden=false}catch(ownerCheckError){ownerAdminLink.hidden=true}}
   try{
    const [w,r,posts,shorts]=await Promise.all([backend.getWatchlist(),backend.getReviews(),backend.getPosts(),backend.getShorts()]);
    stats.innerHTML='<div class="grid">'+[['Watchlist',w.length],['Reviews',r.filter(x=>x.author_id===user.id).length],['Posts',posts.filter(x=>x.author_id===user.id).length],['Shorts',shorts.filter(x=>x.author_id===user.id).length]].map(x=>'<div class="card"><b>'+x[1]+'</b><p class="muted">'+x[0]+'</p></div>').join('')+'</div>';
