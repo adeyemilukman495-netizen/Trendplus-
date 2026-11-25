@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Owner dashboard | TrendPulse</title><meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="./features.css?v=20261125-admin1"><link rel="stylesheet" href="./admin.css?v=20261125-admin1">
+</head><body class="admin-body">
+<header class="admin-top"><a class="brand" href="./">✦ Trend<span>Pulse</span></a><div><span class="owner-label">OWNER CONSOLE</span><button id="admin-signout" class="admin-ghost" type="button" hidden>Sign out</button></div></header>
+<main class="admin-wrap">
+<section id="admin-loading" class="admin-panel"><p>Checking your owner access…</p></section>
+<section id="admin-denied" class="admin-panel" hidden><h1>Owner access only</h1><p id="admin-denied-message">Sign in with the authorised owner account to continue.</p><a class="admin-button" href="./profile.html">Go to sign in</a></section>
+<div id="admin-app" hidden>
+<div class="admin-heading"><div><p class="admin-kicker">PRIVATE CONTROL CENTRE</p><h1>Business overview</h1><p>Track recorded revenue, costs and services that are running low on points.</p></div><button id="admin-refresh" class="admin-button secondary" type="button">↻ Refresh</button></div>
+<div class="admin-notice">Amounts are based on entries you record here. Ad networks, payment providers and tool vendors are not connected automatically yet.</div>
+<section class="admin-metrics">
+<article class="metric-card"><span>Total income</span><strong id="total-income">—</strong><small>All recorded income</small></article>
+<article class="metric-card"><span>Ad earnings</span><strong id="ads-income">—</strong><small>Income tagged Ads</small></article>
+<article class="metric-card"><span>Tools earnings</span><strong id="tools-income">—</strong><small>Income tagged Tools</small></article>
+<article class="metric-card"><span>Points earnings</span><strong id="points-income">—</strong><small>Income tagged Points</small></article>
+<article class="metric-card"><span>Total expenses</span><strong id="total-expenses">—</strong><small>All recorded costs</small></article>
+<article class="metric-card highlight"><span>Net balance</span><strong id="net-balance">—</strong><small>Income minus expenses</small></article>
+</section>
+<div class="admin-columns">
+<section class="admin-panel"><div class="panel-heading"><div><p class="admin-kicker">LEDGER</p><h2>Record money in or out</h2></div></div>
+<form id="finance-form" class="admin-form">
+<label>Record type<select id="entry-type"><option value="income">Income received</option><option value="expense">Expense paid</option></select></label>
+<label>Source<select id="entry-source"><option value="ads">Ads</option><option value="tools">Tools</option><option value="points">Points / credits</option><option value="other">Other</option></select></label>
+<label>Amount<input id="entry-amount" type="number" min="0.01" step="0.01" required placeholder="0.00"></label>
+<label>Currency<select id="entry-currency"><option>NGN</option><option>USD</option><option>GBP</option><option>EUR</option></select></label>
+<label class="wide">Date<input id="entry-date" type="date" required></label>
+<label class="wide">Note<input id="entry-note" maxlength="180" placeholder="e.g. Ad network payout for November"></label>
+<button class="admin-button wide" type="submit">Save financial entry</button><p id="finance-status" class="form-status wide" role="status"></p>
+</form></section>
+<section class="admin-panel"><div class="panel-heading"><div><p class="admin-kicker">SERVICE MONITOR</p><h2>Websites & tools using points</h2></div></div>
+<p class="panel-help">Add a service and its remaining points. Low balances will appear here with the estimated top-up cost.</p>
+<form id="service-form" class="admin-form">
+<label>Service / website name<input id="service-name" maxlength="80" required placeholder="e.g. AI video tool"></label>
+<label>Website URL<input id="service-url" type="url" placeholder="https://..."></label>
+<label>Points remaining<input id="service-points" type="number" min="0" step="0.01" required value="0"></label>
+<label>Low-balance alert at<input id="service-threshold" type="number" min="0" step="0.01" required value="100"></label>
+<label>Estimated top-up cost<input id="service-cost" type="number" min="0" step="0.01" required value="0"></label>
+<label>Currency<select id="service-currency"><option>NGN</option><option>USD</option><option>GBP</option><option>EUR</option></select></label>
+<label class="wide">Notes<input id="service-notes" maxlength="180" placeholder="What the service is used for"></label>
+<button class="admin-button wide" type="submit">Add service to monitor</button><p id="service-status" class="form-status wide" role="status"></p>
+</form>
+<div id="service-list" class="service-list"></div></section>
+</div>
+<section class="admin-panel"><div class="panel-heading"><div><p class="admin-kicker">RECENT ACTIVITY</p><h2>Financial records</h2></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Source</th><th>Note</th><th>Amount</th></tr></thead><tbody id="finance-rows"><tr><td colspan="5">Loading records…</td></tr></tbody></table></div></section>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./backend-client.js"></script><script src="./admin.js?v=20261125-admin1"></script>
+</body></html>
