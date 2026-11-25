@@ -1,11 +1,28 @@
--- Replace the seeded demo rooms with member-created communities.
--- This removes only the original 11 starter rooms; unrelated rooms are untouched.
-delete from public.group_rooms
-where slug in (
+-- Replace visible demo rooms with member-created communities without losing
+-- messages or memberships: rooms with content are archived; empty starters are removed.
+alter table public.group_rooms
+  add column if not exists is_archived boolean not null default false;
+
+update public.group_rooms r
+set is_archived = true
+where r.slug in (
  'anime-lounge','manga-corner','hollywood-movies','bollywood-fans',
  'nollywood-hub','k-drama-club','c-drama-club','j-drama-club',
  'tv-series-lounge','gaming-zone','general-lounge'
+)
+and (
+  exists (select 1 from public.group_messages m where m.room_id = r.id)
+  or exists (select 1 from public.group_room_members gm where gm.room_id = r.id)
 );
+
+delete from public.group_rooms r
+where r.slug in (
+ 'anime-lounge','manga-corner','hollywood-movies','bollywood-fans',
+ 'nollywood-hub','k-drama-club','c-drama-club','j-drama-club',
+ 'tv-series-lounge','gaming-zone','general-lounge'
+)
+and not exists (select 1 from public.group_messages m where m.room_id = r.id)
+and not exists (select 1 from public.group_room_members gm where gm.room_id = r.id);
 
 alter table public.group_rooms
   add column if not exists created_by uuid references public.profiles(id) on delete set null;
