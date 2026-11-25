@@ -57,6 +57,12 @@
       }),
     signIn: (email, password) =>
       client.auth.signInWithPassword({ email, password }),
+    signInWithGoogle: () => client.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+      },
+    }),
     signOut: () => client.auth.signOut(),
     onAuthChange: callback =>
       client.auth.onAuthStateChange((_event, session) => callback(session?.user || null)),
