@@ -71,10 +71,23 @@
       client.auth.onAuthStateChange((_event, session) => callback(session?.user || null)),
 
     getProfile: async userId => {
-      const id = userId || (await requireUser()).id;
-      const { data, error } = await client.from('profiles').select('*').eq('id', id).single();
+      const user = userId ? null : await requireUser();
+      const id = userId || user.id;
+      const { data, error } = await client.from('profiles').select('*').eq('id', id).maybeSingle();
       if (error) throw error;
-      return data;
+      if (data) return data;
+
+      // Recover accounts whose auth user exists but whose profile row was not
+      // created by the database trigger (for example, an older partial setup).
+      const authUser = user || (await client.auth.getUser()).data.user;
+      if (!authUser) throw new Error('Please sign in again to create your profile.');
+      const displayName = String(authUser.user_metadata?.display_name || authUser.user_metadata?.full_name || 'TrendPulse member').trim().slice(0, 40);
+      const username = 'member_' + authUser.id.replace(/-/g, '').slice(0, 10);
+      const { data: created, error: createError } = await client.from('profiles')
+        .upsert({ id, username, display_name: displayName, bio: '' }, { onConflict: 'id' })
+        .select('*').single();
+      if (createError) throw createError;
+      return created;
     },
     saveProfile: async values => {
       const user = await requireUser();
