@@ -1,10 +1,10 @@
-name: Apply Supabase migrations
+name: Inspect Supabase migration history
 
 on:
   workflow_dispatch:
 
 jobs:
-  migrate:
+  inspect:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -21,10 +21,12 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: |
-          supabase link --project-ref ndldroodunoxlitifymo --password "$SUPABASE_DB_PASSWORD"
+        run: supabase link --project-ref ndldroodunoxlitifymo --password "$SUPABASE_DB_PASSWORD"
 
-      - name: Apply pending migrations
+      - name: Show local migration files
+        run: ls -la supabase/migrations
+
+      - name: Compare local and remote migration history
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase db push --linked --yes
+        run: supabase migration list --linked
