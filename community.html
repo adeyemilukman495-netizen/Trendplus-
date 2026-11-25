@@ -1,13 +1,14 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b141a"><title>Community chats | TrendPulse</title><meta name="description" content="Join live TrendPulse fandom group chats."><link rel="stylesheet" href="./features.css?v=20261125-whatsapp1"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b141a"><title>Community chats | TrendPulse</title><meta name="description" content="Join live TrendPulse fandom group chats."><link rel="stylesheet" href="./features.css?v=20261126-community-create1"></head>
 <body data-feature="community">
 <main class="wa-app" id="community-root">
 <header class="wa-topbar"><a class="brand" href="./">✦ Trend<span>Pulse</span></a><div class="wa-top-actions"><a href="./messages.html">Private messages</a><a href="./profile.html">Profile</a></div></header>
 <section class="wa-layout">
 <aside class="wa-sidebar"><div class="wa-sidebar-heading"><div><p class="eyebrow">TRENDPULSE COMMUNITY</p><h1>Chats</h1></div><span class="wa-chat-mark">●</span></div>
-<p class="wa-sidebar-note">Join a fandom room and talk with people who enjoy the same things.</p>
-<div class="wa-filter-label">YOUR COMMUNITIES</div><div id="community-room-list" class="wa-room-list"><p class="wa-muted">Loading conversations…</p></div>
+<p class="wa-sidebar-note">Create a community around what you enjoy, then invite others to join the conversation.</p>
+<div class="wa-community-actions"><div class="wa-filter-label">COMMUNITIES</div><button type="button" id="community-create-open" class="wa-create-button">＋ Create a community</button></div><div id="community-room-list" class="wa-room-list"><p class="wa-muted">Loading conversations…</p></div>
 <div id="community-signin" class="wa-signin" hidden><b>Sign in to join chats</b><p>Create an account or log in to send and receive messages.</p><a class="wa-signin-button" href="./profile.html?next=community">Sign in / Sign up</a></div>
+<dialog id="community-create-dialog" class="wa-create-dialog"><form id="community-create-form" class="wa-create-form"><div class="wa-create-heading"><div><p class="eyebrow">START SOMETHING NEW</p><h2>Create a community</h2></div><button type="button" id="community-create-close" class="wa-dialog-close" aria-label="Close">×</button></div><label for="community-create-name">Community name</label><input id="community-create-name" name="name" maxlength="50" minlength="3" required placeholder="e.g. Anime Discussions"><label for="community-create-category">Category</label><select id="community-create-category" name="category" required><option>Anime</option><option>Manga</option><option>Movies</option><option>TV Series</option><option>K-Drama</option><option>C-Drama</option><option>J-Drama</option><option>Gaming</option><option>Music</option><option>Sports</option><option>Books</option><option>General</option><option>Other</option></select><label for="community-create-description">Description <span>(optional)</span></label><textarea id="community-create-description" name="description" maxlength="300" rows="3" placeholder="What will people talk about?"></textarea><p id="community-create-error" class="wa-create-error" role="alert"></p><button id="community-create-submit" class="wa-create-submit" type="submit">Create community</button></form></dialog>
 </aside>
 <section class="wa-chat-panel" id="community-chat" hidden>
 <header class="wa-chat-head"><button type="button" id="community-back" class="wa-back" aria-label="Back to chats">‹</button><span class="wa-room-avatar">✦</span><div class="wa-chat-title"><h2 id="community-room-title">Community</h2><p id="community-room-subtitle">Fandom group chat</p></div><span id="community-presence" class="wa-presence">Connecting…</span></header>
@@ -18,5 +19,5 @@
 </section>
 <nav class="wa-bottom"><a href="./">⌂<small>Home</small></a><a href="./catalog.html">⌕<small>Discover</small></a><a class="active" href="./community.html">▤<small>Community</small></a><a href="./profile.html">◉<small>Profile</small></a></nav>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./backend-client.js"></script><script src="./features.js?v=20261125-whatsapp1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./backend-client.js"></script><script src="./features.js?v=20261126-community-create1"></script>
 <script src="./analytics.js?v=20261125-analytics1"></script></body></html>
