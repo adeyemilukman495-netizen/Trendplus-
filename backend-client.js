@@ -65,6 +65,7 @@
         redirectTo: 'https://adeyemilukman495-netizen.github.io/Trendplus-/profile.html',
       },
     }),
+    resetPassword: email => client.auth.resetPasswordForEmail(email, { redirectTo: 'https://adeyemilukman495-netizen.github.io/Trendplus-/profile.html' }),
     signOut: () => client.auth.signOut(),
     onAuthChange: callback =>
       client.auth.onAuthStateChange((_event, session) => callback(session?.user || null)),
