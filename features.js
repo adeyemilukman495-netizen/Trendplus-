@@ -5,19 +5,45 @@ const read=k=>{try{return JSON.parse(localStorage.getItem('tp-'+k)||'[]')}catch(
 document.body.insertAdjacentHTML('afterbegin','<header><div class="wrap bar"><a class="brand" href="./">✦ Trend<span>Pulse</span></a><button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="feature-nav"><span></span><span></span><span></span></button><nav id="feature-nav" class="feature-nav"><a href="./">Home</a><a href="./catalog.html">Explore</a><a href="./trending.html">Trending</a><a href="./rising.html">Rising</a><a href="./watchlist.html">Watchlist</a><a href="./reviews.html">Reviews</a><a href="./shorts.html">Shorts</a><a href="./community.html">Community</a><a href="./messages.html">Messages</a><a href="./profile.html">Profile</a><a href="./members.html">Members</a></nav></div></header>');
 const menuButton=document.querySelector('.menu-toggle'),featureNav=document.querySelector('#feature-nav');if(menuButton&&featureNav){menuButton.addEventListener('click',()=>{const open=menuButton.getAttribute('aria-expanded')!=='true';menuButton.setAttribute('aria-expanded',String(open));menuButton.setAttribute('aria-label',open?'Close navigation':'Open navigation');featureNav.classList.toggle('is-open',open)});featureNav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menuButton.setAttribute('aria-expanded','false');featureNav.classList.remove('is-open')}));}
 function watchlist(){
-const root=$('#content');let active='All';
-async function draw(){try{
- if(!backend?.ready)throw new Error('Backend is unavailable.');
- const user=await backend.currentUser();
- if(!user){root.innerHTML='<div class="empty">Sign in at <a href="./members.html">Members</a> to build and sync your personal entertainment library.</div>';return}
- const items=await backend.getWatchlist(),tabs=['All','Plan to watch','Watching','Completed','On hold','Dropped'];
- const shown=active==='All'?items:items.filter(x=>(x.status||'Plan to watch')===active);
- root.innerHTML='<div class="library-toolbar"><div class="library-tabs" role="group" aria-label="Filter saved titles">'+tabs.map(s=>'<button type="button" class="library-tab '+(active===s?'active':'')+'" data-filter="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div><a class="btn secondary" href="./catalog.html">＋ Discover titles</a></div>'+
- (shown.length?'<div class="library-grid">'+shown.map(x=>'<article class="library-card">'+(x.poster_url?'<img class="library-poster" loading="lazy" src="'+esc(x.poster_url)+'" alt="Poster for '+esc(x.title)+'">':'<div class="library-poster poster-placeholder">✦<small>'+esc(x.media_type||'Title')+'</small></div>')+'<div class="library-info"><span class="tag">'+esc(x.media_type||'Title')+'</span><h3>'+esc(x.title)+'</h3><label class="sr-only" for="status-'+x.id+'">Viewing status</label><select id="status-'+x.id+'" data-status="'+x.id+'">'+tabs.slice(1).map(v=>'<option '+((x.status||'Plan to watch')===v?'selected':'')+'>'+v+'</option>').join('')+'</select><button class="library-remove" type="button" data-remove="'+x.id+'">Remove from my list</button></div></article>').join('')+'</div>':'<div class="empty library-empty"><strong>'+(items.length?'Nothing in this section yet.':'Your library is waiting for its first title.')+'</strong><p>Save movies, anime and series from Explore, then move them between your watchlist and watched titles.</p><a class="btn" href="./catalog.html">Explore titles</a></div>');
- root.querySelectorAll('[data-filter]').forEach(btn=>btn.onclick=()=>{active=btn.dataset.filter;draw()});
- root.querySelectorAll('[data-remove]').forEach(btn=>btn.onclick=async()=>{try{await backend.removeWatchlist(btn.dataset.remove);await draw()}catch(e){alert(e.message)}});
- root.querySelectorAll('[data-status]').forEach(select=>select.onchange=async()=>{try{await backend.updateWatchStatus(select.dataset.status,select.value);await draw()}catch(e){alert(e.message)}});
-}catch(e){root.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
+const root=$('#content');let active='All',busy=false;
+const tabs=['All','Plan to watch','Watching','Completed','On hold','Dropped'];
+function notice(message,kind='info'){
+ let node=root.querySelector('[data-library-status]');
+ if(!node){node=document.createElement('p');node.className='library-status';node.dataset.libraryStatus='';node.setAttribute('role','status');node.setAttribute('aria-live','polite');root.prepend(node)}
+ node.textContent=message;node.dataset.state=kind;
+}
+async function draw(){
+ if(busy)return;busy=true;
+ root.innerHTML='<div class="library-loading" role="status">Loading your library…</div>';
+ try{
+  if(!backend?.ready)throw new Error(backend?.reason||'The library service is unavailable. Please try again later.');
+  const user=await backend.currentUser();
+  if(!user){root.innerHTML='<div class="empty library-empty"><strong>Your personal library is one sign-in away.</strong><p>Sign in to save titles, organise your watchlist and keep your progress synced to your account.</p><a class="btn" href="./members.html">Sign in or join</a></div>';return}
+  const items=await backend.getWatchlist();
+  const shown=active==='All'?items:items.filter(x=>(x.status||'Plan to watch')===active);
+  const toolbar=document.createElement('div');toolbar.className='library-toolbar';
+  const filters=document.createElement('div');filters.className='library-tabs';filters.setAttribute('role','group');filters.setAttribute('aria-label','Filter saved titles');
+  tabs.forEach(label=>{const b=document.createElement('button');b.type='button';b.className='library-tab'+(active===label?' active':'');b.textContent=label;b.setAttribute('aria-pressed',String(active===label));b.onclick=()=>{active=label;draw()};filters.append(b)});
+  const discover=document.createElement('a');discover.className='btn secondary';discover.href='./catalog.html';discover.textContent='＋ Discover titles';toolbar.append(filters,discover);root.replaceChildren(toolbar);
+  if(!shown.length){const empty=document.createElement('div');empty.className='empty library-empty';const title=document.createElement('strong');title.textContent=items.length?'Nothing in this section yet.':'Your library is waiting for its first title.';const p=document.createElement('p');p.textContent=items.length?'Try another status filter or move a saved title into this section.':'Save films, anime and series from Explore, then track what you plan to watch, are watching or have completed.';const link=document.createElement('a');link.className='btn';link.href='./catalog.html';link.textContent='Explore titles';empty.append(title,p,link);root.append(empty);return}
+  const grid=document.createElement('div');grid.className='library-grid';
+  shown.forEach(item=>{
+   const card=document.createElement('article');card.className='library-card';
+   if(item.poster_url){const img=document.createElement('img');img.className='library-poster';img.loading='lazy';img.src=item.poster_url;img.alt='Poster for '+item.title;img.onerror=()=>{img.replaceWith(Object.assign(document.createElement('div'),{className:'library-poster poster-placeholder',textContent:'✦'}))};card.append(img)}
+   else{const poster=document.createElement('div');poster.className='library-poster poster-placeholder';poster.textContent='✦';const small=document.createElement('small');small.textContent=item.media_type||'Title';poster.append(small);card.append(poster)}
+   const info=document.createElement('div');info.className='library-info';
+   const tag=document.createElement('span');tag.className='tag';tag.textContent=item.media_type||'Title';
+   const h=document.createElement('h3');h.textContent=item.title||'Untitled';
+   const select=document.createElement('select');select.setAttribute('aria-label','Viewing status for '+(item.title||'this title'));
+   tabs.slice(1).forEach(status=>{const option=document.createElement('option');option.value=status;option.textContent=status;option.selected=(item.status||'Plan to watch')===status;select.append(option)});
+   select.onchange=async()=>{const previous=item.status||'Plan to watch';select.disabled=true;try{await backend.updateWatchStatus(item.id,select.value);notice('Viewing status updated.','success');await draw()}catch(error){select.value=previous;notice(error.message||'Could not update this title.','error');select.disabled=false}};
+   const remove=document.createElement('button');remove.className='library-remove';remove.type='button';remove.textContent='Remove from my list';remove.onclick=async()=>{if(!confirm('Remove '+(item.title||'this title')+' from your watchlist?'))return;remove.disabled=true;try{await backend.removeWatchlist(item.id);notice('Title removed from your library.','success');await draw()}catch(error){notice(error.message||'Could not remove this title.','error');remove.disabled=false}};
+   info.append(tag,h,select,remove);card.append(info);grid.append(card);
+  });
+  root.append(grid);
+ }catch(error){root.innerHTML='<div class="empty library-error" role="alert"><strong>Your library could not load.</strong><p>'+esc(error.message||'Please try again in a moment.')+'</p><button class="btn secondary" type="button" id="retry-library">Try again</button></div>';const retry=$('#retry-library');if(retry)retry.onclick=draw}
+ finally{busy=false}
+}
 draw();
 }
 function reviews(){
@@ -128,7 +154,7 @@ form.onsubmit=async e=>{e.preventDefault();try{const users=await backend.searchM
 send.onsubmit=async e=>{e.preventDefault();try{const id=chat.dataset.conversationId;if(!id)throw new Error('Choose a member first.');await backend.sendMessage(id,$('#message-content').value.trim());$('#message-content').value='';await loadMessages(id)}catch(err){alert(err.message)}};
 }
 function profile(){
-const auth=$('#profile-auth'),form=$('#profile-form'),status=$('#profile-status'),panel=$('#profile-panel'),stats=$('#stats'),signup=$('#signup-form'),signin=$('#signin-form'),ownerAdminLink=$('#owner-admin-link');
+const auth=$('#profile-auth'),form=$('#profile-form'),status=$('#profile-status'),panel=$('#profile-panel'),stats=$('#stats'),signup=$('#signup-form'),signin=$('#signin-form');
 const title=$('#auth-title'),subtitle=$('#auth-subtitle'),switchText=$('#auth-switch');
 let authMode='signin';
 function message(text,kind='info'){
@@ -160,14 +186,12 @@ async function refresh(){
   // explicitly chosen Sign up. The toggle signs out any existing session.
   if(authMode==='signup'){auth.hidden=false;panel.hidden=true;return}
   auth.hidden=!!user;panel.hidden=!user;
-  if(!user){if(ownerAdminLink)ownerAdminLink.hidden=true;message('');return}
+  if(!user){message('');return}
   const p=await backend.getProfile(user.id);
   $('#name').value=p.display_name||'';
   $('#username').value=p.username||'';
   $('#bio').value=p.bio||'';
   message('Signed in as '+(user.email||'TrendPulse member'),'success');
-  // Reveal the admin entry only when Supabase confirms this signed-in account is on the owner allowlist. Fail closed on any error.
-  if(ownerAdminLink){ownerAdminLink.hidden=true;try{const {data:ownerAllowed,error:ownerError}=await backend.client.rpc('is_trendpulse_admin');if(!ownerError&&ownerAllowed===true)ownerAdminLink.hidden=false}catch(ownerCheckError){ownerAdminLink.hidden=true}}
   try{
    const [w,r,posts,shorts]=await Promise.all([backend.getWatchlist(),backend.getReviews(),backend.getPosts(),backend.getShorts()]);
    stats.innerHTML='<div class="grid">'+[['Watchlist',w.length],['Reviews',r.filter(x=>x.author_id===user.id).length],['Posts',posts.filter(x=>x.author_id===user.id).length],['Shorts',shorts.filter(x=>x.author_id===user.id).length]].map(x=>'<div class="card"><b>'+x[1]+'</b><p class="muted">'+x[0]+'</p></div>').join('')+'</div>';
