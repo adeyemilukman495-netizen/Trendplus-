@@ -418,14 +418,31 @@
 
     uploadShortMedia: async file => {
       const user = await requireUser();
-      if (!['video/mp4', 'video/webm'].includes(file.type)) throw new Error('Choose an MP4 or WebM video.');
-      if (file.size > 50 * 1024 * 1024) throw new Error('Choose a video up to 50 MB.');
-      const extension = file.type === 'video/webm' ? 'webm' : 'mp4';
-      const path = user.id + '/' + crypto.randomUUID() + '.' + extension;
+      const extension = String(file.name || '').split('.').pop().toLowerCase();
+      const mimeByExtension = { mp4: 'video/mp4', webm: 'video/webm' };
+      const inferredMime = mimeByExtension[extension];
+      const contentType = ['video/mp4', 'video/webm'].includes(file.type)
+        ? file.type
+        : (!file.type || file.type === 'application/octet-stream' ? inferredMime : null);
+      if (!contentType || (inferredMime && inferredMime !== contentType)) {
+        throw new Error('Choose an MP4 or WebM video from your Gallery or Files.');
+      }
+      if (file.size > 50 * 1024 * 1024) throw new Error('This video is over the 50 MB upload limit.');
+      if (!file.size) throw new Error('The selected video is empty or could not be read. Choose it again.');
+      const safeExtension = contentType === 'video/webm' ? 'webm' : 'mp4';
+      const path = user.id + '/' + crypto.randomUUID() + '.' + safeExtension;
       const { error } = await client.storage.from('trendpulse-short-media').upload(path, file, {
-        contentType: file.type, upsert: false,
+        contentType, upsert: false,
       });
-      if (error) throw error;
+      if (error) {
+        if (error.message?.toLowerCase().includes('row-level security')) {
+          throw new Error('Upload permission was blocked. Please sign in again and retry.');
+        }
+        if (error.message?.toLowerCase().includes('size')) {
+          throw new Error('The video is too large for the Shorts upload limit (50 MB).');
+        }
+        throw new Error(error.message || 'Video upload failed. Please try again.');
+      }
       return path;
     },
 
