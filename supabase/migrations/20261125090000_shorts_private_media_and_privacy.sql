@@ -34,10 +34,17 @@ create policy "Shorts visibility policy" on public.shorts for select using (
   ))
 );
 drop policy if exists "Short likes readable" on public.short_likes;
-create policy "Short likes readable" on public.short_likes for select using (true);
+drop policy if exists "Short likes readable for visible shorts" on public.short_likes;
+create policy "Short likes readable for visible shorts" on public.short_likes for select using (
+  exists (select 1 from public.shorts s where s.id = short_id)
+);
 drop policy if exists "Members like shorts as themselves" on public.short_likes;
-create policy "Members like shorts as themselves" on public.short_likes for insert to authenticated
-with check (user_id = (select auth.uid()));
+create policy "Members like visible shorts as themselves" on public.short_likes for insert to authenticated
+with check (
+  user_id = (select auth.uid()) and exists (
+    select 1 from public.shorts s where s.id = short_id
+  )
+);
 drop policy if exists "Members remove own short likes" on public.short_likes;
 create policy "Members remove own short likes" on public.short_likes for delete to authenticated
 using (user_id = (select auth.uid()));
