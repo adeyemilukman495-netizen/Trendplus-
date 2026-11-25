@@ -8,7 +8,7 @@
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://adeyemilukman495-netizen.github.io/Trendplus-/discover.html">
 <meta property="og:url" content="https://adeyemilukman495-netizen.github.io/Trendplus-/discover.html">
-<meta name="theme-color" content="#0c0f0b">
+<meta name="theme-color" content="#080b16">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TrendPulse">
 <meta property="og:title" content="Discover: Personalised Trends for Your Interests | TrendPulse">
@@ -20,25 +20,43 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./tp.css?v=20261126-homepolish1">
+<link rel="stylesheet" href="./features.css?v=20261126-visual-refresh1"><link rel="stylesheet" href="./tp.css?v=20261126-entertainment-refresh1">
 <script type="application/ld+json">
 {"@context": "https://schema.org", "@graph": [{"@type": "WebPage", "@id": "https://adeyemilukman495-netizen.github.io/Trendplus-/discover.html#webpage", "url": "https://adeyemilukman495-netizen.github.io/Trendplus-/discover.html", "name": "Discover: Personalised Trends for Your Interests | TrendPulse", "description": "Choose your favourite categories and get a personalised feed of trending and rising topics. Follow topics to get surge alerts. No account needed.", "inLanguage": "en", "isPartOf": {"@id": "https://adeyemilukman495-netizen.github.io/Trendplus-/#website"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://adeyemilukman495-netizen.github.io/Trendplus-/"}, {"@type": "ListItem", "position": 2, "name": "Discover", "item": "https://adeyemilukman495-netizen.github.io/Trendplus-/discover.html"}]}]}
 </script>
 </head>
-<body data-page="discover" data-cat="">
+<body data-feature="catalog" data-page="discover" data-cat="">
 <a class="skip" href="#main">Skip to content</a>
-<header class="top"><div class="wrap bar">
-<a class="logo" href="./" aria-label="TrendPulse home"><span aria-hidden="true">&#10022;</span>TrendPulse</a>
-<nav aria-label="Main"><ul><li><a href="./index.html" data-page="home">Home</a></li><li><a href="./trending.html" data-page="trending">Trending</a></li><li><a href="./rising.html" data-page="rising">Rising</a></li><li><a href="./battles.html" data-page="battles">Battles</a></li><li><a href="./discover.html" data-page="discover">Discover</a></li><li><a href="./challenge.html" data-page="challenge">Daily</a></li><li><a href="./history.html" data-page="history">History</a></li><li><a href="./community.html" data-page="community">Community</a></li><li><a href="./catalog.html">Explore</a></li><li><a href="./watchlist.html">Watchlist</a></li><li><a href="./reviews.html">Reviews</a></li><li><a href="./shorts.html">Shorts</a></li><li><a href="./messages.html">Messages</a></li><li><a href="./profile.html">Profile</a></li></ul></nav>
-</div></header>
-<main id="main">
-<div class="wrap"><section class="block"><h1 class="page-h">Discover</h1><p class="sub">Pick the categories you care about. Your feed and alerts are saved on this device. No account needed.</p>
-<ul class="chips" id="pick" style="margin-top:1.4rem"></ul>
-<p class="demo" id="fy-empty" hidden>Choose at least one category above to build your feed.</p>
-<h2 style="margin:2rem 0 1rem;font-size:1.8rem">Trending for you</h2><div class="grid" id="fy-trend"></div>
-<h2 style="margin:2rem 0 1rem;font-size:1.8rem">Rising for you</h2><div class="grid" id="fy-rise"></div>
-<h2 style="margin:2rem 0 1rem;font-size:1.8rem">Your watchlist</h2><div class="grid" id="watch"></div>
-<p class="demo">If a followed topic jumps 50% or more in a week, you will see an alert at the top of any TrendPulse page while it is open. Push or email alerts need a backend service.</p></section></div><div class="wrap related"><p>Explore everything on <a href="./trending.html">Trending now</a>, look back with <a href="./history.html">trend history</a>, or <a href="./challenge.html">play the daily duel</a>.</p></div>
+
+<main id="main" class="discover-page">
+<section class="discover-search wrap">
+  <p class="kicker">Find your next favourite</p>
+  <h1 class="page-h">Discover</h1>
+  <p class="sub">Search anime, films, dramas and TV shows. Your matching titles will appear right below.</p>
+  <div class="discover-search-panel">
+    <form id="search-form" class="discover-search-form" role="search">
+      <label class="sr-only" for="query">Search entertainment titles</label>
+      <span class="discover-search-icon" aria-hidden="true">⌕</span>
+      <input id="query" type="search" placeholder="Search a title, e.g. Solo Leveling or The Untamed…" autocomplete="off" required>
+      <label class="sr-only" for="kind">Choose a catalogue</label>
+      <select id="kind" aria-label="Search category">
+        <option>Anime</option><option>TV / Drama</option><option>Hollywood Movies</option><option>Bollywood Movies</option><option>International Movies</option><option>Manga</option>
+      </select>
+      <button class="btn" type="submit">Search</button>
+    </form>
+    <p id="status" class="discover-status" role="status" aria-live="polite">Choose a category, enter a title and search. Results will appear below.</p>
+  </div>
+</section>
+<section class="wrap discover-results-section" aria-label="Search results">
+  <div class="discover-results-heading"><h2>Search results</h2><span>Titles matching your search</span></div>
+  <div id="content" class="discover-results"><div class="empty discover-empty">Your search results will appear here.</div></div>
+</section>
+<section class="wrap discover-browse">
+  <div class="discover-results-heading"><h2>Browse categories</h2><span>Explore by interest</span></div>
+  <div class="cats">
+    <a href="./anime.html"><span>🎌</span>Anime</a><a href="./k-drama.html"><span>💜</span>K-Drama</a><a href="./c-drama.html"><span>🏮</span>C-Drama</a><a href="./nollywood.html"><span>🌍</span>Nollywood</a><a href="./movies.html"><span>🎬</span>Movies</a><a href="./tv-series.html"><span>📺</span>TV Series</a>
+  </div>
+</section>
 </main>
 <footer><div class="wrap foot">
 <div><a class="logo" href="./index.html"><span aria-hidden="true">&#10022;</span>TrendPulse</a><p>Know what’s hot. See what’s rising.</p>
@@ -49,5 +67,5 @@
 <script src="./config.js?v=20261122"></script>
 <script src="./topics.js?v=20261125-catalogue1"></script>
 <script src="./tp.js?v=20261125-distinct1"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./analytics.js?v=20261125-analytics1"></script></body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./backend-client.js"></script><script src="./features.js?v=20261126-discover-search1"></script><script src="./analytics.js?v=20261125-analytics1"></script></body>
 </html>
