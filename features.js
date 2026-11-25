@@ -29,37 +29,58 @@ form.onsubmit=async e=>{e.preventDefault();try{await backend.createPost({categor
 draw();
 }
 function shorts(){
-const form=$('#short-form'),root=$('#content'),fileInput=$('#short-file'),preview=$('#short-preview'),status=$('#upload-status'),button=$('#upload-button');
+const root=$('#content'),form=$('#short-form'),fileInput=$('#short-file'),preview=$('#short-preview'),status=$('#upload-status'),button=$('#upload-button'),dialog=$('#upload-dialog');
+$('#open-upload').onclick=()=>{dialog.showModal();};
+$('#close-upload').onclick=()=>dialog.close();
+dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
 fileInput.addEventListener('change',()=>{
  const file=fileInput.files?.[0];
  if(!file){preview.hidden=true;preview.removeAttribute('src');return}
- if(!['video/mp4','video/webm'].includes(file.type)){status.textContent='Choose an MP4 or WebM video.';fileInput.value='';return}
- if(file.size>50*1024*1024){status.textContent='This video is over the 50 MB limit.';fileInput.value='';return}
- preview.src=URL.createObjectURL(file);preview.hidden=false;status.textContent='Video ready. Sign in and upload when you are ready.';
+ if(!['video/mp4','video/webm'].includes(file.type)){status.textContent='Please choose an MP4 or WebM video.';fileInput.value='';return}
+ if(file.size>50*1024*1024){status.textContent='This video is larger than 50 MB.';fileInput.value='';return}
+ preview.src=URL.createObjectURL(file);preview.hidden=false;status.textContent='Preview ready. Add a caption and title, then post.';
 });
+function card(x){
+ const el=document.createElement('article');el.className='short-slide';el.dataset.id=x.id;
+ const video=document.createElement('video');video.className='short-video';video.src=x.video_url;video.playsInline=true;video.loop=true;video.muted=true;video.preload='metadata';
+ const tap=document.createElement('button');tap.className='video-tap';tap.type='button';tap.setAttribute('aria-label','Play or pause video');tap.onclick=()=>{if(video.paused)video.play().catch(()=>{});else video.pause()};
+ const sound=document.createElement('button');sound.className='short-action sound-action';sound.type='button';sound.textContent='🔇';sound.setAttribute('aria-label','Turn sound on');sound.onclick=()=>{video.muted=!video.muted;sound.textContent=video.muted?'🔇':'🔊';sound.setAttribute('aria-label',video.muted?'Turn sound on':'Mute video')};
+ const actions=document.createElement('div');actions.className='short-actions';
+ const share=document.createElement('button');share.className='short-action';share.type='button';share.innerHTML='↗<small>Share</small>';share.onclick=async()=>{const url=location.origin+location.pathname+'#'+encodeURIComponent(x.id);try{if(navigator.share)await navigator.share({title:x.title,text:x.caption||'Watch this on TrendPulse',url});else{await navigator.clipboard.writeText(url);share.querySelector('small').textContent='Copied'}}catch(e){}};
+ const report=document.createElement('button');report.className='short-action';report.type='button';report.innerHTML='⋯<small>Report</small>';report.onclick=async()=>{const reason=prompt('Tell us why you are reporting this Short:');if(!reason)return;try{await backend.reportContent({target_type:'short',target_id:x.id,reason});report.querySelector('small').textContent='Sent'}catch(e){alert(e.message)}};
+ actions.append(sound,share,report);
+ const meta=document.createElement('div');meta.className='short-overlay';
+ const title=document.createElement('h3');title.textContent=x.title||'TrendPulse Short';
+ const caption=document.createElement('p');caption.textContent=x.caption||'';
+ const creator=document.createElement('p');creator.className='short-creator';creator.textContent='@'+(x.profiles?.username||x.profiles?.display_name||'member');
+ const category=document.createElement('span');category.className='short-category';category.textContent=x.category||'Entertainment';
+ meta.append(creator,title,caption,category);
+ el.append(video,tap,actions,meta);return {el,video};
+}
 async function draw(){
  try{
-  const items=await backend.getShorts();
-  root.innerHTML=items.length?items.map(x=>'<article class="card short-card"><video class="short-player" controls playsinline preload="metadata" src="'+esc(x.video_url)+'"></video><div class="short-copy"><h3>'+esc(x.title)+'</h3><p>'+esc(x.caption||'')+'</p><span class="tag">'+esc(x.category)+'</span> · '+esc(x.profiles?.display_name||'TrendPulse member')+'<p class="muted small">'+new Date(x.created_at).toLocaleDateString()+'</p></div></article>').join(''):'<div class="empty">No Shorts yet. Be the first to share one.</div>';
- }catch(e){root.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+  if(!backend?.ready)throw new Error('TrendPulse is connecting to its video service. Please try again shortly.');
+  const items=await backend.getShorts();root.replaceChildren();
+  if(!items.length){const empty=document.createElement('div');empty.className='shorts-empty';empty.innerHTML='<div><strong>Your Shorts feed starts here.</strong><p>Be the first to share a video with the community.</p><button type="button" class="publish-short" id="empty-create">＋ Create a Short</button></div>';root.append(empty);$('#empty-create').onclick=()=>dialog.showModal();return}
+  const entries=items.map(x=>card(x));entries.forEach(x=>root.append(x.el));
+  const observer=new IntersectionObserver(changes=>changes.forEach(change=>{const v=change.target.querySelector('video');if(change.isIntersecting&&change.intersectionRatio>.7){v.play().catch(()=>{});}else{v.pause();}}),{root,threshold:[.2,.7]});
+  entries.forEach(x=>observer.observe(x.el));
+ }catch(e){root.innerHTML='<div class="shorts-empty">'+esc(e.message)+'</div>'}
 }
 form.onsubmit=async e=>{
- e.preventDefault();
- const file=fileInput.files?.[0];
+ e.preventDefault();const file=fileInput.files?.[0];
  try{
   if(!file)throw new Error('Choose a video first.');
   if(!['video/mp4','video/webm'].includes(file.type))throw new Error('Only MP4 and WebM videos are supported.');
   if(file.size>50*1024*1024)throw new Error('Choose a video smaller than 50 MB.');
   if(!$('#short-title').value.trim())throw new Error('Add a title for your Short.');
   button.disabled=true;status.textContent='Checking your account…';
-  const user=await backend.currentUser();if(!user)throw new Error('Please sign in before uploading.');
-  status.textContent='Uploading your video… please keep this page open.';
+  const user=await backend.currentUser();if(!user)throw new Error('Please sign in before posting a Short.');
+  status.textContent='Uploading video… keep this page open.';
   const videoUrl=await backend.uploadMedia(file);
-  status.textContent='Saving your Short…';
+  status.textContent='Publishing your Short…';
   await backend.createShort({title:$('#short-title').value.trim(),caption:$('#caption').value.trim(),category:$('#short-topic').value,video_url:videoUrl});
-  form.reset();preview.pause();preview.removeAttribute('src');preview.load();preview.hidden=true;
-  status.textContent='Your Short has been uploaded and published.';
-  await draw();
+  form.reset();preview.pause();preview.removeAttribute('src');preview.load();preview.hidden=true;status.textContent='Your Short is now published.';dialog.close();await draw();root.scrollTo({top:0,behavior:'smooth'});
  }catch(err){status.textContent=err.message||'Upload failed. Please try again.'}
  finally{button.disabled=false}
 };
