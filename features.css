@@ -76,3 +76,49 @@ body[data-feature="community"]>header,body[data-feature="community"]>footer{disp
 
 body[data-feature="profile"]>header{display:none}
 body[data-feature="profile"]{padding-bottom:100px}
+
+
+/* Screenshot-inspired, mobile-first authentication experience */
+body[data-feature="profile"]{min-height:100svh;background:#111216;color:#f4f5fa;padding-bottom:76px}
+body[data-feature="profile"] main{padding:0}
+body[data-feature="profile"] .profile-page{width:min(100%,560px);padding:26px 20px 110px}
+body[data-feature="profile"] .auth-screen{min-height:calc(100svh - 76px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px}
+.auth-brand{font-size:2rem;font-weight:850;letter-spacing:-.06em;text-decoration:none;color:#648cff;display:flex;align-items:center;gap:9px}
+.auth-brand span{font-size:2.2rem}
+.auth-card{width:100%;max-width:500px}
+.auth-heading{text-align:center;margin-bottom:28px}
+.auth-kicker{font-size:.68rem;letter-spacing:.17em;color:#819fff;font-weight:800;margin:0 0 12px}
+.auth-heading h1{font-size:clamp(2rem,8vw,2.65rem);letter-spacing:-.045em;margin:0 0 9px}
+.auth-heading p:last-child{color:#a5a6b0;margin:0}
+.auth-form{display:grid;gap:10px}
+.auth-form[hidden]{display:none}
+.auth-form label{font-size:.9rem;font-weight:650;color:#e2e3eb;margin:8px 0 0}
+.auth-form input{width:100%;min-height:58px;padding:15px 18px;border-radius:999px;border:1px solid #393b45;background:#1b1c21;color:#fff;font-size:1rem;outline:none}
+.auth-form input:focus{border-color:#648cff;box-shadow:0 0 0 3px #648cff25}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:58px}
+.password-toggle{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:42px;height:42px;border:0;background:transparent;color:#d7d9e2;font-size:1.1rem}
+.auth-forgot{justify-self:end;background:none;border:0;color:#83a1ff;padding:7px 2px;font-size:.9rem}
+.auth-submit{width:100%;min-height:58px;margin-top:8px;border:0;border-radius:999px;background:#5685f7;color:white;font-size:1.05rem;font-weight:750;box-shadow:0 10px 28px #5685f72b}
+.auth-submit:disabled,.auth-google:disabled{opacity:.65;cursor:wait}
+.auth-switch{text-align:center;color:#a5a6b0;margin:22px 0}
+.auth-switch button{background:none;border:0;color:#83a1ff;font:inherit;font-weight:750;padding:4px}
+.auth-divider{display:flex;align-items:center;gap:14px;color:#777b88;font-size:.7rem;letter-spacing:.12em;margin:22px 0}
+.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#353741;flex:1}
+.auth-google{width:100%;min-height:54px;border:1px solid #3a3d48;border-radius:999px;background:#1b1c21;color:#f1f2f7;font-weight:650}
+.google-mark{display:inline-grid;place-items:center;width:23px;height:23px;margin-right:9px;border-radius:50%;background:#fff;color:#4285f4;font-weight:900}
+.auth-terms,.auth-hint{font-size:.78rem;color:#858894;text-align:center;margin:14px 0 0}
+.auth-terms a{color:#c4c9d7;text-underline-offset:3px}
+.auth-hint{text-align:left;margin:0 0 4px}
+body[data-feature="profile"] #profile-panel{margin-top:25px}
+@media(max-width:480px){body[data-feature="profile"] .profile-page{padding-inline:22px}.auth-brand{font-size:1.8rem}.auth-screen{gap:25px}}
+
+
+/* Keep native hidden states reliable and make account feedback impossible to miss. */
+body[data-feature="profile"] [hidden]{display:none!important}
+body[data-feature="profile"] .profile-status{display:block;width:100%;max-width:500px;margin:18px auto 0;padding:12px 15px;border:1px solid #3a4256;border-radius:14px;background:#1b1e27;color:#e7eaf3;text-align:center;font-size:.9rem;overflow-wrap:anywhere}
+body[data-feature="profile"] .profile-status[hidden]{display:none!important}
+body[data-feature="profile"] .profile-status[data-state="success"]{border-color:#347b5a;background:#14291f;color:#a9f0c4}
+body[data-feature="profile"] .profile-status[data-state="error"]{border-color:#8a4650;background:#301b22;color:#ffbec5}
+body[data-feature="profile"] #profile-panel{margin:26px auto 0}
+body[data-feature="profile"] #save-profile-button:disabled{opacity:.65;cursor:wait}

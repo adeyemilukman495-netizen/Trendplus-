@@ -1,13 +1,24 @@
 name: TrendPulse code validation
 
 on:
-  push:
+  pull_request:
     paths:
       - '.github/workflows/trendpulse-code-check.yml'
       - 'features.js'
       - 'backend-client.js'
       - 'members.js'
       - '*.html'
+      - 'supabase/migrations/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/trendpulse-code-check.yml'
+      - 'features.js'
+      - 'backend-client.js'
+      - 'members.js'
+      - '*.html'
+      - 'supabase/migrations/**'
 
 permissions:
   contents: read

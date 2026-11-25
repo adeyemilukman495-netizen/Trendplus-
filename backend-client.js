@@ -65,27 +65,43 @@
         redirectTo: 'https://adeyemilukman495-netizen.github.io/Trendplus-/profile.html',
       },
     }),
+    resetPassword: email => client.auth.resetPasswordForEmail(email, { redirectTo: 'https://adeyemilukman495-netizen.github.io/Trendplus-/profile.html' }),
     signOut: () => client.auth.signOut(),
     onAuthChange: callback =>
       client.auth.onAuthStateChange((_event, session) => callback(session?.user || null)),
 
     getProfile: async userId => {
-      const id = userId || (await requireUser()).id;
-      const { data, error } = await client.from('profiles').select('*').eq('id', id).single();
+      const user = userId ? null : await requireUser();
+      const id = userId || user.id;
+      const { data, error } = await client.from('profiles').select('*').eq('id', id).maybeSingle();
       if (error) throw error;
-      return data;
+      if (data) return data;
+
+      // Recover accounts whose auth user exists but whose profile row was not
+      // created by the database trigger (for example, an older partial setup).
+      const authUser = user || (await client.auth.getUser()).data.user;
+      if (!authUser) throw new Error('Please sign in again to create your profile.');
+      const displayName = String(authUser.user_metadata?.display_name || authUser.user_metadata?.full_name || 'TrendPulse member').trim().slice(0, 40);
+      const username = 'member_' + authUser.id.replace(/-/g, '').slice(0, 10);
+      const { data: created, error: createError } = await client.from('profiles')
+        .upsert({ id, username, display_name: displayName, bio: '' }, { onConflict: 'id' })
+        .select('*').single();
+      if (createError) throw createError;
+      return created;
     },
     saveProfile: async values => {
       const user = await requireUser();
       const payload = {
         id: user.id,
         display_name: String(values.display_name || '').trim().slice(0, 40),
-        username: String(values.username || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24) || null,
+        username: String(values.username || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24),
         bio: String(values.bio || '').trim().slice(0, 240),
         updated_at: new Date().toISOString(),
       };
       if (!payload.display_name) throw new Error('Display name is required.');
+      if (!payload.username || payload.username.length < 3) throw new Error('Choose a username with at least 3 letters or numbers.');
       const { data, error } = await client.from('profiles').upsert(payload).select().single();
+      if (error?.code === '23505') throw new Error('That username is already taken. Please choose another one.');
       if (error) throw error;
       return data;
     },
@@ -315,6 +331,19 @@
       return data.publicUrl;
     },
 
+    uploadShortMedia: async file => {
+      const user = await requireUser();
+      if (!['video/mp4', 'video/webm'].includes(file.type)) throw new Error('Choose an MP4 or WebM video.');
+      if (file.size > 50 * 1024 * 1024) throw new Error('Choose a video up to 50 MB.');
+      const extension = file.type === 'video/webm' ? 'webm' : 'mp4';
+      const path = user.id + '/' + crypto.randomUUID() + '.' + extension;
+      const { error } = await client.storage.from('trendpulse-short-media').upload(path, file, {
+        contentType: file.type, upsert: false,
+      });
+      if (error) throw error;
+      return path;
+    },
+
     getShortComments: async shortId => {
       const { data, error } = await client.from('short_comments')
         .select('*, profiles!short_comments_author_id_fkey(display_name, username, avatar_url)')
@@ -367,19 +396,37 @@
         if (likeError) throw likeError;
         liked = new Set(mine.map(x => x.short_id));
       }
-      return data.map(x => ({ ...x, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id) }));
+      return Promise.all(data.map(async x => {
+        let playbackUrl = x.video_url;
+        if (x.video_path) {
+          const { data: signed, error: signedError } = await client.storage
+            .from('trendpulse-short-media').createSignedUrl(x.video_path, 3600);
+          if (signedError) throw signedError;
+          playbackUrl = signed.signedUrl;
+        }
+        return { ...x, video_url: playbackUrl, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id) };
+      }));
     },
     createShort: async values => {
       const user = await requireUser();
-      const { data, error } = await client.from('shorts').insert({
+      const payload = {
         author_id: user.id,
         title: String(values.title || '').trim().slice(0, 100),
         caption: String(values.caption || '').trim().slice(0, 280),
         category: values.category || 'General',
-        video_url: values.video_url,
+        video_url: values.video_path ? '' : values.video_url,
+        video_path: values.video_path || null,
+        visibility: ['public', 'followers', 'private'].includes(values.visibility) ? values.visibility : 'public',
+        allow_comments: values.allow_comments !== false,
+        allow_download: values.allow_download !== false,
         thumbnail_url: values.thumbnail_url || null,
-      }).select().single();
-      if (error) throw error;
+      };
+      const { data, error } = await client.from('shorts').insert(payload).select().single();
+      if (error) {
+        if (values.video_path) await client.storage.from('trendpulse-short-media').remove([values.video_path]);
+        if (error.code === '23505') throw new Error('That Short could not be saved because of a duplicate record.');
+        throw error;
+      }
       return data;
     },
     getClubs: async () => {
