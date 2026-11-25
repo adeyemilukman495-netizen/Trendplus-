@@ -64,3 +64,12 @@ body[data-feature="community"]>header,body[data-feature="community"]>footer{disp
 /* Keep Short upload in the persistent bottom navigation */
 .shorts-dock-create{border:0;border-radius:14px;min-width:54px;min-height:42px;padding:3px 8px;background:linear-gradient(120deg,#b49aff,#7de5e5);color:#101322;font-size:1.25rem;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .shorts-dock-create small{font-size:.62rem}
+
+/* Profile account and Shorts social controls */
+.profile-page{padding-bottom:105px}.auth-columns{display:grid;grid-template-columns:1fr 1fr;gap:22px}.profile-panel-head{display:flex;justify-content:space-between;align-items:center}
+.profile-bottom{position:fixed;left:0;right:0;bottom:0;max-width:760px;margin:auto;background:#0b1020f2;z-index:30}
+.short-creator-actions{position:absolute;left:18px;bottom:125px;z-index:5;display:flex;align-items:center;gap:9px}.short-creator-actions a{color:#fff;text-decoration:none;font-weight:800;text-shadow:0 1px 5px #000}.short-follow{border:1px solid #fff9;border-radius:20px;background:#a995ff;color:#171327;padding:5px 10px;font-weight:800}
+.short-action.is-liked{color:#ff8da8}.short-comments-panel{position:fixed;z-index:60;right:0;top:0;bottom:70px;width:min(390px,100%);background:#10182a;border-left:1px solid #405070;box-shadow:-12px 0 45px #0008;padding:16px;display:flex;flex-direction:column}.short-comments-panel[hidden]{display:none}
+.short-comments-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #34425f}.short-comments-head button{font-size:1.6rem;background:none;border:0;color:#fff}.short-comments-list{overflow:auto;flex:1;padding:10px 0}.short-comment{padding:9px 0;border-bottom:1px solid #293751}.short-comment p{margin:4px 0 0;white-space:pre-wrap}.short-comment-form{display:flex;gap:8px}.short-comment-form input{min-width:0;flex:1}.short-comment-form button{border:0;border-radius:12px;padding:8px 15px;background:#a995ff;color:#171327;font-weight:800}
+.setting-check{display:flex;align-items:center;gap:10px}.setting-check input{width:auto}
+@media(max-width:600px){.auth-columns{grid-template-columns:1fr}.short-comments-panel{width:100%;bottom:65px}.short-creator-actions{bottom:122px}}
