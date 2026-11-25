@@ -233,8 +233,11 @@ form.onsubmit=async e=>{
  e.preventDefault();
  const btn=form.querySelector('button[type=submit]');btn.disabled=true;message('Saving your profile…');
  try{
-  await backend.saveProfile({display_name:$('#name').value,username:$('#username').value,bio:$('#bio').value});
-  message('Your profile has been saved.','success');
+  const saved=await backend.saveProfile({display_name:$('#name').value,username:$('#username').value,bio:$('#bio').value});
+  $('#name').value=saved.display_name||'';
+  $('#username').value=saved.username||'';
+  $('#bio').value=saved.bio||'';
+  message('Your profile has been saved successfully.','success');
  }catch(err){message(err.message||'Your profile could not be saved. Please try again.','error')}
  finally{btn.disabled=false}
 };

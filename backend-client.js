@@ -100,7 +100,13 @@
       };
       if (!payload.display_name) throw new Error('Display name is required.');
       if (!payload.username || payload.username.length < 3) throw new Error('Choose a username with at least 3 letters or numbers.');
-      const { data, error } = await client.from('profiles').upsert(payload).select().single();
+      // The profile is loaded (or recovered) before editing. Pin the upsert
+      // conflict target to the auth user's primary key so edits update the
+      // existing row rather than relying on PostgREST conflict inference.
+      const { data, error } = await client.from('profiles')
+        .upsert(payload, { onConflict: 'id' })
+        .select('id,display_name,username,bio,avatar_url,updated_at')
+        .single();
       if (error?.code === '23505') throw new Error('That username is already taken. Please choose another one.');
       if (error) throw error;
       return data;
