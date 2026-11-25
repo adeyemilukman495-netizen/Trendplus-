@@ -112,3 +112,13 @@ body[data-feature="profile"] .auth-screen{min-height:calc(100svh - 76px);display
 .auth-hint{text-align:left;margin:0 0 4px}
 body[data-feature="profile"] #profile-panel{margin-top:25px}
 @media(max-width:480px){body[data-feature="profile"] .profile-page{padding-inline:22px}.auth-brand{font-size:1.8rem}.auth-screen{gap:25px}}
+
+
+/* Keep native hidden states reliable and make account feedback impossible to miss. */
+body[data-feature="profile"] [hidden]{display:none!important}
+body[data-feature="profile"] .profile-status{display:block;width:100%;max-width:500px;margin:18px auto 0;padding:12px 15px;border:1px solid #3a4256;border-radius:14px;background:#1b1e27;color:#e7eaf3;text-align:center;font-size:.9rem;overflow-wrap:anywhere}
+body[data-feature="profile"] .profile-status[hidden]{display:none!important}
+body[data-feature="profile"] .profile-status[data-state="success"]{border-color:#347b5a;background:#14291f;color:#a9f0c4}
+body[data-feature="profile"] .profile-status[data-state="error"]{border-color:#8a4650;background:#301b22;color:#ffbec5}
+body[data-feature="profile"] #profile-panel{margin:26px auto 0}
+body[data-feature="profile"] #save-profile-button:disabled{opacity:.65;cursor:wait}
