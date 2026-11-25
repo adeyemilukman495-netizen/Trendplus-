@@ -94,11 +94,12 @@
       const payload = {
         id: user.id,
         display_name: String(values.display_name || '').trim().slice(0, 40),
-        username: String(values.username || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24) || null,
+        username: String(values.username || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24),
         bio: String(values.bio || '').trim().slice(0, 240),
         updated_at: new Date().toISOString(),
       };
       if (!payload.display_name) throw new Error('Display name is required.');
+      if (!payload.username || payload.username.length < 3) throw new Error('Choose a username with at least 3 letters or numbers.');
       const { data, error } = await client.from('profiles').upsert(payload).select().single();
       if (error?.code === '23505') throw new Error('That username is already taken. Please choose another one.');
       if (error) throw error;
