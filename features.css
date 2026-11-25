@@ -389,3 +389,22 @@ body[data-feature="watchlist"] .library-empty{padding:clamp(28px,6vw,56px) 20px}
  body[data-feature="watchlist"] .library-card{grid-template-columns:76px minmax(0,1fr)}
  body[data-feature="watchlist"] .library-poster{width:76px}
 }
+
+
+/* Shorts: clearer creator actions, upload sheet and comment controls */
+body[data-feature="shorts"] .shorts-topbar{padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
+body[data-feature="shorts"] .short-action{width:52px;min-height:52px;border:1px solid #ffffff24;box-shadow:0 5px 18px #0004}
+body[data-feature="shorts"] .short-action:focus-visible,body[data-feature="shorts"] .shorts-create:focus-visible,body[data-feature="shorts"] .shorts-dock-create:focus-visible{outline:3px solid #b9a7ff;outline-offset:3px}
+body[data-feature="shorts"] .short-overlay{max-width:calc(100% - 120px)}
+body[data-feature="shorts"] .short-overlay p{max-width:38ch}
+body[data-feature="shorts"] .upload-sheet{gap:13px}
+body[data-feature="shorts"] .video-picker{min-height:132px;padding:16px;text-align:center}
+body[data-feature="shorts"] .publish-short{min-height:52px;font-size:1rem}
+body[data-feature="shorts"] .short-comments-panel{padding:18px;box-shadow:-18px 0 55px #0009}
+body[data-feature="shorts"] .short-comment-form input{min-height:48px}
+body[data-feature="shorts"] .short-comment-form button{min-width:66px;min-height:48px}
+@media(max-width:420px){
+ body[data-feature="shorts"] .short-actions{right:9px;gap:13px}
+ body[data-feature="shorts"] .short-action{width:46px;min-height:46px}
+ body[data-feature="shorts"] .short-overlay{left:13px;right:72px}
+}
