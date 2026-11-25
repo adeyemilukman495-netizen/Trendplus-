@@ -4,16 +4,28 @@
 
  <nav class="shorts-bottom" aria-label="Shorts navigation"><a href="./">⌂<small>Home</small></a><a class="active" href="./shorts.html">▣<small>Shorts</small></a><a href="./catalog.html">⌕<small>Discover</small></a><button class="shorts-dock-create" id="open-upload" type="button">＋<small>Upload</small></button><a href="./community.html">◎<small>Community</small></a><a href="./profile.html">◉<small>Profile</small></a></nav>
  <dialog id="upload-dialog" class="upload-dialog">
-  <form id="short-form" class="upload-sheet">
-   <div class="sheet-head"><button type="button" id="close-upload" class="sheet-close" aria-label="Close">×</button><h2>Create a Short</h2><span></span></div>
-   <label class="video-picker" for="short-file"><span class="picker-icon">＋</span><b>Choose video from Gallery or Files</b><small>Select a saved MP4 or WebM video · Up to 50 MB</small></label>
-   <input id="short-file" type="file" accept="video/mp4,video/webm,.mp4,.webm" required>
-   <video id="short-preview" controls playsinline hidden></video>
-   <label for="short-caption">Write a caption</label><textarea id="caption" maxlength="280" placeholder="What's happening? Add a caption…"></textarea>
-   <label for="short-title">Video title</label><input id="short-title" maxlength="100" required placeholder="Give your Short a title">
-   <label for="short-topic">Category</label><select id="short-topic"><option>Anime</option><option>Hollywood</option><option>International Movies</option><option>Bollywood</option><option>Nollywood</option><option>K-Drama</option><option>C-Drama</option><option>Gaming</option><option>Other</option></select>
-   <label for="short-visibility-upload">Who can see this Short?</label><select id="short-visibility-upload"><option value="public">Public</option><option value="followers">Followers only</option><option value="private">Only me (private)</option></select><label class="setting-check"><input id="short-allow-comments-upload" type="checkbox" checked> Allow comments</label><label class="setting-check"><input id="short-allow-download-upload" type="checkbox" checked> Allow downloads</label><p class="muted small">New uploads use private storage and access-controlled playback. Older videos uploaded before this update may still be reachable by anyone who has their original public URL.</p><p id="upload-status" class="upload-status" aria-live="polite">Choose a video to get started.</p>
-   <button class="publish-short" id="upload-button" type="submit">Post Short</button>
+  <form id="short-form" class="upload-sheet short-film-upload">
+   <div class="sheet-head"><button type="button" id="close-upload" class="sheet-close" aria-label="Close">×</button><h2>Upload a Short Film</h2><span></span></div>
+   <div class="short-upload-step" id="short-step-one">
+    <p class="muted small">STEP 1 OF 2 · SELECT YOUR FILM</p>
+    <label class="video-picker" for="short-file"><span class="picker-icon">＋</span><b>Choose a short film</b><small>Select an MP4 or WebM movie from Gallery or Files · Maximum 10 minutes · 50 MB</small></label>
+    <input id="short-file" type="file" accept="video/mp4,video/webm,.mp4,.webm" required>
+    <video id="short-preview" class="short-upload-preview" controls playsinline hidden></video>
+    <p id="short-duration" class="muted small" aria-live="polite">Your film must be 10 minutes or less.</p>
+    <button class="publish-short" id="short-next" type="button" disabled>Next</button>
+   </div>
+   <div class="short-upload-step" id="short-step-two" hidden>
+    <p class="muted small">STEP 2 OF 2 · FILM DETAILS</p>
+    <video id="short-preview-details" class="short-upload-preview" controls playsinline hidden></video>
+    <label for="short-title">Film title</label><input id="short-title" maxlength="100" required placeholder="Give your short film a title">
+    <label for="caption">Film description</label><textarea id="caption" maxlength="280" placeholder="Tell viewers what your film is about…"></textarea>
+    <label for="short-topic">Film genre</label><select id="short-topic"><option>Drama</option><option>Action</option><option>Comedy</option><option>Romance</option><option>Thriller</option><option>Animation</option><option>Science Fiction</option><option>Horror</option><option>Documentary</option><option>Family</option><option>Other</option></select>
+    <label for="short-visibility-upload">Who can watch this film?</label><select id="short-visibility-upload"><option value="public">Everyone</option><option value="followers">Followers only</option><option value="private">Only me (private)</option></select>
+    <label class="setting-check"><input id="short-allow-comments-upload" type="checkbox" checked> Allow comments</label>
+    <label class="setting-check"><input id="short-allow-download-upload" type="checkbox" checked> Allow downloads</label>
+    <div class="short-upload-actions"><button class="short-upload-back" id="short-back" type="button">Back</button><button class="publish-short" id="upload-button" type="submit">Post Short Film</button></div>
+   </div>
+   <p id="upload-status" class="upload-status" aria-live="polite">Choose your short film to get started.</p>
   </form>
  </dialog>
 <aside id="short-comments-panel" class="short-comments-panel" hidden><div class="short-comments-head"><h2 id="short-comments-title">Comments</h2><button id="close-short-comments" type="button" aria-label="Close comments">×</button></div><div id="short-comments-list" class="short-comments-list"></div><form id="short-comment-form" class="short-comment-form"><input id="short-comment-text" maxlength="1000" required placeholder="Add a comment…"><button type="submit">Send</button></form></aside>

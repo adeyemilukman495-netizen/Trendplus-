@@ -422,3 +422,15 @@ body[data-feature="shorts"] .short-comment-form button{min-width:66px;min-height
 .short-action.is-liked{color:#ff8da8;transform:scale(1.04)}
 .short-follow:disabled{opacity:.8}
 @media(max-width:420px){.short-creator-actions{left:12px;gap:7px}.short-actions{right:9px;gap:13px}.short-action{width:46px;min-height:46px}}
+
+/* Short-film upload: guided two-step, mobile-first creator flow */
+.short-film-upload{width:min(100%,560px);max-height:min(92dvh,900px);overflow-y:auto}
+.short-film-upload .short-upload-step{display:grid;gap:13px}
+.short-film-upload .short-upload-step[hidden]{display:none}
+.short-film-upload .short-upload-preview{width:100%;max-height:42dvh;aspect-ratio:9/16;object-fit:contain;background:#080808;border-radius:16px}
+.short-film-upload .video-picker{display:grid;gap:9px;align-content:center;min-height:160px;border:1px dashed var(--line);border-radius:18px;background:var(--surface2);cursor:pointer}
+.short-film-upload #short-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.short-upload-actions{display:grid;grid-template-columns: minmax(90px,.7fr) minmax(0,1.3fr);gap:10px}
+.short-upload-back{min-height:52px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--text);font-weight:700}
+#short-next:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:560px){.short-film-upload{width:calc(100vw - 20px);padding:16px}.short-film-upload .short-upload-preview{max-height:38dvh}}
