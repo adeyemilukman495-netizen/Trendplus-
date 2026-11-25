@@ -321,3 +321,49 @@ nav a[aria-current=page],.nav-more[open] summary{background:linear-gradient(110d
 footer{background:rgba(6,8,19,.45);border-top-color:rgba(139,124,255,.25)}
 :focus-visible{outline-color:var(--accent2)}
 @media(prefers-reduced-motion:reduce){.card,.hub-card,.btn{transition:none}}
+
+
+/* 2026 home art direction: editorial entertainment dashboard */
+.hero{position:relative;isolation:isolate;min-height:490px;padding-block:4.8rem}
+.hero:before{content:"";position:absolute;z-index:-1;inset:1.5rem -2rem 1.5rem 38%;border:1px solid rgba(139,124,255,.16);border-radius:42px;background:radial-gradient(ellipse at 72% 28%,rgba(67,217,232,.2),transparent 32%),radial-gradient(ellipse at 35% 78%,rgba(255,156,130,.16),transparent 34%),linear-gradient(135deg,rgba(30,37,72,.42),rgba(17,22,43,.08));transform:rotate(1.5deg)}
+.hero>div:first-child{position:relative;padding:1rem 0}
+.hero>div:first-child:before{content:"TRENDING • DISCOVER • CONNECT";display:inline-flex;margin-bottom:1.2rem;padding:.42rem .8rem;border:1px solid rgba(67,217,232,.32);border-radius:999px;background:rgba(67,217,232,.08);color:#8debf1;font-size:.68rem;font-weight:800;letter-spacing:.16em}
+.hero h1{max-width:740px;font-size:clamp(3rem,7vw,5.7rem)}
+.hero .lead{max-width:39rem}
+.hero .panel{border-radius:28px;padding:1.5rem;background:linear-gradient(150deg,rgba(38,44,86,.98),rgba(15,20,41,.98));border-color:rgba(139,124,255,.42);box-shadow:0 28px 85px rgba(0,0,0,.34),0 0 55px rgba(139,124,255,.08)}
+.hero .panel h2{font-size:1.8rem}
+.hero .buzz li{padding:.8rem .25rem}
+.hero .buzz li:first-child{border-top:0}
+.home-hub{padding-top:1.4rem!important}
+.home-hub .sec-head{align-items:center}
+.hub-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+.hub-card{position:relative;isolation:isolate;overflow:hidden;min-height:205px;padding:1.3rem;border-radius:23px;background:linear-gradient(145deg,#20264b,#121a32);box-shadow:0 14px 34px rgba(0,0,0,.17)}
+.hub-card:after{content:"";position:absolute;z-index:-1;width:150px;height:150px;right:-58px;top:-62px;border-radius:50%;background:radial-gradient(circle,rgba(67,217,232,.17),transparent 70%)}
+.hub-card:nth-child(3n):after{background:radial-gradient(circle,rgba(255,156,130,.2),transparent 70%)}
+.hub-card:nth-child(4n):after{background:radial-gradient(circle,rgba(139,124,255,.24),transparent 70%)}
+.hub-card h3{font-size:1.35rem;letter-spacing:-.035em}
+.hub-card p{line-height:1.55}
+.hub-feature{grid-column:span 2;grid-row:span 2;justify-content:flex-end;min-height:430px;padding:1.7rem;background:radial-gradient(ellipse at 80% 20%,rgba(67,217,232,.24),transparent 35%),radial-gradient(ellipse at 25% 85%,rgba(255,156,130,.18),transparent 38%),linear-gradient(145deg,#302653,#151a35);border-color:rgba(139,124,255,.48)}
+.hub-feature:before{content:"▶";position:absolute;z-index:-1;right:8%;top:9%;display:grid;place-items:center;width:190px;height:190px;border-radius:42px;transform:rotate(9deg);font-size:5.5rem;color:rgba(255,255,255,.78);background:linear-gradient(135deg,rgba(139,124,255,.32),rgba(67,217,232,.17));border:1px solid rgba(255,255,255,.16);box-shadow:0 25px 60px rgba(0,0,0,.2)}
+.hub-feature .hub-icon{width:3rem;height:3rem;font-size:1.5rem}
+.hub-feature h3{font-size:clamp(1.8rem,3vw,2.5rem)}
+.hub-feature p{max-width:22rem}
+.hub-feature .hub-label{margin-top:.9rem}
+section.block:not(.home-hub) .sec-head{align-items:center}
+#tvmaze-results .tv-card{border-radius:22px}
+.mobile-dock{box-shadow:0 -12px 35px rgba(0,0,0,.24)}
+@media(max-width:900px){
+ .hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .hub-feature{min-height:340px}
+ .hero:before{inset:1rem -1rem 1rem 20%}
+}
+@media(max-width:600px){
+ .hero{min-height:unset;padding:2.6rem 0 2.8rem}
+ .hero:before{inset:1rem -1rem 1rem 8%;border-radius:28px}
+ .hero .panel{padding:1.1rem}
+ .hub-grid{gap:.7rem}
+ .hub-card{min-height:185px;padding:1rem}
+ .hub-feature{grid-column:span 2;grid-row:auto;min-height:310px;padding:1.25rem}
+ .hub-feature:before{width:135px;height:135px;right:7%;top:8%;font-size:4rem;border-radius:32px}
+ .hub-card h3{font-size:1.15rem}
+}
