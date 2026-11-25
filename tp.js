@@ -95,9 +95,22 @@ function render(){
    else $$("[data-m]").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.m;$$("[data-m]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));draw();}));
    draw();
  }
- const buzz=$("#buzz");
- if(buzz){buzz.innerHTML=trend.slice(0,5).map((t,i)=>'<li><span class="n">'+(i+1)+'</span><a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(t.article)+'" target="_blank" rel="noopener">'+safe(t.title)+'</a><small>'+fmt(t.views)+' views</small></li>').join("")||"<li>Trend data is loading or unavailable.</li>";}
+ async function renderGlobalBuzz(){
+ const buzz=$("#buzz");if(!buzz)return;
  const date=$("#buzz-date");if(date)date.textContent=end.toLocaleDateString();
+ const y=String(end.getUTCFullYear()),m=String(end.getUTCMonth()+1).padStart(2,"0"),d=String(end.getUTCDate()).padStart(2,"0");
+ try{
+   const response=await fetch("https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/"+y+"/"+m+"/"+d,{headers:{Accept:"application/json"}});
+   if(!response.ok)throw new Error("Global page-view feed unavailable");
+   const payload=await response.json();
+   const articles=(payload.items?.[0]?.articles||[]).filter(x=>x.article&&!/^(Main_Page|Special:|Wikipedia:|File:|Portal:|User:)/i.test(x.article)).slice(0,5);
+   if(!articles.length)throw new Error("No global articles returned");
+   buzz.innerHTML=articles.map((item,i)=>{const title=item.article.replace(/_/g," ");return '<li><span class="n">'+(i+1)+'</span><a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(item.article)+'" target="_blank" rel="noopener">'+safe(title)+'</a><small>'+fmt(item.views)+' views</small></li>';}).join("");
+ }catch(error){
+   buzz.innerHTML=trend.slice(0,5).map((t,i)=>'<li><span class="n">'+(i+1)+'</span><a href="https://en.wikipedia.org/wiki/'+encodeURIComponent(t.article)+'" target="_blank" rel="noopener">'+safe(t.title)+'</a><small>'+fmt(t.views)+' views · tracked</small></li>').join("")||"<li>Global trend data is temporarily unavailable.</li>";
+ }
+ }
+ renderGlobalBuzz();
  const note=$("#home-note");if(note&&all.length)note.textContent="Ranked by average daily Wikipedia page views for the latest complete 7-day period.";
 }
 function init(){
