@@ -68,3 +68,17 @@ Copy this template for each task:
 6. Verify GitHub Pages routing and Supabase authentication redirect URLs.
 
 No item above is considered fixed or verified until the code and test evidence are reviewed.
+
+
+## Initial independent review — 2026-11-25
+
+GPT-6 completed a static first-pass review of the `main` branch. The findings and proposed (not applied) remediations are recorded in [SECURITY_REVIEW_INITIAL.md](./SECURITY_REVIEW_INITIAL.md).
+
+Highest-priority findings:
+- Shorts privacy choices are not persisted by the createShort client method, and the media bucket/public URL means database visibility does not make video bytes private.
+- A push-triggered workflow can attempt to apply migrations to the production Supabase project from any branch.
+- Two separate migration deployment workflows exist.
+- Shorts-specific tables/columns are supplied by a separate SQL file, with unclear versioned setup order.
+- Syntax validation currently runs on pushes, not pull requests.
+
+Review was static only. No live database, browser, upload, or workflow execution was performed. No application code or database was changed. All fixes remain pending owner approval.
