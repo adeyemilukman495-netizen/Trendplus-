@@ -66,6 +66,8 @@ using (author_id = (select auth.uid()));
 grant select on public.short_likes, public.short_comments to anon, authenticated;
 grant insert, delete on public.short_likes to authenticated;
 grant insert, delete on public.short_comments to authenticated;
+revoke update on public.shorts from authenticated;
+-- Only allow creators to change the three privacy controls through the client.
 grant update (visibility, allow_comments, allow_download) on public.shorts to authenticated;
 create unique index if not exists shorts_video_path_unique_idx
   on public.shorts(video_path) where video_path is not null;
