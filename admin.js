@@ -52,4 +52,5 @@ $('#admin-refresh').onclick=()=>refresh().catch(e=>alert(e.message));
 signout.onclick=async()=>{await window.TPBackend.signOut();location.href='./profile.html'};
 $('#entry-date').value=new Date().toISOString().slice(0,10);
 boot();
+setInterval(()=>{if(!document.hidden&&!app.hidden)refresh().catch(()=>{});},60000);
 })();
