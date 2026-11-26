@@ -414,6 +414,36 @@
       return data;
     },
 
+    createServiceRequest: async (serviceId, requestMessage) => {
+      await requireUser();
+      const clean = String(requestMessage || '').trim();
+      if (clean.length < 5 || clean.length > 1500) throw new Error('Write between 5 and 1500 characters.');
+      const { data, error } = await client.rpc('create_service_request', {
+        service_uuid: serviceId,
+        request_text: clean,
+      });
+      if (error) throw error;
+      return data;
+    },
+    getMyServiceRequests: async () => {
+      const user = await requireUser();
+      const { data, error } = await client.from('service_requests')
+        .select('id,service_id,buyer_id,seller_id,conversation_id,request_message,status,created_at,updated_at,service:earn_services(title,category),buyer:profiles!service_requests_buyer_id_fkey(display_name,username),seller:profiles!service_requests_seller_id_fkey(display_name,username)')
+        .or('buyer_id.eq.' + user.id + ',seller_id.eq.' + user.id)
+        .order('created_at', { ascending: false }).limit(100);
+      if (error) throw error;
+      return data || [];
+    },
+    respondServiceRequest: async (requestId, nextStatus) => {
+      await requireUser();
+      const { data, error } = await client.rpc('respond_service_request', {
+        request_uuid: requestId,
+        next_status: nextStatus,
+      });
+      if (error) throw error;
+      return data;
+    },
+
     startConversation: async otherUserId => {
       const user = await requireUser();
       if (!otherUserId || otherUserId === user.id) throw new Error('Choose another member.');
