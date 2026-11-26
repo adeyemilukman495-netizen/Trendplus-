@@ -754,3 +754,14 @@ body[data-feature="profile"] .settings-menu-link:hover,body[data-feature="profil
 body[data-feature="profile"] .settings-signout{margin-top:2px;min-height:52px;border:0;border-radius:12px;background:#252525;color:#fe5b72;font-weight:800}
 body[data-feature="profile"] .settings-menu .secondary{border-radius:8px;background:#303030;border-color:#454545}
 @media(max-width:560px){body[data-feature="profile"] .profile-settings{padding:8px 0 calc(100px + env(safe-area-inset-bottom))}body[data-feature="profile"] .settings-menu{gap:18px}body[data-feature="profile"] .settings-menu-content{padding-left:16px}body[data-feature="profile"] .settings-menu-group{border-radius:10px}}
+
+
+/* Creator upload management lives inside Profile Settings. */
+body[data-feature="profile"] .profile-upload-management{margin:22px 0;padding:16px;border:1px solid #303030;border-radius:14px;background:#171717}
+body[data-feature="profile"] .profile-upload-management h3{margin:0 0 6px;font-size:1.05rem}
+body[data-feature="profile"] .profile-upload-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #303030}
+body[data-feature="profile"] .profile-upload-details{display:flex;min-width:0;flex-direction:column;gap:4px}
+body[data-feature="profile"] .profile-upload-details b{overflow-wrap:anywhere;color:#fff}
+body[data-feature="profile"] .profile-upload-details small{color:#aaa}
+body[data-feature="profile"] .profile-upload-delete{flex:0 0 auto;min-height:38px;padding:7px 14px;border:1px solid #fe2c55;border-radius:9px;background:#2b151b;color:#ff6b87;font-weight:800}
+body[data-feature="profile"] .profile-upload-delete:disabled{opacity:.6}
