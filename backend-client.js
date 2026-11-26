@@ -326,6 +326,63 @@
       if (error) throw error;
     },
 
+    // Public creator-service marketplace. RLS enforces ownership in the database.
+    getEarnServices: async (search = '', category = '') => {
+      let query = client.from('earn_services')
+        .select('id, seller_id, title, category, description, starting_price, currency, created_at, profiles!earn_services_seller_id_fkey(username, display_name, avatar_url)')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(60);
+      const term = String(search || '').trim().slice(0, 70);
+      if (term) query = query.ilike('title', '%' + term.replace(/[%,]/g, '') + '%');
+      if (category && category !== 'All') query = query.eq('category', category);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    getMyEarnServices: async () => {
+      const user = await requireUser();
+      const { data, error } = await client.from('earn_services')
+        .select('id, seller_id, title, category, description, starting_price, currency, status, created_at')
+        .eq('seller_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return data || [];
+    },
+    createEarnService: async values => {
+      const user = await requireUser();
+      const title = String(values.title || '').trim();
+      const description = String(values.description || '').trim();
+      const price = Number(values.starting_price);
+      const categories = ['Video editing','Graphic design','Writing','Photography','Tutoring','Other'];
+      const category = categories.includes(values.category) ? values.category : 'Other';
+      if (title.length < 3 || title.length > 70) throw new Error('Service title must be 3–70 characters.');
+      if (!description || description.length > 400) throw new Error('Add a description of up to 400 characters.');
+      if (!Number.isFinite(price) || price < 0 || price > 100000000) throw new Error('Enter a valid starting price.');
+      const { data, error } = await client.from('earn_services').insert({
+        seller_id: user.id, title, category, description, starting_price: price, currency: 'NGN', status: 'active'
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    updateEarnService: async (id, values) => {
+      const user = await requireUser();
+      const patch = {};
+      if (values.status && ['active','paused'].includes(values.status)) patch.status = values.status;
+      if (values.title !== undefined) patch.title = String(values.title).trim().slice(0,70);
+      if (values.description !== undefined) patch.description = String(values.description).trim().slice(0,400);
+      const { data, error } = await client.from('earn_services').update(patch)
+        .eq('id', id).eq('seller_id', user.id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    deleteEarnService: async id => {
+      const user = await requireUser();
+      const { error } = await client.from('earn_services').delete().eq('id', id).eq('seller_id', user.id);
+      if (error) throw error;
+    },
+
     createReview: async values => {
       const user = await requireUser();
       const { data, error } = await client.from('reviews').insert({
