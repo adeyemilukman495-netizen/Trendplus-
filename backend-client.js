@@ -455,6 +455,23 @@
       if (error) throw error;
       return data;
     },
+    getMyServiceTestPayments: async () => {
+      const user = await requireUser();
+      const { data, error } = await client.from('service_test_payments')
+        .select('id,order_id,buyer_id,seller_id,amount,currency,status,mode,created_at')
+        .or('buyer_id.eq.' + user.id + ',seller_id.eq.' + user.id)
+        .order('created_at', { ascending: false }).limit(100);
+      if (error) throw error;
+      return data || [];
+    },
+    simulateServiceTestPayment: async orderId => {
+      await requireUser();
+      const { data, error } = await client.rpc('simulate_service_test_payment', {
+        order_uuid: orderId,
+      });
+      if (error) throw error;
+      return data;
+    },
 
     startConversation: async otherUserId => {
       const user = await requireUser();
