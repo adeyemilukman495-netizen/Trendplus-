@@ -840,3 +840,6 @@ body[data-feature="profile"] .profile-settings[hidden]{display:none!important}
 
 body[data-feature="earn"] .earn-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}
 @media(max-width:600px){body[data-feature="earn"] .earn-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Highlight an order opened from its notification deep link. */
+.earn-order-card.is-deep-linked{outline:2px solid #25f4ee;box-shadow:0 0 0 5px rgba(37,244,238,.12);transition:outline-color .25s,box-shadow .25s}
