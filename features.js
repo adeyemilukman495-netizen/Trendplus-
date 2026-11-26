@@ -220,6 +220,7 @@ async function loadMessages(id){
  feed.scrollTop=feed.scrollHeight;
 }
 async function openConversation(id,title){
+ const current=await backend.currentUser();if(current)window.currentTrendPulseUserId=current.id;
  chat.hidden=false;$('#chat-title').textContent=title||'Conversation';chat.dataset.conversationId=id;
  if(activeChannel)await backend.removeChannel(activeChannel);
  await loadMessages(id);
