@@ -1,6 +1,18 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shorts | TrendPulse</title><meta name="description" content="Watch and upload short-form entertainment videos on TrendPulse."><link rel="stylesheet" href="./features.css?v=20261126-shorts-drawer1"></head><body data-feature="shorts"><main class="shorts-app">
  <div class="shorts-topbar"><a class="shorts-brand" href="./">✦ TrendPulse</a><span>SHORTS</span><div class="shorts-top-actions"><button type="button" id="open-upload" class="shorts-create">＋ Upload</button><a href="./profile.html" aria-label="Your profile">◉</a></div></div>
- <div id="content" class="shorts-feed" aria-label="Short videos"></div>
+ <style>
+.shorts-feed-switch{position:sticky;top:0;z-index:30;display:flex;gap:8px;justify-content:center;padding:10px 12px;background:#080b16eF;backdrop-filter:blur(14px);border-bottom:1px solid #ffffff18}
+.shorts-feed-switch button{border:0;border-radius:999px;padding:9px 16px;background:#1a2030;color:#dce3ed;font:700 13px system-ui;cursor:pointer}
+.shorts-feed-switch button[aria-pressed="true"]{background:linear-gradient(100deg,#25f4ee,#fe2c55);color:#071016}
+.shorts-feed-hint{margin:0;padding:7px 14px;text-align:center;color:#aab4c3;background:#080b16;font:12px system-ui}
+</style>
+<div class="shorts-feed-switch" role="group" aria-label="Choose Shorts feed">
+<button type="button" data-short-feed="foryou" aria-pressed="true">For You</button>
+<button type="button" data-short-feed="following" aria-pressed="false">Following</button>
+<button type="button" data-short-feed="latest" aria-pressed="false">Latest</button>
+</div>
+<p class="shorts-feed-hint" id="shorts-feed-hint">A mix of fresh Shorts picked for discovery.</p>
+<div id="content" class="shorts-feed" aria-label="Short videos"></div>
 
  <nav class="tp-bottom-nav" aria-label="Main navigation"><a href="./" ><span aria-hidden="true">⌂</span><small>Home</small></a><a href="./discover.html" ><span aria-hidden="true">⌕</span><small>Discover</small></a><a href="./shorts.html" aria-current="page"><span aria-hidden="true">▣</span><small>Shorts</small></a><a href="./community.html" ><span aria-hidden="true">◎</span><small>Community</small></a><a href="./profile.html" ><span aria-hidden="true">◉</span><small>Profile</small></a><a href="./earn.html"><span aria-hidden="true">₦</span><small>Earn</small></a></nav>
  <dialog id="upload-dialog" class="upload-dialog">
