@@ -32,6 +32,7 @@ jobs:
             film-catalog.js \
             home-catalog.js \
             members.js \
+            points.js \
             pulse-assistant.js \
             tp.js \
             tvmaze.js
