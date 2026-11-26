@@ -12,14 +12,25 @@ const end7=new Date(end); end7.setUTCDate(end7.getUTCDate()-6);
 const start7=new Date(end7); start7.setUTCDate(start7.getUTCDate()-7);
 const endPrev=new Date(end7); endPrev.setUTCDate(endPrev.getUTCDate()-1);
 const dateA=ymd(start7),dateB=ymd(end),dateC=ymd(start7),dateD=ymd(endPrev);
-const cacheKey="tp-data-v4";
+const cacheKey="tp-data-v5";
 const imageCacheKey="tp-images-v1";
 let records=[];
 function cacheRead(){try{const x=JSON.parse(localStorage.getItem(cacheKey)||"null");if(x&&Date.now()-x.time<30*60000)return x.data;}catch(e){}return null;}
 async function loadOne(t){
- const url=cfg.api+"/en.wikipedia/all-access/all/"+encodeURIComponent(t.article)+"/daily/"+dateA+"/"+dateB;
- const res=await fetch(url,{headers:{Accept:"application/json"}});
- if(!res.ok)throw new Error("API "+res.status);
+ // Wikimedia's Analytics API expects the agent value "all-agents", not "all".
+ // Identify the browser client as recommended by Wikimedia for browser-based requests.
+ const url=cfg.api+"/en.wikipedia/all-access/all-agents/"+encodeURIComponent(t.article)+"/daily/"+dateA+"/"+dateB;
+ let res;
+ for(let attempt=0;attempt<4;attempt++){
+   res=await fetch(url,{headers:{Accept:"application/json","Api-User-Agent":"TrendPulse/1.0 (https://adeyemilukman495-netizen.github.io/Trendplus-/)"}});
+   if(res.status===404)return {...t,views:0,previous:0,avg:0,growth:0,series:[],noData:true};
+   if(res.status!==429&&res.status!==503)break;
+   if(attempt===3)throw new Error("API "+res.status);
+   const retryAfter=Number(res.headers.get("Retry-After")||0);
+   const waitMs=retryAfter>0?Math.min(retryAfter*1000,30000):5000*Math.pow(2,attempt);
+   await new Promise(resolve=>setTimeout(resolve,waitMs));
+ }
+ if(!res||!res.ok)throw new Error("API "+(res?res.status:"request failed"));
  const json=await res.json(), items=json.items||[];
  const recent=items.filter(x=>x.timestamp>=dateA+"00"&&x.timestamp<=dateB+"00");
  const previous=recent.filter(x=>x.timestamp.slice(0,8)>=dateC&&x.timestamp.slice(0,8)<=dateD);
@@ -55,9 +66,12 @@ async function loadData(){
  else{
    const unique=[...new Map(topics.map(t=>[t.article,t])).values()];
    const output=[];
-   for(let i=0;i<unique.length;i+=6){
-     const batch=await Promise.all(unique.slice(i,i+6).map(async t=>{try{return await loadOne(t);}catch(e){return {...t,views:0,previous:0,avg:0,growth:0,series:[],error:true};}}));
-     output.push(...batch);
+   // Wikimedia asks clients to wait for each Analytics API request to finish
+   // before sending the next one. Keep requests sequential to avoid throttling.
+   for(let i=0;i<unique.length;i++){
+     const t=unique[i];
+     try{output.push(await loadOne(t));}
+     catch(e){output.push({...t,views:0,previous:0,avg:0,growth:0,series:[],error:true});}
    }
    const byArticle=new Map(output.map(x=>[x.article,x]));
    records=topics.map(t=>({...byArticle.get(t.article),...t}));
