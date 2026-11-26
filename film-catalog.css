@@ -1,0 +1,18 @@
+/* Film discovery cards */
+.tp-film-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:1rem}
+.tp-film-card{display:grid;grid-template-columns:112px minmax(0,1fr);gap:1rem;padding:1rem;border:1px solid rgba(168,190,230,.2);border-radius:19px;background:linear-gradient(145deg,rgba(27,43,70,.96),rgba(15,23,40,.98));min-width:0}
+.tp-film-poster{width:112px;height:166px;object-fit:cover;border-radius:12px;background:#1a2942}
+.tp-film-no-poster{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;color:var(--mut);font-size:2rem}
+.tp-film-no-poster span{font-size:.68rem}
+.tp-film-copy{min-width:0}
+.tp-film-category{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--lime);font-weight:800}
+.tp-film-copy h3{font-size:1.12rem;margin:.35rem 0}
+.tp-film-release{font-size:.78rem;color:var(--mut);margin:.25rem 0}
+.tp-film-summary{font-size:.82rem;line-height:1.5;color:#c4cee2;margin:.45rem 0}
+.tp-film-actions{display:flex;flex-wrap:wrap;gap:.7rem;font-size:.78rem;margin:.55rem 0}
+.tp-film-actions a{color:var(--lime);text-decoration:none}
+.tp-film-watch{display:inline-flex;margin-top:.2rem;padding:.45rem .65rem;border-radius:9px;background:rgba(114,245,208,.1);border:1px solid rgba(114,245,208,.25);font-size:.75rem;font-weight:700;text-decoration:none}
+.tp-film-region-row{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;margin:1rem 0}
+.tp-film-region-row label{color:var(--mut);font-size:.88rem}
+.tp-film-region-row select{padding:.55rem .8rem;border:1px solid var(--line);border-radius:10px;background:var(--s);color:var(--text);font:inherit}
+@media(max-width:480px){.tp-film-card{grid-template-columns:92px minmax(0,1fr);gap:.75rem;padding:.75rem}.tp-film-poster{width:92px;height:138px}.tp-film-summary{font-size:.78rem}}
