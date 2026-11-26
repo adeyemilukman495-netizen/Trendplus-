@@ -5,6 +5,7 @@ async function openDailyDuel(page, signedIn) {
     window.__TEST_USER = user ? { id: '00000000-0000-4000-8000-000000000001' } : null;
     window.__RPC_CALLS = [];
   }, signedIn);
+  await page.route('https://**/*', route => route.abort());
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', route =>
     route.fulfill({
       contentType: 'application/javascript',
@@ -19,7 +20,6 @@ async function openDailyDuel(page, signedIn) {
       body: JSON.stringify({ items: [{ views: viewCount }] })
     });
   });
-  await page.route('https://**/*', route => route.abort());
   await page.goto('/challenge.html');
 }
 
