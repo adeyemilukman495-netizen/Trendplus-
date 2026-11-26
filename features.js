@@ -165,7 +165,7 @@ function card(x,currentUserId){
  const share=document.createElement('button');share.className='short-action';share.type='button';share.innerHTML='↗<small>Share</small>';share.onclick=async()=>{const url=location.origin+location.pathname+'#'+encodeURIComponent(x.id);try{if(navigator.share)await navigator.share({title:x.title,text:x.caption||'Watch on TrendPulse',url});else{await navigator.clipboard.writeText(url);share.querySelector('small').textContent='Copied'}}catch(e){}};
  const download=document.createElement('button');download.className='short-action';download.type='button';download.innerHTML='↓<small>Download</small>';download.hidden=x.allow_download===false;download.onclick=async()=>{try{const res=await fetch(x.video_url);if(!res.ok)throw Error();const blob=await res.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(x.title||'trendpulse-short').replace(/[^a-z0-9-_]/gi,'_')+'.mp4';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}catch(e){alert('This video could not be downloaded from this browser.')}};
  const settings=document.createElement('button');settings.className='short-action';settings.type='button';settings.innerHTML='⚙<small>Settings</small>';settings.onclick=async()=>{try{const user=await backend.currentUser();if(!user||user.id!==x.author_id)throw Error('Only the creator can edit this Short.');activeSettingsId=x.id;$('#short-settings-title').textContent=x.title;$('#short-visibility').value=x.visibility||'public';$('#short-comments-enabled').checked=x.allow_comments!==false;$('#short-download-enabled').checked=x.allow_download!==false;$('#short-settings-dialog').showModal()}catch(e){alert(e.message)}};
- if(currentUserId===x.author_id){const remove=document.createElement('button');remove.className='short-action short-delete-action';remove.type='button';remove.innerHTML='⌫<small>Delete</small>';remove.setAttribute('aria-label','Delete your Short');remove.onclick=async()=>{if(!confirm('Delete this Short permanently? Its comments and likes may also be removed. This cannot be undone.'))return;remove.disabled=true;try{const result=await backend.deleteShort(x.id);if(result.storageWarning)alert(result.storageWarning);await draw()}catch(e){alert(e.message||'This Short could not be deleted.');remove.disabled=false}};actions.append(remove)}
+
  const report=document.createElement('button');report.className='short-action';report.type='button';report.innerHTML='⚑<small>Report</small>';report.onclick=async()=>{const reason=prompt('Why are you reporting this Short?');if(!reason)return;try{await backend.reportContent({target_type:'short',target_id:x.id,reason});report.querySelector('small').textContent='Sent'}catch(e){alert(e.message)}};
  actions.append(like,comments,sound,share,download,settings,report);
  const meta=document.createElement('div');meta.className='short-overlay';const title=document.createElement('h3');title.textContent=x.title||'TrendPulse Short';const caption=document.createElement('p');caption.textContent=x.caption||'';const category=document.createElement('span');category.className='short-category';category.textContent=x.category||'Entertainment';meta.append(title,caption,category);el.append(video,tap,creator,actions,meta);return {el,video};
@@ -210,7 +210,6 @@ form.onsubmit=async e=>{
  finally{button.disabled=false}
 };
 $('#short-settings-form').onsubmit=async e=>{e.preventDefault();try{await backend.updateShortSettings(activeSettingsId,$('#short-visibility').value,$('#short-comments-enabled').checked,$('#short-download-enabled').checked);$('#short-settings-dialog').close();await draw()}catch(err){alert(err.message)}};
-$('#delete-short-from-settings').onclick=async()=>{if(!activeSettingsId)return;if(!confirm('Delete this Short permanently? Its comments and likes may also be removed. This cannot be undone.'))return;const button=$('#delete-short-from-settings');button.disabled=true;button.textContent='Deleting…';try{const result=await backend.deleteShort(activeSettingsId);$('#short-settings-dialog').close();if(result.storageWarning)alert(result.storageWarning);await draw()}catch(err){alert(err.message||'This Short could not be deleted.')}finally{button.disabled=false;button.textContent='Delete this Short'}};
 draw();
 }
 function messages(){
@@ -281,6 +280,26 @@ async function refresh(){
    if(activityFeed)activityFeed.innerHTML=activityItems.length?activityItems.map(x=>'<article class="activity-item"><span class="activity-dot"></span><div><b>'+esc(x.kind)+'</b><h3>'+esc(x.title)+'</h3><p>'+esc(x.detail).slice(0,180)+'</p><time>'+new Date(x.date).toLocaleString()+'</time></div></article>').join(''):'<div class="empty">Your activity will appear here as you post, review, publish Shorts and save titles.</div>';
    const videoGrid=$('#profile-videos');
    if(videoGrid)videoGrid.innerHTML=myShorts.length?'<div class="tiktok-video-grid">'+myShorts.map(x=>'<a class="tiktok-video-tile" href="./shorts.html#'+encodeURIComponent(x.id)+'"><span class="tiktok-video-play">▶</span><b>'+esc(x.title||'Short film')+'</b></a>').join('')+'</div>':'<div class="tiktok-profile-empty"><b>Your videos will appear here</b><p>Share a Short Film and it will be part of your creator profile.</p><a href="./shorts.html">Go to Shorts</a></div>';
+   const uploadList=$('#profile-upload-list');
+   if(uploadList){
+    uploadList.replaceChildren();
+    if(!myShorts.length){const empty=document.createElement('p');empty.className='muted small';empty.textContent='You have not uploaded any Shorts yet.';uploadList.append(empty)}
+    myShorts.forEach(short=>{
+     const row=document.createElement('div');row.className='profile-upload-row';
+     const details=document.createElement('div');details.className='profile-upload-details';
+     const name=document.createElement('b');name.textContent=short.title||'Untitled Short';
+     const visibility=document.createElement('small');visibility.textContent=(short.visibility||'public')==='public'?'Public':short.visibility==='followers'?'Followers only':'Private';
+     details.append(name,visibility);
+     const remove=document.createElement('button');remove.type='button';remove.className='profile-upload-delete';remove.textContent='Delete';
+     remove.onclick=async()=>{
+      if(!confirm('Permanently delete "'+(short.title||'this Short')+'"? This cannot be undone.'))return;
+      remove.disabled=true;remove.textContent='Deleting…';
+      try{const result=await backend.deleteShort(short.id);if(result.storageWarning)message(result.storageWarning,'error');else message('Your Short was deleted.','success');await refresh()}
+      catch(err){message(err.message||'This upload could not be deleted.','error');remove.disabled=false;remove.textContent='Delete'}
+     };
+     row.append(details,remove);uploadList.append(row);
+    });
+   }
   }catch(statsError){stats.textContent='Your profile is ready. Activity counts are temporarily unavailable.'}
  }catch(e){message(e.message||'Could not load your profile. Please sign in again.','error')}
 }
