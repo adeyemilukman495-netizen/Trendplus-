@@ -213,10 +213,23 @@ $('#short-settings-form').onsubmit=async e=>{e.preventDefault();try{await backen
 draw();
 }
 function messages(){
-const form=$('#member-search-form'),results=$('#member-results'),chat=$('#chat-area'),messages=$('#chat-messages'),send=$('#message-form');
-async function loadMessages(id){const items=await backend.getMessages(id);messages.replaceChildren();items.forEach(x=>{const el=document.createElement('article');el.className='card';const b=document.createElement('b');b.textContent=x.sender_id===window.currentTrendPulseUserId?'You':'Member';const p=document.createElement('p');p.textContent=x.body;el.append(b,p);messages.append(el)})}
-form.onsubmit=async e=>{e.preventDefault();try{const users=await backend.searchMembers($('#member-search').value);results.replaceChildren();if(!users.length){results.innerHTML='<div class="empty">No other members found.</div>';return}users.forEach(u=>{const el=document.createElement('article');el.className='card';const title=document.createElement('b');title.textContent=u.display_name;const meta=document.createElement('p');meta.textContent='@'+(u.username||'member');const button=document.createElement('button');button.className='primary';button.textContent='Open conversation';button.onclick=async()=>{try{const conv=await backend.startConversation(u.id);chat.hidden=false;$('#chat-title').textContent='Conversation with '+u.display_name;chat.dataset.conversationId=conv.id;await loadMessages(conv.id)}catch(err){alert(err.message)}};el.append(title,meta,button);results.append(el)})}catch(err){alert(err.message)}};
-send.onsubmit=async e=>{e.preventDefault();try{const id=chat.dataset.conversationId;if(!id)throw new Error('Choose a member first.');await backend.sendMessage(id,$('#message-content').value.trim());$('#message-content').value='';await loadMessages(id)}catch(err){alert(err.message)}};
+const form=$('#member-search-form'),results=$('#member-results'),chat=$('#chat-area'),feed=$('#chat-messages'),send=$('#message-form');let activeChannel=null;
+async function loadMessages(id){
+ const items=await backend.getMessages(id);feed.replaceChildren();
+ items.forEach(x=>{const el=document.createElement('article');el.className='card';const b=document.createElement('b');b.textContent=x.sender_id===window.currentTrendPulseUserId?'You':'Member';const p=document.createElement('p');p.textContent=x.body;el.append(b,p);feed.append(el)});
+ feed.scrollTop=feed.scrollHeight;
+}
+async function openConversation(id,title){
+ const current=await backend.currentUser();if(current)window.currentTrendPulseUserId=current.id;
+ chat.hidden=false;$('#chat-title').textContent=title||'Conversation';chat.dataset.conversationId=id;
+ if(activeChannel)await backend.removeChannel(activeChannel);
+ await loadMessages(id);
+ activeChannel=backend.subscribeToConversation(id,async()=>{try{await loadMessages(id)}catch(e){console.warn('Could not refresh messages',e)}});
+}
+form.onsubmit=async e=>{e.preventDefault();try{const users=await backend.searchMembers($('#member-search').value);results.replaceChildren();if(!users.length){results.innerHTML='<div class="empty">No other members found.</div>';return}users.forEach(u=>{const el=document.createElement('article');el.className='card';const title=document.createElement('b');title.textContent=u.display_name;const meta=document.createElement('p');meta.textContent='@'+(u.username||'member');const button=document.createElement('button');button.className='primary';button.textContent='Open conversation';button.onclick=async()=>{try{const conv=await backend.startConversation(u.id);await openConversation(conv.id,'Conversation with '+u.display_name)}catch(err){alert(err.message)}};el.append(title,meta,button);results.append(el)})}catch(err){alert(err.message)}};
+send.onsubmit=async e=>{e.preventDefault();const button=send.querySelector('button[type="submit"]');try{const id=chat.dataset.conversationId;if(!id)throw new Error('Choose a member first.');button.disabled=true;await backend.sendMessage(id,$('#message-content').value.trim());$('#message-content').value='';await loadMessages(id)}catch(err){alert(err.message)}finally{button.disabled=false}};
+const conversationId=new URLSearchParams(location.search).get('conversation');
+if(conversationId){backend.currentUser().then(user=>{if(!user)throw new Error('Sign in to view this conversation.');window.currentTrendPulseUserId=user.id;return openConversation(conversationId,'Service conversation')}).catch(err=>{chat.hidden=false;feed.textContent=err.message||'Could not open this conversation.'})}
 }
 function profile(){
 const auth=$('#profile-auth'),form=$('#profile-form'),status=$('#profile-status'),panel=$('#profile-panel'),stats=$('#stats'),signup=$('#signup-form'),signin=$('#signin-form'),ownerAdminLink=$('#owner-admin-link');
@@ -391,16 +404,14 @@ $('#profile-share').onclick=async()=>{const url=location.href.split('?')[0];try{
 }
 async function catalog(){let form=$('#search-form'),root=$('#content'),status=$('#status');form.onsubmit=async e=>{e.preventDefault();let q=$('#query').value.trim(),kind=$('#kind').value;if(!q)return;root.innerHTML='';status.textContent='Searching public catalogue…';let data=[];try{if(kind==='Anime'||kind==='Manga'){let type=kind==='Anime'?'anime':'manga';let r=await fetch('https://kitsu.io/api/edge/'+type+'?filter[text]='+encodeURIComponent(q)+'&page[limit]=12');if(!r.ok)throw Error();let j=await r.json();data=(j.data||[]).map(x=>{let a=x.attributes||{};return{title:a.canonicalTitle||a.titles?.en||a.titles?.en_jp||'Untitled',poster:a.posterImage?.small||a.posterImage?.medium,genres:'',year:(a.startDate||'').slice(0,4),summary:a.synopsis||'',url:'https://kitsu.io/'+type+'/'+a.slug,type:kind,score:a.averageRating}})}else if(kind==='TV / Drama'){let r=await fetch('https://api.tvmaze.com/search/shows?q='+encodeURIComponent(q));if(!r.ok)throw Error();let j=await r.json();data=j.slice(0,12).map(v=>({title:v.show.name,poster:v.show.image?.medium,genres:(v.show.genres||[]).join(', '),year:v.show.premiered?.slice(0,4)||'',summary:(v.show.summary||'').replace(/<[^>]*>/g,' '),url:v.show.url,type:'TV / Drama'}))}else{let search=q+' film movie';if(kind==='Hollywood Movies')search=q+' Hollywood film';if(kind==='Bollywood Movies')search=q+' Bollywood Indian film';if(kind==='International Movies')search=q+' international cinema film';let r=await fetch('https://en.wikipedia.org/w/rest.php/v1/search/page?q='+encodeURIComponent(search)+'&limit=12');if(!r.ok)throw Error();let j=await r.json();data=(j.pages||[]).map(x=>({title:x.title,poster:x.thumbnail?.url,genres:x.description||'Wikipedia result',year:'',summary:x.excerpt||'Open the article for more information.',url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(x.key||x.title.replace(/ /g,'_')),type:'Film / Wikipedia'}))}}catch(e){status.textContent='The selected public catalogue is temporarily unavailable. Try again later.';return}if(!data.length){status.textContent='No matching titles found.';return}status.textContent='Found '+data.length+' results. Add a title to your watchlist. Film results are Wikipedia knowledge results, not verified ratings or streaming availability.';root.innerHTML='<div class="grid">'+data.map(x=>'<article class="card">'+(x.poster?'<img class="poster" loading="lazy" src="'+esc(x.poster)+'" alt="Artwork for '+esc(x.title)+'">':'')+'<span class="tag">'+esc(x.type)+'</span><h3>'+esc(x.title)+'</h3><p class="muted small">'+esc([x.year,x.genres,x.score?'Community rating '+x.score:''].filter(Boolean).join(' · '))+'</p><p class="small">'+esc(x.summary).slice(0,240)+'</p><button data-add="'+encodeURIComponent(JSON.stringify(x))+'">＋ Watchlist</button> <a class="btn secondary" href="'+esc(x.url)+'" target="_blank" rel="noopener">Details</a></article>').join('')+'</div>';root.querySelectorAll('[data-add]').forEach(b=>b.onclick=async()=>{try{const x=JSON.parse(decodeURIComponent(b.dataset.add));const user=await backend.currentUser();if(!user){b.textContent='Sign in first';return}await backend.addWatchlist({external_id:x.url,title:x.title,media_type:x.type,poster_url:x.poster||null});b.textContent='Added ✓'}catch(err){b.textContent=err.message||'Could not save'}})}}
 function earn(){
- const tabs=[...document.querySelectorAll('[data-earn-tab]')],sections={opportunities:$('#earn-opportunities'),services:$('#earn-services'),dashboard:$('#earn-dashboard')};
- function show(name){tabs.forEach(t=>{const active=t.dataset.earnTab===name;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active))});Object.entries(sections).forEach(([key,node])=>{node.hidden=key!==name})}
+ const tabs=[...document.querySelectorAll('[data-earn-tab]')],sections={opportunities:$('#earn-opportunities'),services:$('#earn-services'),dashboard:$('#earn-dashboard'),requests:$('#earn-requests')};
+ function show(name){tabs.forEach(t=>{const active=t.dataset.earnTab===name;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active))});Object.entries(sections).forEach(([key,node])=>{node.hidden=key!==name});if(name==='requests')loadRequests()}
  tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.earnTab)));
- const backend=window.TPBackend, form=$('#earn-service-form'), list=$('#earn-service-list'), publicList=$('#earn-public-service-list'), status=$('#earn-service-status'), publicStatus=$('#earn-market-status');
+ const backend=window.TPBackend,form=$('#earn-service-form'),list=$('#earn-service-list'),publicList=$('#earn-public-service-list'),status=$('#earn-service-status'),publicStatus=$('#earn-market-status'),requestList=$('#earn-request-list'),requestStatus=$('#earn-request-status');
  const money=value=>'₦'+Number(value||0).toLocaleString('en-NG',{maximumFractionDigits:2});
- function serviceCard(x, own=false){
-   const profile=x.profiles||{};
-   const seller=profile.display_name||profile.username||'TrendPulse member';
-   const price=money(x.starting_price);
-   return '<article class="panel earn-service-card"><div class="earn-card-top"><span class="tag">'+esc(x.category)+'</span>'+(own?'<span class="tag">'+(x.status==='paused'?'Paused':'Live')+'</span>':'')+'</div><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><strong>From '+price+'</strong><p class="muted small">'+(own?'Your listing':'By '+esc(seller))+'</p>'+(own?'<div class="earn-card-actions"><button type="button" class="secondary" data-earn-toggle="'+esc(x.id)+'" data-next="'+(x.status==='paused'?'active':'paused')+'">'+(x.status==='paused'?'Publish':'Pause')+'</button><button type="button" class="secondary" data-earn-delete="'+esc(x.id)+'">Delete</button></div>':'<p class="muted small">Messaging and checkout are coming in the next marketplace stage.</p>')+'</article>';
+ function serviceCard(x,own=false){
+   const profile=x.profiles||{},seller=profile.display_name||profile.username||'TrendPulse member',price=money(x.starting_price);
+   return '<article class="panel earn-service-card"><div class="earn-card-top"><span class="tag">'+esc(x.category)+'</span>'+(own?'<span class="tag">'+(x.status==='paused'?'Paused':'Live')+'</span>':'')+'</div><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><strong>From '+price+'</strong><p class="muted small">'+(own?'Your listing':'By '+esc(seller))+'</p>'+(own?'<div class="earn-card-actions"><button type="button" class="secondary" data-earn-toggle="'+esc(x.id)+'" data-next="'+(x.status==='paused'?'active':'paused')+'">'+(x.status==='paused'?'Publish':'Pause')+'</button><button type="button" class="secondary" data-earn-delete="'+esc(x.id)+'">Delete</button></div>':'<button type="button" class="primary" data-request-service="'+esc(x.id)+'">Request this service</button><p class="muted small">Send an enquiry directly to the seller. No payment is taken.</p>')+'</article>';
  }
  async function loadMarket(){
    if(!backend?.ready){publicStatus.textContent='Marketplace connection is not available right now.';return}
@@ -409,6 +420,13 @@ function earn(){
      const rows=await backend.getEarnServices($('#earn-market-search').value,$('#earn-market-category').value);
      publicList.innerHTML=rows.length?rows.map(x=>serviceCard(x)).join(''):'<div class="empty"><strong>No services found yet.</strong><p>Be the first to publish a service for the community.</p></div>';
      publicStatus.textContent=rows.length?rows.length+' community service'+(rows.length===1?'':'s')+' available.':'';
+     publicList.querySelectorAll('[data-request-service]').forEach(button=>button.addEventListener('click',async()=>{
+       const details=prompt('Tell the seller what you need (5–1500 characters). Do not include passwords or private financial information.');
+       if(details===null)return;
+       button.disabled=true;button.textContent='Sending request…';
+       try{await backend.createServiceRequest(button.dataset.requestService,details);publicStatus.textContent='Request sent. Open the Requests tab to follow it and message the seller.';show('requests')}
+       catch(error){publicStatus.textContent=error.message||'Could not send the request.';button.disabled=false;button.textContent='Request this service'}
+     }));
    }catch(error){publicStatus.textContent=error.message||'Could not load services. Please try again.';publicList.innerHTML='<div class="empty">Marketplace temporarily unavailable.</div>'}
  }
  async function loadMine(){
@@ -425,6 +443,24 @@ function earn(){
      }));
    }catch(error){list.innerHTML='<div class="empty">'+esc(error.message||'Could not load your listings.')+'</div>'}
  }
+ async function loadRequests(){
+   if(!backend?.ready){requestList.innerHTML='<div class="empty">Requests are unavailable until the backend is connected.</div>';return}
+   requestStatus.textContent='Loading your requests…';
+   try{
+     const user=await backend.currentUser();if(!user){requestList.innerHTML='<div class="empty">Sign in to view service requests.</div>';requestStatus.textContent='';return}
+     const rows=await backend.getMyServiceRequests();
+     if(!rows.length){requestList.innerHTML='<div class="empty">No service requests yet. When someone contacts you about a listing, it will appear here.</div>';requestStatus.textContent='';return}
+     requestList.innerHTML=rows.map(row=>{
+       const mineBuyer=row.buyer_id===user.id,person=mineBuyer?(row.seller||{}):(row.buyer||{}),name=person.display_name||person.username||'TrendPulse member',title=row.service?.title||'Service listing';
+       const actions=mineBuyer?(row.status==='pending'?'<button class="secondary" data-request-action="cancelled" data-request-id="'+esc(row.id)+'">Cancel request</button>':''):(row.status==='pending'?'<button class="primary" data-request-action="accepted" data-request-id="'+esc(row.id)+'">Accept</button><button class="secondary" data-request-action="declined" data-request-id="'+esc(row.id)+'">Decline</button>':'');
+       return '<article class="panel earn-request-card"><div class="earn-card-top"><span class="tag">'+(mineBuyer?'You requested':'Incoming request')+'</span><span class="tag">'+esc(row.status)+'</span></div><h3>'+esc(title)+'</h3><p class="muted small">'+(mineBuyer?'Seller: ':'Buyer: ')+esc(name)+'</p><p>'+esc(row.request_message)+'</p><p class="muted small">'+new Date(row.created_at).toLocaleString()+'</p><div class="earn-card-actions"><a class="btn secondary" href="./messages.html?conversation='+encodeURIComponent(row.conversation_id)+'">Open chat</a>'+actions+'</div></article>';
+     }).join('');
+     requestStatus.textContent=rows.length+' request'+(rows.length===1?'':'s');
+     requestList.querySelectorAll('[data-request-action]').forEach(button=>button.addEventListener('click',async()=>{
+       button.disabled=true;try{await backend.respondServiceRequest(button.dataset.requestId,button.dataset.requestAction);await loadRequests();requestStatus.textContent='Request updated.'}catch(error){button.disabled=false;requestStatus.textContent=error.message||'Could not update request.'}
+     }));
+   }catch(error){requestStatus.textContent=error.message||'Could not load requests.';requestList.innerHTML='<div class="empty">Your requests could not be loaded.</div>'}
+ }
  form.addEventListener('submit',async event=>{
    event.preventDefault();status.textContent='';
    if(!backend?.ready){status.textContent='Marketplace connection is unavailable.';return}
@@ -439,6 +475,7 @@ function earn(){
  $('#earn-market-category').addEventListener('change',loadMarket);
  loadMarket();loadMine();
  const nav=document.createElement('nav');nav.className='tp-bottom-nav';nav.setAttribute('aria-label','Main navigation');nav.innerHTML='<a href="./"><span>⌂</span><small>Home</small></a><a href="./discover.html"><span>⌕</span><small>Discover</small></a><a href="./shorts.html"><span>▣</span><small>Shorts</small></a><a href="./community.html"><span>◎</span><small>Community</small></a><a href="./profile.html"><span>◉</span><small>Profile</small></a><a href="./earn.html" aria-current="page"><span>₦</span><small>Earn</small></a>';document.body.append(nav);
+ const params=new URLSearchParams(location.search);if(params.has('request'))show('requests');
 }
 const map={watchlist,reviews,community:posts,shorts,messages,profile,catalog,earn};if(map[page])map[page]();
 })();
