@@ -43,9 +43,15 @@ function appendMessage(item){
 function showChat(){root.classList.add('chat-open');welcome.hidden=true;chat.hidden=false}
 function closeChat(){root.classList.remove('chat-open');chat.hidden=true;welcome.hidden=false}
 async function stopChannel(){if(activeChannel){await backend.leaveGroupRoom(activeChannel);activeChannel=null}}
-async function openRoom(room){
+async function openRoom(room,alreadyMember=false){
  try{
-  await backend.joinGroupRoom(room.id);await stopChannel();activeRoom=room;showChat();
+  const roomId=String(room?.id||'');
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(roomId)){
+   throw new Error('This community has an invalid room ID. Refresh the page and try again.');
+  }
+  await stopChannel();
+  if(!alreadyMember)await backend.joinGroupRoom(roomId);
+  activeRoom={...room,id:roomId};showChat();
   title.textContent=room.name;subtitle.textContent=room.description||room.category+' community';
   feed.replaceChildren();$('#community-presence').textContent='Connecting…';$('#community-typing').textContent='';
   const rows=await backend.getGroupMessages(room.id);rows.forEach(appendMessage);
@@ -69,7 +75,7 @@ async function drawRooms(){
   item.querySelector('b').textContent=room.name;
   item.querySelector('small').textContent=room.description||room.category;
   item.querySelector('.wa-room-count').textContent=member?((room.group_room_members?.[0]?.count||0)+' members'):'Join';
-  item.onclick=()=>openRoom(room);roomList.append(item);
+  item.onclick=()=>openRoom(room,member);roomList.append(item);
  });
 }
 form.onsubmit=async e=>{
@@ -97,7 +103,7 @@ back.onclick=closeChat;
    error.textContent='';submit.disabled=true;submit.textContent='Creating…';
    try{
     const room=await backend.createGroupRoom({name:$('#community-create-name').value,category:$('#community-create-category').value,description:$('#community-create-description').value});
-    createForm.reset();createDialog.close();await drawRooms();await openRoom(room);
+    createForm.reset();createDialog.close();await drawRooms();await openRoom(room,true);
    }catch(err){error.textContent=err.message||'Could not create this community.'}
    finally{submit.disabled=false;submit.textContent='Create community'}
   };
