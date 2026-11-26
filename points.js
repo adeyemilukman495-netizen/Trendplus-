@@ -1,29 +1,88 @@
 (()=>{'use strict';
-const KEY='tp-pulse-points-preview-v1',today=new Date().toISOString().slice(0,10);
+const today=new Date().toISOString().slice(0,10);
 const labels={trend:'Trend IQ',screen:'Screen Test',brain:'Brain Circuit',expert:'Expert Arena'};
-const localBank={
-trend:{q:'Which is the strongest signal that a topic is gaining momentum?',a:['One viral post with no follow-up','A sustained rise across several independent sources','A large follower count alone'],c:1,p:20,why:'A sustained rise across independent sources is a stronger momentum signal.'},
-screen:{q:'Which film-making role is primarily responsible for shaping the visual composition of a film?',a:['Cinematographer','Casting director','Composer'],c:0,p:20,why:'The cinematographer leads the visual language in collaboration with the director.'},
-brain:{q:'Which process converts light energy into chemical energy in plants?',a:['Respiration','Photosynthesis','Fermentation'],c:1,p:20,why:'Photosynthesis stores light energy in chemical compounds.'},
-expert:{q:'A study finds that two variables move together. What can you conclude from correlation alone?',a:['One variable causes the other','They are associated, but causation is not established','The result must be random'],c:1,p:40,why:'Correlation alone cannot establish a causal relationship.'}
-};
-let state={total:0,done:{},history:[],streak:{current:0,best:0,lastDay:''}},serverMode=false,serverChallenges=[],serverAnswered=new Set(),backend=window.TPBackend;
-try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved&&typeof saved.total==='number')state={...state,...saved}}catch(e){}
+let serverMode=false,serverChallenges=[],serverAnswered=new Set(),backend=window.TPBackend;
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function localDay(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function dayNumber(s){const [y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d)/86400000}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
-function updateLocalStreak(){state.streak??={current:0,best:0,lastDay:''};const now=localDay(),last=state.streak.lastDay;if(last!==now){const gap=last?dayNumber(now)-dayNumber(last):0;state.streak.current=gap===1?state.streak.current+1:1;state.streak.best=Math.max(state.streak.best||0,state.streak.current);state.streak.lastDay=now;save()}$('#streak-count').textContent=state.streak.current||0;$('#streak-best').textContent=state.streak.best||0;$('#streak-message').textContent='Preview streak on this device. Sign in to keep a verified streak across devices.'}
-function renderTotal(total){const n=Math.min(1000,Math.max(0,Number(total)||0));$('#points-total').textContent=Number(total||0).toLocaleString();$('#points-fill').style.width=n/10+'%';$('#points-progress').setAttribute('aria-valuenow',String(n));$('#points-percent').textContent=Math.round(n/10)+'% complete';$('#points-left').textContent=Math.max(0,1000-n).toLocaleString()+' to go'}
+function renderTotal(total){const n=Math.min(1500,Math.max(0,Number(total)||0));$('#points-total').textContent=Number(total||0).toLocaleString();$('#points-fill').style.width=n/15+'%';$('#points-progress').setAttribute('aria-valuenow',String(n));$('#points-percent').textContent=Math.round(n/15)+'% complete';$('#points-left').textContent=Math.max(0,1500-n).toLocaleString()+' to go'}
 function renderHistory(rows){const hist=$('#points-history');hist.innerHTML=rows.length?rows.slice(0,8).map(x=>'<div><span>'+esc(labels[x.challenge_id?.split('-')[0]]||x.name||'Challenge')+' · '+esc(x.challenge_date||x.date||'')+'</span><b>+'+Number(x.points_awarded??x.points??0)+' pts</b></div>').join(''):'<p class="points-muted">No challenges completed yet.</p>'}
-function renderLocal(){updateLocalStreak();renderTotal(state.total);document.querySelectorAll('[data-start]').forEach(b=>{const done=state.done[today]?.[b.dataset.start];b.disabled=!!done;b.textContent=done?'Completed today':'Start · preview'});renderHistory(state.history)}
-function renderServerStats(stats){renderTotal(stats.total_points);$('#streak-count').textContent=stats.current_streak||0;$('#streak-best').textContent=stats.best_streak||0;$('#streak-message').textContent='Your daily check-in is saved to your TrendPulse account.'}
+const xpLevels=[{name:'Newcomer',min:0},{name:'Explorer',min:100},{name:'Rising Star',min:300},{name:'Trend Hunter',min:700},{name:'Pulse Legend',min:1500}];
+function renderXpProgress(total){
+ const points=Math.max(0,Number(total)||0);
+ let index=0;for(let i=0;i<xpLevels.length;i++){if(points>=xpLevels[i].min)index=i}
+ const current=xpLevels[index],next=xpLevels[index+1];
+ const start=current.min,end=next?next.min:current.min;
+ const progress=next?Math.max(0,Math.min(100,((points-start)/(end-start))*100)):100;
+ const name=document.getElementById('xp-level-name');if(!name)return;
+ name.textContent=current.name;
+ document.getElementById('xp-level-next').textContent=next?(end-points)+' XP to '+next.name:'Highest level reached';
+ document.getElementById('xp-level-fill').style.width=progress+'%';
+ document.getElementById('xp-level-progress').setAttribute('aria-valuenow',String(Math.round(progress)));
+ document.getElementById('xp-level-progress-label').textContent=next?(points-start)+' / '+(end-start)+' XP to next level':'Pulse Legend unlocked';
+ document.getElementById('xp-level-total').textContent=points.toLocaleString()+' XP';
+ document.querySelectorAll('.xp-level-item').forEach((el,i)=>{el.classList.toggle('active',i===index);el.classList.toggle('unlocked',i<=index)});
+ document.querySelectorAll('#xp-reward-grid .xp-reward-item').forEach((el,i)=>{const thresholds=[100,300,700,1500];el.classList.toggle('locked',points<thresholds[i])});
+}
+function renderServerStats(stats){renderTotal(stats.total_points);renderXpProgress(stats.total_points);$('#streak-count').textContent=stats.current_streak||0;$('#streak-best').textContent=stats.best_streak||0;$('#streak-message').textContent='Your daily check-in is saved to your TrendPulse account.'}
 function notice(mode,text){$('#points-mode-notice').innerHTML='<b>'+mode+'</b> '+text}
-function start(type){const q=serverMode?serverChallenges.find(x=>x.category===type):localBank[type];if(!q)return;const panel=$('#quiz-panel');panel.hidden=false;panel.dataset.type=type;panel.dataset.challengeId=q.challenge_id||'';const options=q.options||q.a;panel.innerHTML='<span class="tag">QUESTION · '+Number(q.points??q.p)+' POINTS</span><h3>'+esc(q.question||q.q)+'</h3><div class="points-options">'+options.map((v,i)=>'<button type="button" data-answer="'+i+'">'+esc(v)+'</button>').join('')+'</div><p class="points-feedback" id="quiz-feedback" role="status"></p>';panel.querySelectorAll('[data-answer]').forEach(btn=>btn.addEventListener('click',()=>answer(type,q,+btn.dataset.answer)))}
+function start(type){if(!serverMode)return;const q=serverChallenges.find(x=>x.category===type);if(!q)return;const panel=$('#quiz-panel');panel.hidden=false;panel.dataset.type=type;panel.dataset.challengeId=q.challenge_id||'';const options=q.options||q.a;panel.innerHTML='<span class="tag">QUESTION · '+Number(q.points??q.p)+' POINTS</span><h3>'+esc(q.question||q.q)+'</h3><div class="points-options">'+options.map((v,i)=>'<button type="button" data-answer="'+i+'">'+esc(v)+'</button>').join('')+'</div><p class="points-feedback" id="quiz-feedback" role="status"></p>';panel.querySelectorAll('[data-answer]').forEach(btn=>btn.addEventListener('click',()=>answer(type,q,+btn.dataset.answer)))}
 async function refreshServer(){const [statsResult,historyResult]=await Promise.all([backend.client.rpc('get_my_pulse_points'),backend.client.rpc('get_my_pulse_history')]);if(statsResult.error)throw statsResult.error;if(historyResult.error)throw historyResult.error;const stats=Array.isArray(statsResult.data)?statsResult.data[0]:statsResult.data;renderServerStats(stats||{});renderHistory(historyResult.data||[])}
-async function answer(type,q,choice){const panel=$('#quiz-panel'),buttons=panel.querySelectorAll('button');buttons.forEach(b=>b.disabled=true);if(serverMode){try{const {data,error}=await backend.client.rpc('submit_pulse_answer',{p_challenge_id:q.challenge_id,p_selected_option:choice});if(error)throw error;const result=Array.isArray(data)?data[0]:data;if(!result)throw new Error('No result was returned.');const feedback=$('#quiz-feedback');if(result.already_answered){feedback.textContent='You have already answered this challenge today.';serverAnswered.add(type)}else{feedback.textContent=(result.correct?'Correct — +'+result.points_awarded+' points. ':'Not quite — no points this time. ')+result.explanation;serverAnswered.add(type)}await refreshServer();document.querySelectorAll('[data-start]').forEach(b=>{if(serverAnswered.has(b.dataset.start)){b.disabled=true;b.textContent='Completed today'}})}catch(e){$('#quiz-feedback').textContent=e.message||'Your answer could not be saved. Please try again tomorrow.';buttons.forEach(b=>b.disabled=false)}return}
-const ok=choice===q.c,earned=ok?q.p:0;state.done[today]??={};state.done[today][type]=true;if(ok)state.total+=earned;state.history.unshift({name:labels[type],date:today,points:earned});save();$('#quiz-feedback').textContent=(ok?'Correct — +'+earned+' preview points. ':'Not quite — no preview points. ')+q.why;renderLocal()}
-async function init(){document.querySelectorAll('[data-start]').forEach(b=>b.addEventListener('click',()=>start(b.dataset.start)));if(backend?.ready){try{const user=await backend.currentUser();if(user){serverMode=true;notice('Verified account mode:','Your points and daily streak are saved to your TrendPulse account. These are still game points, not cash or withdrawable credit.');const [challengeResult,statsResult]=await Promise.all([backend.client.rpc('get_daily_pulse_challenges'),backend.client.rpc('get_my_pulse_points')]);if(challengeResult.error)throw challengeResult.error;if(statsResult.error)throw statsResult.error;serverChallenges=challengeResult.data||[];const stats=Array.isArray(statsResult.data)?statsResult.data[0]:statsResult.data;renderServerStats(stats||{});const history=await backend.client.rpc('get_my_pulse_history');if(history.error)throw history.error;(history.data||[]).filter(x=>x.challenge_date===today).forEach(x=>{const type=x.challenge_id.split('-')[0];serverAnswered.add(type)});document.querySelectorAll('[data-start]').forEach(b=>{const exists=serverChallenges.some(x=>x.category===b.dataset.start);b.disabled=!exists||serverAnswered.has(b.dataset.start);b.textContent=serverAnswered.has(b.dataset.start)?'Completed today':exists?'Start challenge':'Coming soon'});renderHistory(history.data||[]);return}}catch(e){notice('Account connection issue:',esc(e.message||'Verified scoring is temporarily unavailable.'));document.querySelectorAll('[data-start]').forEach(b=>b.disabled=true);renderTotal(0);$('#streak-message').textContent='Unable to load your verified streak.';return}}
-notice('Preview mode:','Scores are saved only on this device. Sign in to save verified points and streaks across devices. Preview scores do not qualify for any creator programme.');renderLocal()}
+async function answer(type,q,choice){
+const panel=$('#quiz-panel'),buttons=panel.querySelectorAll('button');
+buttons.forEach(b=>b.disabled=true);
+if(!serverMode){$('#quiz-feedback').textContent='Sign in to save a verified answer.';return}
+try{
+ const {data,error}=await backend.client.rpc('submit_pulse_answer',{p_challenge_id:q.challenge_id,p_selected_option:choice});
+ if(error)throw error;
+ const result=Array.isArray(data)?data[0]:data;
+ if(!result)throw new Error('No result was returned.');
+ const feedback=$('#quiz-feedback');
+ if(result.already_answered){feedback.textContent='You have already answered this challenge today.';serverAnswered.add(type)}
+ else{feedback.textContent=(result.correct?'Correct — +'+result.points_awarded+' points. ':'Not quite — no points this time. ')+result.explanation;serverAnswered.add(type)}
+ await refreshServer();
+ document.querySelectorAll('[data-start]').forEach(btn=>{if(serverAnswered.has(btn.dataset.start)){btn.disabled=true;btn.textContent='Completed today'}});
+}catch(e){$('#quiz-feedback').textContent=e.message||'Your answer could not be saved. Please try again.';buttons.forEach(btn=>btn.disabled=false)}
+}
+async function init(){
+ document.querySelectorAll('[data-start]').forEach(btn=>btn.addEventListener('click',()=>start(btn.dataset.start)));
+ if(!backend?.ready){
+   notice('Points unavailable:','TrendPulse could not connect to its live points service. Please try again later.');
+   document.querySelectorAll('[data-start]').forEach(btn=>{btn.disabled=true;btn.textContent='Unavailable'});
+   $('#streak-message').textContent='Live points could not be loaded.';
+   return;
+ }
+ try{
+   const user=await backend.currentUser();
+   if(!user){
+     notice('Sign in required:','Your Pulse Points belong to your TrendPulse account. <a href="./profile.html" style="color:#25f4ee;text-decoration:underline">Sign in or create an account</a> to take challenges and save points.');
+     document.querySelectorAll('[data-start]').forEach(btn=>{btn.disabled=true;btn.textContent='Sign in to play'});
+     $('#streak-message').textContent='Sign in to build your account streak.';
+     renderTotal(0);renderXpProgress(0);
+     return;
+   }
+   serverMode=true;
+   notice('Live account points:','Your scores and streak are saved to your TrendPulse account and sync across devices. Points are for in-app progression, not cash.');
+   const [challengeResult,statsResult]=await Promise.all([backend.client.rpc('get_daily_pulse_challenges'),backend.client.rpc('get_my_pulse_points')]);
+   if(challengeResult.error)throw challengeResult.error;
+   if(statsResult.error)throw statsResult.error;
+   serverChallenges=challengeResult.data||[];
+   const stats=Array.isArray(statsResult.data)?statsResult.data[0]:statsResult.data;
+   renderServerStats(stats||{});
+   const history=await backend.client.rpc('get_my_pulse_history');
+   if(history.error)throw history.error;
+   (history.data||[]).filter(x=>x.challenge_date===today).forEach(x=>serverAnswered.add(x.challenge_id.split('-')[0]));
+   document.querySelectorAll('[data-start]').forEach(btn=>{
+     const exists=serverChallenges.some(x=>x.category===btn.dataset.start);
+     btn.disabled=!exists||serverAnswered.has(btn.dataset.start);
+     btn.textContent=serverAnswered.has(btn.dataset.start)?'Completed today':exists?'Start challenge':'Coming soon';
+   });
+   renderHistory(history.data||[]);
+ }catch(e){
+   serverMode=false;
+   notice('Live points connection issue:',esc(e.message||'Verified scoring is temporarily unavailable. Please try again.'));
+   document.querySelectorAll('[data-start]').forEach(btn=>{btn.disabled=true;btn.textContent='Unavailable'});
+   renderTotal(0);renderXpProgress(0);
+   $('#streak-message').textContent='Unable to load your verified streak.';
+ }
+}
 init();
 })();
