@@ -1,0 +1,41 @@
+name: Validate TrendPulse
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  javascript-syntax:
+    name: Check browser JavaScript syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate application scripts
+        run: |
+          set -eu
+          for file in \
+            analytics.js \
+            backend-client.js \
+            challenge-game.js \
+            daily-pulse.js \
+            film-catalog.js \
+            home-catalog.js \
+            members.js \
+            pulse-assistant.js \
+            tp.js \
+            tvmaze.js
+          do
+            test -f "$file"
+            node --check "$file"
+          done
