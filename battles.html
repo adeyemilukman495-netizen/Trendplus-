@@ -156,7 +156,8 @@ footer{border-top:1px solid var(--line);padding:2rem 0 2.5rem;color:var(--muted)
 <div><a class="logo" href="./"><span aria-hidden="true">&#10022;</span>TrendPulse</a><p>Entertainment moves. Keep up.</p><p>Early preview. All titles and figures are illustrative demo content.</p></div>
 <nav aria-label="Footer"><ul><li><a href="./">Home</a></li><li><a href="./trending.html">Trending</a></li><li><a href="./rising.html">Rising</a></li><li><a href="./battles.html">Battles</a></li><li><a href="./community.html">Community</a></li></ul></nav>
 </div></footer>
-<script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./backend-client.js?v=20261126-livebattles1"></script><script>
 (function(){
 'use strict';
 var list=document.getElementById('live-battles'),form=document.getElementById('battle-create'),status=document.getElementById('battle-status'),backend=window.TPBackend;
@@ -190,6 +191,5 @@ form.addEventListener('submit',async function(e){
 });
 load();
 })();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./backend-client.js?v=20261126-livebattles1"></script><script src="./analytics.js?v=20261125-analytics1"></script></body>
+</script><script src="./analytics.js?v=20261125-analytics1"></script></body>
 </html>
