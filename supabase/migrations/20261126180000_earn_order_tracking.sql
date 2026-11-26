@@ -49,7 +49,7 @@ create policy "Order participants can read order history"
     where o.id = order_id
       and ((select auth.uid()) = o.buyer_id or (select auth.uid()) = o.seller_id)
   ));
-revoke all on public.service_orders, public.service_order_events from anon, authenticated;
+revoke all on public.service_orders, public.service_order_events from public, anon, authenticated;
 grant select on public.service_orders, public.service_order_events to authenticated;
 
 -- Acceptance and order creation happen atomically in one transaction.
