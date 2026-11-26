@@ -488,7 +488,7 @@ function earn(){
        if(order.status==='accepted')actions+='<button class="secondary" data-order-action="cancelled" data-order-id="'+esc(order.id)+'">Cancel order</button>';
        const events=(order.events||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
        const history=events.length?'<ol class="earn-order-history">'+events.map(ev=>'<li><b>'+esc(labels[ev.event_type]||ev.event_type)+'</b><span>'+esc(ev.actor?.display_name||ev.actor?.username||'Member')+' · '+new Date(ev.created_at).toLocaleString()+'</span>'+(ev.note?'<p>'+esc(ev.note)+'</p>':'')+'</li>').join('')+'</ol>':'';
-       return '<article class="panel earn-order-card"><div class="earn-card-top"><span class="tag">Order</span><span class="tag order-status-'+esc(order.status)+'">'+esc(labels[order.status]||order.status)+'</span></div><h3>'+esc(order.service?.title||'Community service')+'</h3><p class="muted small">'+(isBuyer?'Seller: ':'Buyer: ')+esc(person)+'</p><strong>'+money(order.agreed_price)+'</strong><p class="muted small">Agreed listing price · No payment has been processed by TrendPulse.</p><div class="earn-card-actions"><a class="btn secondary" href="./messages.html?conversation='+encodeURIComponent(order.conversation_id)+'">Open chat</a>'+actions+'</div><details class="earn-order-details"><summary>Order history</summary>'+history+'</details></article>';
+       return '<article class="panel earn-order-card"><div class="earn-card-top"><span class="tag">Order</span><span class="tag order-status-'+esc(order.status)+'">'+esc(labels[order.status]||order.status)+'</span></div><h3>'+esc(order.service?.title||'Community service')+'</h3><p class="muted small">'+(isBuyer?'Seller: ':'Buyer: ')+esc(person)+'</p><strong>'+money(order.listing_price)+'</strong><p class="muted small">Listing price snapshot · Final price can be discussed in chat; TrendPulse has not processed payment.</p><div class="earn-card-actions"><a class="btn secondary" href="./messages.html?conversation='+encodeURIComponent(order.conversation_id)+'">Open chat</a>'+actions+'</div><details class="earn-order-details"><summary>Order history</summary>'+history+'</details></article>';
      }).join('');
      orderStatus.textContent=rows.length+' order'+(rows.length===1?'':'s');
      orderList.querySelectorAll('[data-order-action]').forEach(button=>button.addEventListener('click',async()=>{
@@ -515,7 +515,7 @@ function earn(){
  $('#earn-market-category').addEventListener('change',loadMarket);
  loadMarket();loadMine();
  const nav=document.createElement('nav');nav.className='tp-bottom-nav';nav.setAttribute('aria-label','Main navigation');nav.innerHTML='<a href="./"><span>⌂</span><small>Home</small></a><a href="./discover.html"><span>⌕</span><small>Discover</small></a><a href="./shorts.html"><span>▣</span><small>Shorts</small></a><a href="./community.html"><span>◎</span><small>Community</small></a><a href="./profile.html"><span>◉</span><small>Profile</small></a><a href="./earn.html" aria-current="page"><span>₦</span><small>Earn</small></a>';document.body.append(nav);
- const params=new URLSearchParams(location.search);if(params.has('request'))show('requests');
+ const params=new URLSearchParams(location.search);if(params.has('request'))show('requests');if(params.has('order'))show('orders');
 }
 const map={watchlist,reviews,community:posts,shorts,messages,profile,catalog,earn};if(map[page])map[page]();
 })();
