@@ -1,5 +1,18 @@
 name: Daily Duel browser smoke tests
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'challenge.html'
+      - 'challenge-game.js'
+      - 'backend-client.js'
+      - 'supabase-config.js'
+      - 'config.js'
+      - 'topics.js'
+      - 'tests/browser/**'
+      - 'playwright.config.js'
+      - 'package.json'
+      - '.github/workflows/daily-duel-browser.yml'
   pull_request:
     paths:
       - 'challenge.html'
