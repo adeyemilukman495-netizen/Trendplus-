@@ -671,3 +671,14 @@ body[data-feature="profile"] #profile-form{padding:12px 0 18px}
 body[data-feature="profile"] .profile-settings{margin:16px 0 0;padding:18px 0;border-top:1px solid #292929}
 body[data-feature="profile"] #profile-settings[hidden],body[data-feature="profile"] #profile-form[hidden],body[data-feature="profile"] #profile-edit-heading[hidden]{display:none!important}
 @media(max-width:560px){body[data-feature="profile"] .tiktok-profile-top{gap:14px;padding-top:18px}body[data-feature="profile"] .tiktok-avatar{width:82px;height:82px;flex-basis:82px;font-size:2rem}body[data-feature="profile"] .tiktok-profile-stats{gap:20px}body[data-feature="profile"] .tiktok-profile-stats span{font-size:.8rem}body[data-feature="profile"] .tiktok-video-tile{min-height:145px}}
+
+
+/* Creator upload management lives inside Profile Settings. */
+body[data-feature="profile"] .profile-upload-management{margin:22px 0;padding:16px;border:1px solid #303030;border-radius:14px;background:#171717}
+body[data-feature="profile"] .profile-upload-management h3{margin:0 0 6px;font-size:1.05rem}
+body[data-feature="profile"] .profile-upload-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #303030}
+body[data-feature="profile"] .profile-upload-details{display:flex;min-width:0;flex-direction:column;gap:4px}
+body[data-feature="profile"] .profile-upload-details b{overflow-wrap:anywhere;color:#fff}
+body[data-feature="profile"] .profile-upload-details small{color:#aaa}
+body[data-feature="profile"] .profile-upload-delete{flex:0 0 auto;min-height:38px;padding:7px 14px;border:1px solid #fe2c55;border-radius:9px;background:#2b151b;color:#ff6b87;font-weight:800}
+body[data-feature="profile"] .profile-upload-delete:disabled{opacity:.6}
