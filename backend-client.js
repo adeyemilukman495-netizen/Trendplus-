@@ -153,7 +153,7 @@
         if (result.error) throw result.error;
         likes = result.count || 0;
       }
-      return { followers: followers.count || 0, following: following.count || 0, likes };
+      return { followers: followers.count || 0, following: following.count || 0, likes, shorts: authoredShorts.count || 0 };
     },
 
     getGroupRooms: async () => {
@@ -582,6 +582,10 @@
       return path;
     },
 
+    searchProfiles: async query => { const q=String(query||'').trim().replace(/[,%]/g,''); if(q.length<2)return []; const {data,error}=await client.from('profiles').select('id,username,display_name,bio,avatar_url').or('username.ilike.%'+q+'%,display_name.ilike.%'+q+'%').limit(12); if(error)throw error; return data||[]; },
+    isFollowing: async followedId => { const user=await currentUser(); if(!user)return false; const {data,error}=await client.from('follows').select('followed_id').eq('follower_id',user.id).eq('followed_id',followedId).maybeSingle(); if(error)throw error; return !!data; },
+    toggleShortWatchlist: async shortId => { const user=await requireUser(); const {data,error:readError}=await client.from('short_watchlist').select('short_id').eq('user_id',user.id).eq('short_id',shortId).maybeSingle(); if(readError)throw readError; if(data){const {error}=await client.from('short_watchlist').delete().eq('user_id',user.id).eq('short_id',shortId);if(error)throw error;return false;} const {error}=await client.from('short_watchlist').insert({user_id:user.id,short_id:shortId});if(error)throw error;return true; },
+    getShortWatchlist: async () => { const user=await requireUser(); const {data,error}=await client.from('short_watchlist').select('short_id,created_at,shorts(id,title,caption,category,thumbnail_url,author_id)').eq('user_id',user.id).order('created_at',{ascending:false});if(error)throw error;return data||[]; },
     getShortComments: async shortId => {
       const { data, error } = await client.from('short_comments')
         .select('*, profiles!short_comments_author_id_fkey(display_name, username, avatar_url)')
@@ -640,7 +644,7 @@
     getShorts: async () => {
       const user = await currentUser();
       const { data, error } = await client.from('shorts')
-        .select('*, profiles!shorts_author_id_fkey(display_name, username), short_likes(count)')
+        .select('*, profiles!shorts_author_id_fkey(display_name, username, bio, avatar_url), short_likes(count)')
         .order('created_at', { ascending: false }).limit(50);
       if (error) throw error;
       const rows = data || [];
@@ -651,6 +655,8 @@
         if (likeError) throw likeError;
         liked = new Set((mine || []).map(x => x.short_id));
       }
+      let saved = new Set();
+      if (user && rows.length) { const {data:mineSaved,error:savedError}=await client.from('short_watchlist').select('short_id').eq('user_id',user.id).in('short_id',rows.map(x=>x.id)); if(savedError)throw savedError; saved=new Set((mineSaved||[]).map(x=>x.short_id)); }
       const playable = await Promise.all(rows.map(async x => {
         let playbackUrl = x.video_url || '';
         if (x.video_path) {
@@ -666,7 +672,7 @@
           console.warn('Skipping a Short without a playable media URL:', x.id);
           return null;
         }
-        return { ...x, video_url: playbackUrl, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id) };
+        return { ...x, video_url: playbackUrl, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id), saved_by_me: saved.has(x.id) };
       }));
       return playable.filter(Boolean);
     },
