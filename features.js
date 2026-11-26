@@ -488,8 +488,17 @@ function earn(){
        if(order.status==='accepted')actions+='<button class="secondary" data-order-action="cancelled" data-order-id="'+esc(order.id)+'">Cancel order</button>';
        const events=(order.events||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
        const history=events.length?'<ol class="earn-order-history">'+events.map(ev=>'<li><b>'+esc(labels[ev.event_type]||ev.event_type)+'</b><span>'+esc(ev.actor?.display_name||ev.actor?.username||'Member')+' · '+new Date(ev.created_at).toLocaleString()+'</span>'+(ev.note?'<p>'+esc(ev.note)+'</p>':'')+'</li>').join('')+'</ol>':'';
-       return '<article class="panel earn-order-card"><div class="earn-card-top"><span class="tag">Order</span><span class="tag order-status-'+esc(order.status)+'">'+esc(labels[order.status]||order.status)+'</span></div><h3>'+esc(order.service?.title||'Community service')+'</h3><p class="muted small">'+(isBuyer?'Seller: ':'Buyer: ')+esc(person)+'</p><strong>'+money(order.listing_price)+'</strong><p class="muted small">Listing price snapshot · Final price can be discussed in chat; TrendPulse has not processed payment.</p><div class="earn-card-actions"><a class="btn secondary" href="./messages.html?conversation='+encodeURIComponent(order.conversation_id)+'">Open chat</a>'+actions+'</div><details class="earn-order-details"><summary>Order history</summary>'+history+'</details></article>';
+       return '<article class="panel earn-order-card" data-order-id="'+esc(order.id)+'"><div class="earn-card-top"><span class="tag">Order</span><span class="tag order-status-'+esc(order.status)+'">'+esc(labels[order.status]||order.status)+'</span></div><h3>'+esc(order.service?.title||'Community service')+'</h3><p class="muted small">'+(isBuyer?'Seller: ':'Buyer: ')+esc(person)+'</p><strong>'+money(order.listing_price)+'</strong><p class="muted small">Listing price snapshot · Final price can be discussed in chat; TrendPulse has not processed payment.</p><div class="earn-card-actions"><a class="btn secondary" href="./messages.html?conversation='+encodeURIComponent(order.conversation_id)+'">Open chat</a>'+actions+'</div><details class="earn-order-details"><summary>Order history</summary>'+history+'</details></article>';
      }).join('');
+     const requestedOrder=new URLSearchParams(location.search).get('order');
+     if(requestedOrder){
+       const target=[...orderList.querySelectorAll('.earn-order-card')].find(card=>card.dataset.orderId===requestedOrder);
+       if(target){
+         target.classList.add('is-deep-linked');
+         target.scrollIntoView({behavior:'smooth',block:'center'});
+         window.setTimeout(()=>target.classList.remove('is-deep-linked'),4500);
+       }
+     }
      orderStatus.textContent=rows.length+' order'+(rows.length===1?'':'s');
      orderList.querySelectorAll('[data-order-action]').forEach(button=>button.addEventListener('click',async()=>{
        const action=button.dataset.orderAction;
