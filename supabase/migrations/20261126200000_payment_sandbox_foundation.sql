@@ -100,9 +100,6 @@ begin
   insert into public.service_test_ledger(payment_id,order_id,seller_id,amount,currency)
     values(new_payment,order_uuid,target.seller_id,target.listing_price,target.currency);
 
-  insert into public.service_order_events(order_id,actor_id,event_type,note)
-    values(order_uuid,actor,'accepted','Sandbox payment simulation recorded. No real money was collected and no payout was made.');
-
   return new_payment;
 end;
 $$;
