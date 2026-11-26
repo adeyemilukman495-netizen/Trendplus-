@@ -24,11 +24,16 @@ create policy "Buyers and sellers can read their service requests"
 revoke all on public.service_requests from anon, authenticated;
 grant select on public.service_requests to authenticated;
 
-create or replace function public.create_service_request(service_uuid uuid, request_text text)
+-- Keep privileged database routines outside exposed API schemas.
+create schema if not exists private;
+revoke all on schema private from public, anon;
+grant usage on schema private to authenticated;
+
+create or replace function private.create_service_request(service_uuid uuid, request_text text)
 returns uuid
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   actor uuid := auth.uid();
@@ -66,14 +71,20 @@ begin
   return new_request;
 end;
 $$;
+revoke all on function private.create_service_request(uuid,text) from public, anon;
+grant execute on function private.create_service_request(uuid,text) to authenticated;
+
+create or replace function public.create_service_request(service_uuid uuid, request_text text)
+returns uuid language sql security invoker set search_path = ''
+as $$ select private.create_service_request(service_uuid, request_text); $$;
 revoke all on function public.create_service_request(uuid,text) from public, anon;
 grant execute on function public.create_service_request(uuid,text) to authenticated;
 
-create or replace function public.respond_service_request(request_uuid uuid, next_status text)
+create or replace function private.respond_service_request(request_uuid uuid, next_status text)
 returns uuid
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   actor uuid := auth.uid();
@@ -106,5 +117,11 @@ begin
   return target_request.conversation_id;
 end;
 $$;
+revoke all on function private.respond_service_request(uuid,text) from public, anon;
+grant execute on function private.respond_service_request(uuid,text) to authenticated;
+
+create or replace function public.respond_service_request(request_uuid uuid, next_status text)
+returns uuid language sql security invoker set search_path = ''
+as $$ select private.respond_service_request(request_uuid, next_status); $$;
 revoke all on function public.respond_service_request(uuid,text) from public, anon;
 grant execute on function public.respond_service_request(uuid,text) to authenticated;
