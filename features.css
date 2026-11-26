@@ -784,3 +784,29 @@ body[data-feature="earn"] .tp-bottom-nav a[aria-current="page"] span{color:#25f4
 
 /* Shared Earn marketplace controls */
 .earn-market-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(145px,.45fr);gap:10px;margin:8px 0}.earn-market-filters input,.earn-market-filters select{min-width:0;background:#101010;border:1px solid #454545;color:#fff;border-radius:11px;padding:12px}.earn-card-top,.earn-card-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}.earn-card-actions{justify-content:flex-start;margin-top:12px}.earn-card-actions button{flex:1}.earn-service-card{min-width:0}.earn-service-card strong{display:block;margin-top:10px;color:#25f4ee}@media(max-width:520px){.earn-market-filters{grid-template-columns:1fr}.earn-card-actions{flex-wrap:wrap}}
+
+/* TrendPulse Shorts creator drawer, watchlist action and Profile settings side panel */
+body[data-feature="shorts"] .short-creator-actions{left:16px;bottom:calc(132px + env(safe-area-inset-bottom))}
+body[data-feature="shorts"] .short-creator-open{border:0;border-radius:999px;padding:8px 12px;background:#101010b8;color:#fff;font-weight:800;text-shadow:0 1px 4px #000;backdrop-filter:blur(10px)}
+body[data-feature="shorts"] .short-creator-panel{position:absolute;z-index:20;inset:0 0 0 auto;width:min(86%,370px);padding:calc(22px + env(safe-area-inset-top)) 22px calc(100px + env(safe-area-inset-bottom));overflow-y:auto;background:rgba(14,15,20,.97);border-left:1px solid #ffffff26;box-shadow:-18px 0 55px #0009;color:#fff;transform:translateX(105%);transition:transform .25s ease;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+body[data-feature="shorts"] .short-creator-panel.is-open{transform:translateX(0)}
+body[data-feature="shorts"] .short-creator-panel-head{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:18px}
+body[data-feature="shorts"] .short-creator-close{width:40px;height:40px;border:0;border-radius:50%;background:#292b33;color:#fff;font-size:1.7rem}
+body[data-feature="shorts"] .short-creator-avatar{width:82px;height:82px;display:grid;place-items:center;border-radius:50%;background:#343746 center/cover no-repeat;color:#fff;font-size:2rem;font-weight:900}
+body[data-feature="shorts"] .short-creator-panel h2{margin:4px 0 0;font-size:1.35rem}
+body[data-feature="shorts"] .short-creator-handle,body[data-feature="shorts"] .short-creator-bio{margin:0;color:#c4c6ce;line-height:1.5}
+body[data-feature="shorts"] .short-follow-panel{width:100%;padding:12px 16px;border:0;border-radius:10px;background:#fe2c55;color:white;font-weight:850}
+body[data-feature="shorts"] .short-follow-panel:disabled{background:#333;color:#ddd}
+body[data-feature="shorts"] .short-creator-search{color:#fff;font-weight:750;text-decoration:none;padding:12px 0}
+body[data-feature="shorts"] .short-swipe-hint{margin-top:auto;color:#9295a0}
+body[data-feature="shorts"] .short-action:disabled{opacity:.48}
+body[data-feature="shorts"] .short-comments-panel{z-index:80}
+body[data-feature="shorts"] .short-comment-form{padding-bottom:env(safe-area-inset-bottom)}
+body[data-feature="profile"] .profile-settings-backdrop{position:fixed;inset:0;z-index:89;border:0;background:rgba(0,0,0,.68);backdrop-filter:blur(3px)}
+body[data-feature="profile"] .profile-settings-backdrop[hidden]{display:none!important}
+body[data-feature="profile"] .profile-settings{position:fixed;z-index:90;top:0;right:0;bottom:0;width:min(460px,94vw);height:100dvh;max-height:100dvh;overflow-y:auto;margin:0;padding:calc(20px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom));background:#101010;border:0;border-left:1px solid #333;border-radius:0;box-shadow:-20px 0 60px #0009;transform:translateX(105%);transition:transform .28s ease;overscroll-behavior:contain}
+body[data-feature="profile"] .profile-settings.is-open{transform:translateX(0)}
+body[data-feature="profile"] .profile-settings .settings-hero{padding-top:8px}
+body[data-feature="profile"] .profile-settings .settings-back{margin-bottom:14px}
+body[data-feature="profile"] .profile-settings .profile-upload-management{margin-bottom:30px}
+@media(prefers-reduced-motion:reduce){body[data-feature="shorts"] .short-creator-panel,body[data-feature="profile"] .profile-settings{transition:none}}
