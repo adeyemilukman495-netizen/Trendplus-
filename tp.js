@@ -99,6 +99,8 @@ function render(){
  const trend=[...all].sort((a,b)=>b.avg-a.avg);
  const rise=[...all].filter(t=>t.previous>=cfg.minimumViews).sort((a,b)=>b.growth-a.growth);
  renderList($("#home-trend"),trend.slice(0,6));
+ const movieTopics=all.filter(t=>["movies","hollywood","international-movies","bollywood","nollywood","animation"].includes(t.category)).sort((a,b)=>b.avg-a.avg);
+ renderList($("#home-movies"),movieTopics.slice(0,8));
  renderList($("#home-rise"),rise.slice(0,6));
  const out=$("#out");
  if(out){
