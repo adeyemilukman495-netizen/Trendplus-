@@ -1,12 +1,6 @@
 (()=>{'use strict';
 const today=new Date().toISOString().slice(0,10);
 const labels={trend:'Trend IQ',screen:'Screen Test',brain:'Brain Circuit',expert:'Expert Arena'};
-const localBank={
-trend:{q:'Which is the strongest signal that a topic is gaining momentum?',a:['One viral post with no follow-up','A sustained rise across several independent sources','A large follower count alone'],c:1,p:20,why:'A sustained rise across independent sources is a stronger momentum signal.'},
-screen:{q:'Which film-making role is primarily responsible for shaping the visual composition of a film?',a:['Cinematographer','Casting director','Composer'],c:0,p:20,why:'The cinematographer leads the visual language in collaboration with the director.'},
-brain:{q:'Which process converts light energy into chemical energy in plants?',a:['Respiration','Photosynthesis','Fermentation'],c:1,p:20,why:'Photosynthesis stores light energy in chemical compounds.'},
-expert:{q:'A study finds that two variables move together. What can you conclude from correlation alone?',a:['One variable causes the other','They are associated, but causation is not established','The result must be random'],c:1,p:40,why:'Correlation alone cannot establish a causal relationship.'}
-};
 let serverMode=false,serverChallenges=[],serverAnswered=new Set(),backend=window.TPBackend;
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function renderTotal(total){const n=Math.min(1000,Math.max(0,Number(total)||0));$('#points-total').textContent=Number(total||0).toLocaleString();$('#points-fill').style.width=n/10+'%';$('#points-progress').setAttribute('aria-valuenow',String(n));$('#points-percent').textContent=Math.round(n/10)+'% complete';$('#points-left').textContent=Math.max(0,1000-n).toLocaleString()+' to go'}
