@@ -534,6 +534,22 @@
       if (error) throw error;
       return data;
     },
+
+    deleteShort: async shortId => {
+      const user = await requireUser();
+      const { data: removed, error } = await client.from('shorts')
+        .delete().eq('id', shortId).eq('author_id', user.id)
+        .select('id,video_path').single();
+      if (error) throw error;
+      if (!removed) throw new Error('This Short could not be found or you do not own it.');
+      let storageWarning = '';
+      if (removed.video_path) {
+        const { error: storageError } = await client.storage
+          .from('trendpulse-short-media').remove([removed.video_path]);
+        if (storageError) storageWarning = ' The post was deleted, but its video file could not be cleaned up automatically.';
+      }
+      return { deleted: true, storageWarning };
+    },
     getShorts: async () => {
       const user = await currentUser();
       const { data, error } = await client.from('shorts')
