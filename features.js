@@ -163,7 +163,25 @@ function card(x){
  actions.append(like,comments,sound,share,download,settings,report);
  const meta=document.createElement('div');meta.className='short-overlay';const title=document.createElement('h3');title.textContent=x.title||'TrendPulse Short';const caption=document.createElement('p');caption.textContent=x.caption||'';const category=document.createElement('span');category.className='short-category';category.textContent=x.category||'Entertainment';meta.append(title,caption,category);el.append(video,tap,creator,actions,meta);return {el,video};
 }
-async function draw(){try{if(!backend?.ready)throw Error('Video service is unavailable.');const items=await backend.getShorts();root.replaceChildren();if(!items.length){root.innerHTML='<div class="shorts-empty"><div><strong>Your Shorts feed starts here.</strong><p>Be the first to share a video.</p><button type="button" class="publish-short" id="empty-create">＋ Create a Short</button></div></div>';$('#empty-create').onclick=()=>dialog.showModal();return}const entries=items.map(card);entries.forEach(x=>root.append(x.el));const observer=new IntersectionObserver(changes=>changes.forEach(change=>{const v=change.target.querySelector('video');if(change.isIntersecting&&change.intersectionRatio>.7)v.play().catch(()=>{});else v.pause()}),{root,threshold:[.2,.7]});entries.forEach(x=>observer.observe(x.el))}catch(e){root.innerHTML='<div class="shorts-empty">'+esc(e.message)+'</div>'}}
+async function draw(){
+ root.innerHTML='<div class="shorts-empty"><div><strong>Loading Shorts…</strong><p>Getting the latest videos.</p></div></div>';
+ try{
+  if(!backend?.ready)throw Error(backend?.reason||'Video service is unavailable. Check your connection and try again.');
+  const items=await backend.getShorts();root.replaceChildren();
+  if(!items.length){
+   root.innerHTML='<div class="shorts-empty"><div><strong>No playable Shorts yet.</strong><p>Videos will appear here when they are available.</p><button type="button" class="publish-short" id="empty-create">＋ Create a Short</button><button type="button" class="shorts-retry" id="shorts-retry">Refresh feed</button></div></div>';
+   $('#empty-create').onclick=()=>dialog.showModal();$('#shorts-retry').onclick=draw;return
+  }
+  const entries=items.map(card);entries.forEach(x=>root.append(x.el));
+  if('IntersectionObserver' in window){
+   const observer=new IntersectionObserver(changes=>changes.forEach(change=>{const v=change.target.querySelector('video');if(change.isIntersecting&&change.intersectionRatio>.7)v.play().catch(()=>{});else v.pause()}),{root,threshold:[.2,.7]});
+   entries.forEach(x=>observer.observe(x.el));
+  }else entries.forEach(x=>x.video.play().catch(()=>{}));
+ }catch(e){
+  root.innerHTML='<div class="shorts-empty"><div><strong>Shorts could not load.</strong><p>'+esc(e.message||'Please try again.')+'</p><button type="button" class="shorts-retry" id="shorts-retry">Try again</button></div></div>';
+  $('#shorts-retry').onclick=draw;
+ }
+}
 form.onsubmit=async e=>{
  e.preventDefault();const file=fileInput.files?.[0];
  try{
@@ -231,6 +249,17 @@ async function refresh(){
   $('#name').value=p.display_name||'';
   $('#username').value=p.username||'';
   $('#bio').value=p.bio||'';
+  const displayName=p.display_name||'TrendPulse member',handle=p.username||'member';
+  $('#profile-display-name').textContent=displayName;
+  $('#profile-handle').textContent='@'+handle;
+  $('#profile-avatar').textContent=(displayName.trim().charAt(0)||'T').toUpperCase();
+  $('#profile-bio-text').textContent=p.bio||'Add a bio to introduce yourself.';
+  try{
+   const social=await backend.getSocialProfileStats(user.id);
+   $('#profile-follower-count').textContent=social.followers;
+   $('#profile-following-count').textContent=social.following;
+   $('#profile-likes-count').textContent=social.likes;
+  }catch(socialError){console.warn('Social profile counts unavailable:',socialError.message)}
   message('Signed in as '+(user.email||'TrendPulse member'),'success');
   // Reveal the admin entry only when Supabase confirms this signed-in account is on the owner allowlist. Fail closed on any error.
   if(ownerAdminLink){ownerAdminLink.hidden=true;try{const {data:ownerAllowed,error:ownerError}=await backend.client.rpc('is_trendpulse_admin');if(!ownerError&&ownerAllowed===true)ownerAdminLink.hidden=false}catch(ownerCheckError){ownerAdminLink.hidden=true}}
@@ -309,6 +338,10 @@ if(passwordForm){passwordForm.onsubmit=async e=>{
 };}
 setMode('signin');refresh();
 if(backend?.onAuthChange)backend.onAuthChange(()=>refresh());
+const editForm=$('#profile-form'),editHeading=$('#profile-edit-heading');
+$('#jump-to-edit').onclick=()=>{editForm.hidden=false;editHeading.scrollIntoView({behavior:'smooth',block:'start'})};
+$('#collapse-profile-edit').onclick=()=>{editForm.hidden=true;$('#profile-panel').scrollIntoView({behavior:'smooth',block:'start'})};
+$('#profile-share').onclick=async()=>{const url=location.href.split('?')[0];try{if(navigator.share)await navigator.share({title:'TrendPulse profile',url});else{await navigator.clipboard.writeText(url);message('Profile link copied.','success')}}catch(e){}};
 }
 async function catalog(){let form=$('#search-form'),root=$('#content'),status=$('#status');form.onsubmit=async e=>{e.preventDefault();let q=$('#query').value.trim(),kind=$('#kind').value;if(!q)return;root.innerHTML='';status.textContent='Searching public catalogue…';let data=[];try{if(kind==='Anime'||kind==='Manga'){let type=kind==='Anime'?'anime':'manga';let r=await fetch('https://kitsu.io/api/edge/'+type+'?filter[text]='+encodeURIComponent(q)+'&page[limit]=12');if(!r.ok)throw Error();let j=await r.json();data=(j.data||[]).map(x=>{let a=x.attributes||{};return{title:a.canonicalTitle||a.titles?.en||a.titles?.en_jp||'Untitled',poster:a.posterImage?.small||a.posterImage?.medium,genres:'',year:(a.startDate||'').slice(0,4),summary:a.synopsis||'',url:'https://kitsu.io/'+type+'/'+a.slug,type:kind,score:a.averageRating}})}else if(kind==='TV / Drama'){let r=await fetch('https://api.tvmaze.com/search/shows?q='+encodeURIComponent(q));if(!r.ok)throw Error();let j=await r.json();data=j.slice(0,12).map(v=>({title:v.show.name,poster:v.show.image?.medium,genres:(v.show.genres||[]).join(', '),year:v.show.premiered?.slice(0,4)||'',summary:(v.show.summary||'').replace(/<[^>]*>/g,' '),url:v.show.url,type:'TV / Drama'}))}else{let search=q+' film movie';if(kind==='Hollywood Movies')search=q+' Hollywood film';if(kind==='Bollywood Movies')search=q+' Bollywood Indian film';if(kind==='International Movies')search=q+' international cinema film';let r=await fetch('https://en.wikipedia.org/w/rest.php/v1/search/page?q='+encodeURIComponent(search)+'&limit=12');if(!r.ok)throw Error();let j=await r.json();data=(j.pages||[]).map(x=>({title:x.title,poster:x.thumbnail?.url,genres:x.description||'Wikipedia result',year:'',summary:x.excerpt||'Open the article for more information.',url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(x.key||x.title.replace(/ /g,'_')),type:'Film / Wikipedia'}))}}catch(e){status.textContent='The selected public catalogue is temporarily unavailable. Try again later.';return}if(!data.length){status.textContent='No matching titles found.';return}status.textContent='Found '+data.length+' results. Add a title to your watchlist. Film results are Wikipedia knowledge results, not verified ratings or streaming availability.';root.innerHTML='<div class="grid">'+data.map(x=>'<article class="card">'+(x.poster?'<img class="poster" loading="lazy" src="'+esc(x.poster)+'" alt="Artwork for '+esc(x.title)+'">':'')+'<span class="tag">'+esc(x.type)+'</span><h3>'+esc(x.title)+'</h3><p class="muted small">'+esc([x.year,x.genres,x.score?'Community rating '+x.score:''].filter(Boolean).join(' · '))+'</p><p class="small">'+esc(x.summary).slice(0,240)+'</p><button data-add="'+encodeURIComponent(JSON.stringify(x))+'">＋ Watchlist</button> <a class="btn secondary" href="'+esc(x.url)+'" target="_blank" rel="noopener">Details</a></article>').join('')+'</div>';root.querySelectorAll('[data-add]').forEach(b=>b.onclick=async()=>{try{const x=JSON.parse(decodeURIComponent(b.dataset.add));const user=await backend.currentUser();if(!user){b.textContent='Sign in first';return}await backend.addWatchlist({external_id:x.url,title:x.title,media_type:x.type,poster_url:x.poster||null});b.textContent='Added ✓'}catch(err){b.textContent=err.message||'Could not save'}})}}
 const map={watchlist,reviews,community:posts,shorts,messages,profile,catalog};if(map[page])map[page]();
