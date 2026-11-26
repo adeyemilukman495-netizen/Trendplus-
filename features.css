@@ -671,3 +671,15 @@ body[data-feature="profile"] #profile-form{padding:12px 0 18px}
 body[data-feature="profile"] .profile-settings{margin:16px 0 0;padding:18px 0;border-top:1px solid #292929}
 body[data-feature="profile"] #profile-settings[hidden],body[data-feature="profile"] #profile-form[hidden],body[data-feature="profile"] #profile-edit-heading[hidden]{display:none!important}
 @media(max-width:560px){body[data-feature="profile"] .tiktok-profile-top{gap:14px;padding-top:18px}body[data-feature="profile"] .tiktok-avatar{width:82px;height:82px;flex-basis:82px;font-size:2rem}body[data-feature="profile"] .tiktok-profile-stats{gap:20px}body[data-feature="profile"] .tiktok-profile-stats span{font-size:.8rem}body[data-feature="profile"] .tiktok-video-tile{min-height:145px}}
+
+
+/* Profile Settings: creator upload management */
+body[data-feature="profile"] .profile-upload-management{margin:22px 0;padding:16px 0;border-top:1px solid #292929;border-bottom:1px solid #292929}
+body[data-feature="profile"] .profile-upload-management h3{margin:0 0 6px;font-size:1.05rem}
+body[data-feature="profile"] .profile-upload-list{display:grid;gap:9px;margin-top:14px}
+body[data-feature="profile"] .profile-upload-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid #303030;border-radius:10px;background:#121212}
+body[data-feature="profile"] .profile-upload-info{display:grid;gap:4px;min-width:0}
+body[data-feature="profile"] .profile-upload-info b{overflow-wrap:anywhere}
+body[data-feature="profile"] .profile-upload-info small{color:#aaa}
+body[data-feature="profile"] .profile-upload-delete{flex:none;border:1px solid #fe2c55;border-radius:8px;background:transparent;color:#ff6684;padding:8px 13px;font-weight:750}
+body[data-feature="profile"] .profile-upload-delete:disabled{opacity:.55}
