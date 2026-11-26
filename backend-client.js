@@ -153,7 +153,7 @@
         if (result.error) throw result.error;
         likes = result.count || 0;
       }
-      return { followers: followers.count || 0, following: following.count || 0, likes };
+      return { followers: followers.count || 0, following: following.count || 0, likes, shorts: authoredShorts.count || 0 };
     },
 
     getGroupRooms: async () => {
