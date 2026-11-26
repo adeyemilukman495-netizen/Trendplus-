@@ -302,6 +302,15 @@
       if (error) throw error;
       return data;
     },
+    saveShortToWatchlist: async short => {
+      const user = await requireUser(), externalId = 'trendpulse-short:' + short.id;
+      const { data: existing, error: lookupError } = await client.from('watchlist').select('id').eq('user_id', user.id).eq('external_id', externalId).maybeSingle();
+      if (lookupError) throw lookupError;
+      if (existing) return { alreadySaved: true, id: existing.id };
+      const { data, error } = await client.from('watchlist').insert({ user_id:user.id, external_id:externalId, title:String(short.title||'TrendPulse Short').trim().slice(0,160), media_type:'Short', poster_url:null }).select().single();
+      if (error) throw error;
+      return { alreadySaved:false, id:data.id };
+    },
     addWatchlist: async values => {
       const user = await requireUser();
       const { data, error } = await client.from('watchlist').insert({
@@ -610,7 +619,7 @@
     getShorts: async () => {
       const user = await currentUser();
       const { data, error } = await client.from('shorts')
-        .select('*, profiles!shorts_author_id_fkey(display_name, username), short_likes(count)')
+        .select('*, profiles!shorts_author_id_fkey(display_name, username, bio, avatar_url), short_likes(count)')
         .order('created_at', { ascending: false }).limit(50);
       if (error) throw error;
       const rows = data || [];
