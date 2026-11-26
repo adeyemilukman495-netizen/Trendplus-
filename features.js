@@ -265,7 +265,10 @@ async function refresh(){
   if(ownerAdminLink){ownerAdminLink.hidden=true;try{const {data:ownerAllowed,error:ownerError}=await backend.client.rpc('is_trendpulse_admin');if(!ownerError&&ownerAllowed===true)ownerAdminLink.hidden=false}catch(ownerCheckError){ownerAdminLink.hidden=true}}
   try{
    const [w,r,posts,shorts]=await Promise.all([backend.getWatchlist(),backend.getReviews(),backend.getPosts(),backend.getShorts()]);
-   stats.innerHTML='<div class="grid">'+[['Watchlist',w.length],['Reviews',r.filter(x=>x.author_id===user.id).length],['Posts',posts.filter(x=>x.author_id===user.id).length],['Shorts',shorts.filter(x=>x.author_id===user.id).length]].map(x=>'<div class="card"><b>'+x[1]+'</b><p class="muted">'+x[0]+'</p></div>').join('')+'</div>';
+   const myShorts=shorts.filter(x=>x.author_id===user.id);
+   stats.innerHTML='<div class="grid">'+[['Watchlist',w.length],['Reviews',r.filter(x=>x.author_id===user.id).length],['Posts',posts.filter(x=>x.author_id===user.id).length],['Shorts',myShorts.length]].map(x=>'<div class="card"><b>'+x[1]+'</b><p class="muted">'+x[0]+'</p></div>').join('')+'</div>';
+   const videoGrid=$('#profile-videos');
+   if(videoGrid)videoGrid.innerHTML=myShorts.length?'<div class="tiktok-video-grid">'+myShorts.map(x=>'<a class="tiktok-video-tile" href="./shorts.html#'+encodeURIComponent(x.id)+'"><span class="tiktok-video-play">▶</span><b>'+esc(x.title||'Short film')+'</b></a>').join('')+'</div>':'<div class="tiktok-profile-empty"><b>Your videos will appear here</b><p>Share a Short Film and it will be part of your creator profile.</p><a href="./shorts.html">Go to Shorts</a></div>';
   }catch(statsError){stats.textContent='Your profile is ready. Activity counts are temporarily unavailable.'}
  }catch(e){message(e.message||'Could not load your profile. Please sign in again.','error')}
 }
