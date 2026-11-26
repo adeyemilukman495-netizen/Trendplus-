@@ -137,6 +137,25 @@
       return created;
     },
 
+    getSocialProfileStats: async userId => {
+      const [followers, following, authoredShorts] = await Promise.all([
+        client.from('follows').select('follower_id', { count: 'exact', head: true }).eq('followed_id', userId),
+        client.from('follows').select('followed_id', { count: 'exact', head: true }).eq('follower_id', userId),
+        client.from('shorts').select('id', { count: 'exact' }).eq('author_id', userId)
+      ]);
+      if (followers.error) throw followers.error;
+      if (following.error) throw following.error;
+      if (authoredShorts.error) throw authoredShorts.error;
+      const shortIds = (authoredShorts.data || []).map(row => row.id);
+      let likes = 0;
+      if (shortIds.length) {
+        const result = await client.from('short_likes').select('short_id', { count: 'exact', head: true }).in('short_id', shortIds);
+        if (result.error) throw result.error;
+        likes = result.count || 0;
+      }
+      return { followers: followers.count || 0, following: following.count || 0, likes };
+    },
+
     getGroupRooms: async () => {
       const { data, error } = await client.from('group_rooms')
         .select('id,name,slug,description,category,created_at,updated_at,group_room_members(count)')
@@ -154,7 +173,11 @@
         room_name:name,room_description:description,room_category:category
       });
       if(error)throw error;
-      return data;
+      const {data:room, error:roomError}=await client.from('group_rooms')
+        .select('id,name,slug,description,category,created_at,updated_at,group_room_members(count)')
+        .eq('id',data).single();
+      if(roomError)throw roomError;
+      return room;
     },
     getGroupRoomMemberships: async () => {
       const user = await requireUser();
@@ -517,23 +540,32 @@
         .select('*, profiles!shorts_author_id_fkey(display_name, username), short_likes(count)')
         .order('created_at', { ascending: false }).limit(50);
       if (error) throw error;
+      const rows = data || [];
       let liked = new Set();
-      if (user && data.length) {
+      if (user && rows.length) {
         const { data: mine, error: likeError } = await client.from('short_likes')
-          .select('short_id').eq('user_id', user.id).in('short_id', data.map(x => x.id));
+          .select('short_id').eq('user_id', user.id).in('short_id', rows.map(x => x.id));
         if (likeError) throw likeError;
-        liked = new Set(mine.map(x => x.short_id));
+        liked = new Set((mine || []).map(x => x.short_id));
       }
-      return Promise.all(data.map(async x => {
-        let playbackUrl = x.video_url;
+      const playable = await Promise.all(rows.map(async x => {
+        let playbackUrl = x.video_url || '';
         if (x.video_path) {
           const { data: signed, error: signedError } = await client.storage
             .from('trendpulse-short-media').createSignedUrl(x.video_path, 3600);
-          if (signedError) throw signedError;
+          if (signedError || !signed?.signedUrl) {
+            console.warn('Skipping a Short whose media is not currently available:', x.id, signedError?.message);
+            return null;
+          }
           playbackUrl = signed.signedUrl;
+        }
+        if (!playbackUrl) {
+          console.warn('Skipping a Short without a playable media URL:', x.id);
+          return null;
         }
         return { ...x, video_url: playbackUrl, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id) };
       }));
+      return playable.filter(Boolean);
     },
     createShort: async values => {
       const user = await requireUser();
