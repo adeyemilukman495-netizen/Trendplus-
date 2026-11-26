@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trend Battles: Anime, K-Drama &amp; Series Face-Offs | TrendPulse</title>
-<meta name="description" content="Pick a side in head-to-head battles like Solo Leveling vs Jujutsu Kaisen and Squid Game vs Queen of Tears. Demo votes, saved only on your device.">
+<title>Pulse Battles: Community Face-Offs | TrendPulse</title>
+<meta name="description" content="Create community face-offs and vote in live TrendPulse battles across anime, movies, music, sports and more.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://adeyemilukman495-netizen.github.io/Trendplus-/battles.html">
 <meta property="og:url" content="https://adeyemilukman495-netizen.github.io/Trendplus-/battles.html">
@@ -138,41 +138,16 @@ footer{border-top:1px solid var(--line);padding:2rem 0 2.5rem;color:var(--muted)
 
 <div class="wrap"><section class="block">
 <h1 style="font-size:clamp(2.4rem,7vw,4rem);font-weight:800">Trend Battles</h1>
-<p class="sub">Compare two favourites head to head and see how the conversation splits.</p>
-<div style="margin-top:1.75rem"><article class="battle" data-id="b0" data-base="540,460">
-<h3>Anime showdown</h3>
-<div class="vs">
-<button class="opt" type="button" aria-pressed="false"><span class="fill"></span><span class="pct"></span><b>Solo Leveling</b><small>Action</small></button>
-<span class="vsmark" aria-hidden="true">vs</span>
-<button class="opt" type="button" aria-pressed="false"><span class="fill"></span><span class="pct"></span><b>Jujutsu Kaisen</b><small>Supernatural</small></button>
-</div>
-<p class="msg" aria-live="polite">Tap one to vote. Demo only: results aren&rsquo;t shared between visitors.</p>
-</article><article class="battle" data-id="b1" data-base="470,530">
-<h3>K-Drama showdown</h3>
-<div class="vs">
-<button class="opt" type="button" aria-pressed="false"><span class="fill"></span><span class="pct"></span><b>Squid Game</b><small>Thriller</small></button>
-<span class="vsmark" aria-hidden="true">vs</span>
-<button class="opt" type="button" aria-pressed="false"><span class="fill"></span><span class="pct"></span><b>Queen of Tears</b><small>Romance</small></button>
-</div>
-<p class="msg" aria-live="polite">Tap one to vote. Demo only: results aren&rsquo;t shared between visitors.</p>
-</article><article class="battle" data-id="b2" data-base="510,490">
-<h3>Series showdown</h3>
-<div class="vs">
-<button class="opt" type="button" aria-pressed="false"><span class="fill"></span><span class="pct"></span><b>Wednesday</b><small>Mystery</small></button>
-<span class="vsmark" aria-hidden="true">vs</span>
-<button class="opt" type="button" aria-pressed="false"><span class="fill"></span><span class="pct"></span><b>Stranger Things</b><small>Sci-fi</small></button>
-</div>
-<p class="msg" aria-live="polite">Tap one to vote. Demo only: results aren&rsquo;t shared between visitors.</p>
-</article><article class="battle" data-id="b3" data-base="520,480">
-<h3>Bollywood showdown</h3>
-<div class="vs">
-<button class="opt" type="button" aria-pressed="false"><span class="fill"></span><span class="pct"></span><b>Jawan</b><small>Action</small></button>
-<span class="vsmark" aria-hidden="true">vs</span>
-<button class="opt" type="button" aria-pressed="false"><span class="fill"></span><span class="pct"></span><b>Pathaan</b><small>Action</small></button>
-</div>
-<p class="msg" aria-live="polite">Tap one to vote. Demo only: results aren&rsquo;t shared between visitors.</p>
-</article></div>
-<p class="demo">Preview edition. There is no server voting yet, so splits are demo numbers and your pick is stored only in your own browser.</p>
+<p class="sub">Create a matchup, choose your side and see how the TrendPulse community votes.</p>
+<div class="battle-form" style="margin:1.75rem 0;padding:1.25rem;border:1px solid var(--line);border-radius:20px;background:var(--surface)">
+<h2 style="font-size:1.5rem;margin-bottom:.5rem">Start a battle</h2><p class="msg">Create a head-to-head matchup for the TrendPulse community. Sign in to publish it.</p>
+<form id="battle-create" style="display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-top:1rem">
+<label style="display:grid;gap:.35rem">Battle name<input name="title" maxlength="100" required placeholder="Anime showdown"></label>
+<label style="display:grid;gap:.35rem">First choice<input name="left" maxlength="100" required placeholder="Solo Leveling"></label>
+<label style="display:grid;gap:.35rem">Second choice<input name="right" maxlength="100" required placeholder="Jujutsu Kaisen"></label>
+<label style="display:grid;gap:.35rem">Category<select name="category"><option>Anime</option><option>Movies</option><option>TV Series</option><option>K-Drama</option><option>Music</option><option>Sports</option><option>Gaming</option><option>General</option></select></label>
+<div style="display:flex;align-items:end"><button class="btn" type="submit">Publish battle</button></div></form><p id="battle-status" class="msg" role="status" aria-live="polite"></p></div>
+<div id="live-battles" aria-live="polite"><p class="msg">Loading community battles…</p></div><p class="demo">Community battles and vote totals are stored in TrendPulse. Sign in to vote or publish a matchup. Each account gets one vote per battle.</p>
 </section></div>
 
 <div class="wrap related"><p>Not sure who to back? Browse <a href="./trending.html">trending titles</a> and <a href="./rising.html">rising picks</a>, then <a href="./community.html">take the debate to the community</a>.</p></div>
@@ -183,33 +158,38 @@ footer{border-top:1px solid var(--line);padding:2rem 0 2.5rem;color:var(--muted)
 </div></footer>
 <script>
 (function(){
-var KEY='tp-battles',saved={};
-try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){saved={};}
-function show(b,pick){
-  var base=b.getAttribute('data-base').split(',').map(Number);
-  var c=[base[0],base[1]];c[pick]+=1;var t=c[0]+c[1];
-  var opts=b.querySelectorAll('.opt');
-  [].forEach.call(opts,function(o,i){
-    var p=Math.round(c[i]/t*100);
-    o.querySelector('.pct').textContent=p+'%';
-    o.querySelector('.fill').style.width=p+'%';
-    o.classList.toggle('chosen',i===pick);
-    o.setAttribute('aria-pressed',i===pick?'true':'false');
+'use strict';
+var list=document.getElementById('live-battles'),form=document.getElementById('battle-create'),status=document.getElementById('battle-status'),backend=window.TPBackend;
+function esc(v){return String(v||'').replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
+function say(v){status.textContent=v||'';}
+async function load(){
+ if(!backend||!backend.ready){list.innerHTML='<p class="demo">Community voting is temporarily unavailable. Please try again later.</p>';return;}
+ try{
+  var user=await backend.currentUser(),battles=await backend.getBattles();
+  if(!battles.length){list.innerHTML='<div class="demo">No community battles yet. Be the first to publish one above.</div>';return;}
+  var ids=battles.map(function(b){return b.id;}),result=await backend.client.from('battle_votes').select('battle_id,user_id,choice').in('battle_id',ids);
+  if(result.error)throw result.error;var votes=result.data||[];list.innerHTML='';
+  battles.forEach(function(b){
+   var rows=votes.filter(function(v){return v.battle_id===b.id;}),left=rows.filter(function(v){return v.choice==='left';}).length,right=rows.length-left,total=left+right,lp=total?Math.round(left/total*100):0,rp=total?100-lp:0,mine=user&&rows.find(function(v){return v.user_id===user.id;});
+   var card=document.createElement('article');card.className='battle';
+   card.innerHTML='<h3>'+esc(b.title)+'</h3><div class="vs"><button class="opt" type="button" data-choice="left" '+(!user||mine?'disabled':'')+'><span class="fill" style="width:'+lp+'%"></span><span class="pct">'+lp+'%</span><b>'+esc(b.left_title)+'</b><small>'+left+' vote'+(left===1?'':'s')+'</small></button><span class="vsmark" aria-hidden="true">VS</span><button class="opt" type="button" data-choice="right" '+(!user||mine?'disabled':'')+'><span class="fill" style="width:'+rp+'%"></span><span class="pct">'+rp+'%</span><b>'+esc(b.right_title)+'</b><small>'+right+' vote'+(right===1?'':'s')+'</small></button></div><p class="msg">'+(mine?'You voted for '+(mine.choice==='left'?esc(b.left_title):esc(b.right_title))+'.':user?'Cast your vote. You can vote once.':'Sign in to vote.')+'</p>';
+   if(mine)card.querySelectorAll('.opt').forEach(function(btn){btn.classList.toggle('chosen',btn.dataset.choice===mine.choice);btn.setAttribute('aria-pressed',btn.dataset.choice===mine.choice?'true':'false');});
+   card.querySelectorAll('.opt').forEach(function(btn){btn.addEventListener('click',async function(){card.querySelectorAll('.opt').forEach(function(x){x.disabled=true;});try{await backend.castBattleVote(b.id,btn.dataset.choice);await load();}catch(err){card.querySelectorAll('.opt').forEach(function(x){x.disabled=!user||!!mine;});card.querySelector('.msg').textContent=err.message||'Your vote could not be saved. Please try again.';}});});
+   list.appendChild(card);
   });
-  b.classList.add('voted');
-  b.querySelector('.msg').textContent='You picked '+opts[pick].querySelector('b').textContent+'. Demo split only: your vote stays on this device.';
+ }catch(err){list.innerHTML='<p class="demo">Could not load community battles: '+esc(err.message||'Please try again later.')+'</p>';}
 }
-[].forEach.call(document.querySelectorAll('.battle'),function(b){
-  var id=b.getAttribute('data-id');
-  [].forEach.call(b.querySelectorAll('.opt'),function(o,i){
-    o.addEventListener('click',function(){
-      show(b,i);saved[id]=i;
-      try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}
-    });
-  });
-  if(typeof saved[id]==='number')show(b,saved[id]);
+form.addEventListener('submit',async function(e){
+ e.preventDefault();say('');if(!backend||!backend.ready){say('Community features are unavailable right now.');return;}
+ var user=await backend.currentUser().catch(function(){return null;});if(!user){say('Please sign in from your Profile page before publishing.');return;}
+ var d=new FormData(form),title=String(d.get('title')||'').trim(),left=String(d.get('left')||'').trim(),right=String(d.get('right')||'').trim();
+ if(!title||!left||!right||left.toLowerCase()===right.toLowerCase()){say('Enter a battle name and two different choices.');return;}
+ var button=form.querySelector('button[type=submit]');button.disabled=true;
+ try{await backend.createBattle({title:title,left_title:left,right_title:right,category:d.get('category')});form.reset();say('Battle published!');await load();}
+ catch(err){say(err.message||'Could not publish this battle.');}finally{button.disabled=false;}
 });
+load();
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./analytics.js?v=20261125-analytics1"></script></body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./backend-client.js?v=20261126-livebattles1"></script><script src="./analytics.js?v=20261125-analytics1"></script></body>
 </html>
