@@ -827,3 +827,13 @@ body[data-feature="profile"] .profile-settings[hidden]{display:none!important}
 .short-save-action.is-saved{color:#25f4ee}
 @keyframes creatorDrawerIn{from{transform:translateX(30px);opacity:.6}to{transform:translateX(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){.short-creator-panel,body[data-feature="profile"] .profile-settings{animation:none;transition:none}}
+
+/* Earn order tracking */
+.earn-order-card{min-width:0}.earn-order-card>strong{display:block;color:#25f4ee;font-size:1.1rem;margin:8px 0}
+.earn-order-card .earn-card-actions{justify-content:flex-start;flex-wrap:wrap}.earn-order-card .earn-card-actions .btn,.earn-order-card .earn-card-actions button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:10px 14px;border-radius:10px}
+.earn-order-details{margin-top:14px;border-top:1px solid #343434;padding-top:12px}.earn-order-details summary{cursor:pointer;font-weight:800;color:#25f4ee}
+.earn-order-history{list-style:none;margin:12px 0 0;padding:0 0 0 8px;border-left:2px solid #3c4149}
+.earn-order-history li{position:relative;padding:0 0 14px 14px}.earn-order-history li:before{content:'';position:absolute;left:-14px;top:6px;width:8px;height:8px;border-radius:50%;background:#25f4ee}
+.earn-order-history li span{display:block;color:#aaa;font-size:.78rem}.earn-order-history li p{margin:4px 0;color:#ddd;font-size:.88rem;overflow-wrap:anywhere}
+.order-status-completed{border-color:#25f4ee;color:#25f4ee}.order-status-cancelled{border-color:#ff6878;color:#ff9aa5}
+@media(max-width:520px){.earn-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
