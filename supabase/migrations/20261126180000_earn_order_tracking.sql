@@ -6,7 +6,7 @@ create table if not exists public.service_orders (
   buyer_id uuid not null references public.profiles(id) on delete cascade,
   seller_id uuid not null references public.profiles(id) on delete cascade,
   conversation_id uuid not null references public.conversations(id) on delete restrict,
-  agreed_price numeric(12,2) not null check (agreed_price >= 0),
+  listing_price numeric(12,2) not null check (listing_price >= 0),
   currency text not null default 'NGN' check (currency = 'NGN'),
   status text not null default 'accepted'
     check (status in ('accepted','in_progress','delivered','completed','cancelled')),
@@ -85,7 +85,7 @@ begin
   if next_status = 'accepted' then
     if not found then raise exception 'The service listing is no longer available.'; end if;
     insert into public.service_orders(
-      service_request_id,service_id,buyer_id,seller_id,conversation_id,agreed_price,status
+      service_request_id,service_id,buyer_id,seller_id,conversation_id,listing_price,status
     ) values (
       target_request.id,target_request.service_id,target_request.buyer_id,target_request.seller_id,
       target_request.conversation_id,target_service.starting_price,'accepted'
