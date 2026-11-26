@@ -582,6 +582,10 @@
       return path;
     },
 
+    searchProfiles: async query => { const q=String(query||'').trim().replace(/[,%]/g,''); if(q.length<2)return []; const {data,error}=await client.from('profiles').select('id,username,display_name,bio,avatar_url').or('username.ilike.%'+q+'%,display_name.ilike.%'+q+'%').limit(12); if(error)throw error; return data||[]; },
+    isFollowing: async followedId => { const user=await currentUser(); if(!user)return false; const {data,error}=await client.from('follows').select('followed_id').eq('follower_id',user.id).eq('followed_id',followedId).maybeSingle(); if(error)throw error; return !!data; },
+    toggleShortWatchlist: async shortId => { const user=await requireUser(); const {data,error:readError}=await client.from('short_watchlist').select('short_id').eq('user_id',user.id).eq('short_id',shortId).maybeSingle(); if(readError)throw readError; if(data){const {error}=await client.from('short_watchlist').delete().eq('user_id',user.id).eq('short_id',shortId);if(error)throw error;return false;} const {error}=await client.from('short_watchlist').insert({user_id:user.id,short_id:shortId});if(error)throw error;return true; },
+    getShortWatchlist: async () => { const user=await requireUser(); const {data,error}=await client.from('short_watchlist').select('short_id,created_at,shorts(id,title,caption,category,thumbnail_url,author_id)').eq('user_id',user.id).order('created_at',{ascending:false});if(error)throw error;return data||[]; },
     getShortComments: async shortId => {
       const { data, error } = await client.from('short_comments')
         .select('*, profiles!short_comments_author_id_fkey(display_name, username, avatar_url)')
