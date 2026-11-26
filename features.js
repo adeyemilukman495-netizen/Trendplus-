@@ -177,20 +177,47 @@ function card(x,currentUserId){
  actions.append(like,comments,saveShort,sound,share,download,settings,report);
  const meta=document.createElement('div');meta.className='short-overlay';const title=document.createElement('h3');title.textContent=x.title||'TrendPulse Short';const caption=document.createElement('p');caption.textContent=x.caption||'';const category=document.createElement('span');category.className='short-category';category.textContent=x.category||'Entertainment';meta.append(title,caption,category);el.append(video,tap,creator,actions,meta);let touchX=0,touchY=0;el.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});el.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(dx<-70&&Math.abs(dx)>Math.abs(dy)*1.25)showCreator(x);else if(dx>70&&Math.abs(dx)>Math.abs(dy)*1.25&&creatorPanel)creatorPanel.hidden=true},{passive:true});return {el,video};
 }
+let activeFeed='foryou',feedItems=[],feedUser=null;
+const feedTabs=[...document.querySelectorAll('[data-short-feed]')];
+function setFeedTab(name){activeFeed=name;feedTabs.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.shortFeed===name)));const hint=$('#shorts-feed-hint');if(hint)hint.textContent=name==='following'?'Only Shorts from creators you follow.':name==='latest'?'The newest public Shorts, in order.':'A discovery mix shaped by the topics you watch and what the community enjoys.';draw()}
+feedTabs.forEach(b=>b.addEventListener('click',()=>setFeedTab(b.dataset.shortFeed)));
+function rankFeed(items){
+ const rows=[...items];
+ if(activeFeed==='latest')return rows.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+ if(activeFeed==='following')return rows;
+ let interests={};try{interests=JSON.parse(localStorage.getItem('tp-short-interests')||'{}')}catch(e){}
+ const now=Date.now();
+ return rows.sort((a,b)=>{
+  const score=x=>{const age=Math.max(0,(now-new Date(x.created_at||now).getTime())/3600000);const freshness=Math.max(0,48-age)/48;const category=String(x.category||'').toLowerCase();const affinity=Number(interests[category]||0);const engagement=Math.log1p(Number(x.like_count||0));return affinity*2.5+engagement*.7+freshness*.8};
+  return score(b)-score(a)
+ });
+}
+function recordShortInterest(short){try{const key='tp-short-interests',data=JSON.parse(localStorage.getItem(key)||'{}'),category=String(short.category||'entertainment').toLowerCase();data[category]=Math.min(20,Number(data[category]||0)+1);localStorage.setItem(key,JSON.stringify(data))}catch(e){}}
 async function draw(){
  root.innerHTML='<div class="shorts-empty"><div><strong>Loading Shorts…</strong><p>Getting the latest videos.</p></div></div>';
  try{
   if(!backend?.ready)throw Error(backend?.reason||'Video service is unavailable. Check your connection and try again.');
-  const [items,currentUser]=await Promise.all([backend.getShorts(),backend.currentUser()]);root.replaceChildren();
-  if(!items.length){
-   root.innerHTML='<div class="shorts-empty"><div><strong>No playable Shorts yet.</strong><p>Videos will appear here when they are available.</p><button type="button" class="publish-short" id="empty-create">＋ Create a Short</button><button type="button" class="shorts-retry" id="shorts-retry">Refresh feed</button></div></div>';
+  const [items,currentUser]=await Promise.all([backend.getShorts(),backend.currentUser()]);feedItems=items;feedUser=currentUser;root.replaceChildren();
+  let visible=items;
+  if(activeFeed==='following'){
+   if(!currentUser){root.innerHTML='<div class="shorts-empty"><div><strong>Sign in to see your Following feed.</strong><p>Follow creators to build a feed of their latest Shorts.</p><a class="publish-short" href="./members.html">Sign in / Join</a></div></div>';return}
+   const {data:follows,error}=await backend.client.from('follows').select('followed_id').eq('follower_id',currentUser.id);
+   if(error)throw error;
+   const followed=new Set((follows||[]).map(x=>x.followed_id));
+   visible=items.filter(x=>followed.has(x.author_id));
+  }
+  visible=rankFeed(visible);
+  if(!visible.length){
+   const message=activeFeed==='following'?'No Shorts from followed creators yet. Follow creators from Shorts or Discover and their videos will appear here.':'No playable Shorts yet. Videos will appear here when they are available.';
+   root.innerHTML='<div class="shorts-empty"><div><strong>'+esc(message)+'</strong><p>Be among the first to discover something new.</p><button type="button" class="publish-short" id="empty-create">＋ Create a Short</button><button type="button" class="shorts-retry" id="shorts-retry">Refresh feed</button></div></div>';
    $('#empty-create').onclick=()=>dialog.showModal();$('#shorts-retry').onclick=draw;return
   }
-  const entries=items.map(x=>card(x,currentUser?.id));entries.forEach(x=>root.append(x.el));
+  const entries=visible.map(x=>card(x,currentUser?.id));entries.forEach(x=>root.append(x.el));
+  const markViewed=entry=>{if(entry.video.dataset.interestRecorded)return;entry.video.dataset.interestRecorded='1';recordShortInterest(visible.find(x=>x.id===entry.el.dataset.id)||{})};
   if('IntersectionObserver' in window){
-   const observer=new IntersectionObserver(changes=>changes.forEach(change=>{const v=change.target.querySelector('video');if(change.isIntersecting&&change.intersectionRatio>.7)v.play().catch(()=>{});else v.pause()}),{root,threshold:[.2,.7]});
+   const observer=new IntersectionObserver(changes=>changes.forEach(change=>{const entry=entries.find(x=>x.el===change.target),v=change.target.querySelector('video');if(change.isIntersecting&&change.intersectionRatio>.7){v.play().catch(()=>{});if(entry)markViewed(entry)}else v.pause()}),{root,threshold:[.2,.7]});
    entries.forEach(x=>observer.observe(x.el));
-  }else entries.forEach(x=>x.video.play().catch(()=>{}));
+  }else entries.forEach(x=>{x.video.play().catch(()=>{});markViewed(x)});
  }catch(e){
   root.innerHTML='<div class="shorts-empty"><div><strong>Shorts could not load.</strong><p>'+esc(e.message||'Please try again.')+'</p><button type="button" class="shorts-retry" id="shorts-retry">Try again</button></div></div>';
   $('#shorts-retry').onclick=draw;
