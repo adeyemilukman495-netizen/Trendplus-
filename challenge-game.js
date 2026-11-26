@@ -35,7 +35,7 @@ if(state.done){renderResult(state);working=false;return}
 if(state.index>=5){finish(state);working=false;return}
 try{const cachedQuestions=readQuestionCache();if(cachedQuestions){questions=cachedQuestions;renderQuestion();return}
 if(topics.length<10)throw Error('The daily topic list is unavailable. Please refresh later.');
-const selected=chooseTopics(),results=new Array(selected.length);let next=0,checked=0,usable=0;const target=10,workers=Math.min(10,selected.length);progress(0,target,'Loading today’s live topics. This usually takes a few seconds…');
+const selected=chooseTopics(),results=new Array(selected.length);let next=0,checked=0,usable=0;const target=10,workers=Math.min(6,selected.length);progress(0,target,'Loading today’s live topics. This usually takes a few seconds…');
 async function worker(){while(usable<target){const index=next++;if(index>=selected.length)return;const topic=selected[index];try{const views=await getViews(topic);if(views>0){results[index]={...topic,views};usable++}}catch(e){/* One unavailable topic must not stop the rest of the round. */}checked++;progress(Math.min(usable,target),target,'Finding 10 usable topics · '+usable+' / '+target+' ready.');}}
 await Promise.all(Array.from({length:workers},()=>worker()));const loaded=results.filter(Boolean).slice(0,target);
 if(loaded.length<10)throw Error('The live source returned too few usable topics today. Please retry in a moment.');
