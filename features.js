@@ -394,14 +394,50 @@ function earn(){
  const tabs=[...document.querySelectorAll('[data-earn-tab]')],sections={opportunities:$('#earn-opportunities'),services:$('#earn-services'),dashboard:$('#earn-dashboard')};
  function show(name){tabs.forEach(t=>{const active=t.dataset.earnTab===name;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active))});Object.entries(sections).forEach(([key,node])=>{node.hidden=key!==name})}
  tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.earnTab)));
- const form=$('#earn-service-form'),list=$('#earn-service-list'),status=$('#earn-service-status');
- const load=()=>{try{return JSON.parse(localStorage.getItem('tp-earn-services')||'[]')}catch(e){return[]}};
- function draw(){const items=load();if(!items.length){list.innerHTML='<div class="empty">You have not created a service yet.</div>';return}
- list.innerHTML=items.map(x=>'<article class="panel earn-service-card"><span class="tag">'+esc(x.category)+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><strong>From ₦'+Number(x.price).toLocaleString('en-NG')+'</strong><p class="muted small">Saved on this device only</p><button type="button" class="secondary" data-earn-delete="'+esc(x.id)+'">Delete</button></article>').join('');
- list.querySelectorAll('[data-earn-delete]').forEach(b=>b.addEventListener('click',()=>{localStorage.setItem('tp-earn-services',JSON.stringify(load().filter(x=>x.id!==b.dataset.earnDelete)));draw()}));
+ const backend=window.TPBackend, form=$('#earn-service-form'), list=$('#earn-service-list'), publicList=$('#earn-public-service-list'), status=$('#earn-service-status'), publicStatus=$('#earn-market-status');
+ const money=value=>'₦'+Number(value||0).toLocaleString('en-NG',{maximumFractionDigits:2});
+ function serviceCard(x, own=false){
+   const profile=x.profiles||{};
+   const seller=profile.display_name||profile.username||'TrendPulse member';
+   const price=money(x.starting_price);
+   return '<article class="panel earn-service-card"><div class="earn-card-top"><span class="tag">'+esc(x.category)+'</span>'+(own?'<span class="tag">'+(x.status==='paused'?'Paused':'Live')+'</span>':'')+'</div><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><strong>From '+price+'</strong><p class="muted small">'+(own?'Your listing':'By '+esc(seller))+'</p>'+(own?'<div class="earn-card-actions"><button type="button" class="secondary" data-earn-toggle="'+esc(x.id)+'" data-next="'+(x.status==='paused'?'active':'paused')+'">'+(x.status==='paused'?'Publish':'Pause')+'</button><button type="button" class="secondary" data-earn-delete="'+esc(x.id)+'">Delete</button></div>':'<a class="btn secondary" href="./profile.html">View community profile</a>')+'</article>';
  }
- form.addEventListener('submit',e=>{e.preventDefault();const title=$('#earn-service-title').value.trim(),description=$('#earn-service-description').value.trim(),price=Number($('#earn-service-price').value);if(!title||!description||!Number.isFinite(price)||price<0){status.textContent='Please check the service details and price.';return}const items=load();items.unshift({id:uid(),title,category:$('#earn-service-category').value,description,price});localStorage.setItem('tp-earn-services',JSON.stringify(items.slice(0,30)));form.reset();status.textContent='Service saved on this device. It is not public yet.';draw()});
- draw();
+ async function loadMarket(){
+   if(!backend?.ready){publicStatus.textContent='Marketplace connection is not available right now.';return}
+   publicStatus.textContent='Loading community services…';
+   try{
+     const rows=await backend.getEarnServices($('#earn-market-search').value,$('#earn-market-category').value);
+     publicList.innerHTML=rows.length?rows.map(x=>serviceCard(x)).join(''):'<div class="empty"><strong>No services found yet.</strong><p>Be the first to publish a service for the community.</p></div>';
+     publicStatus.textContent=rows.length?rows.length+' community service'+(rows.length===1?'':'s')+' available.':'';
+   }catch(error){publicStatus.textContent=error.message||'Could not load services. Please try again.';publicList.innerHTML='<div class="empty">Marketplace temporarily unavailable.</div>'}
+ }
+ async function loadMine(){
+   if(!backend?.ready){list.innerHTML='<div class="empty">Marketplace connection is unavailable.</div>';return}
+   try{
+     const rows=await backend.getMyEarnServices();
+     list.innerHTML=rows.length?rows.map(x=>serviceCard(x,true)).join(''):'<div class="empty">You have not published a service yet.</div>';
+     list.querySelectorAll('[data-earn-delete]').forEach(button=>button.addEventListener('click',async()=>{
+       if(!confirm('Delete this service listing?'))return;
+       button.disabled=true;try{await backend.deleteEarnService(button.dataset.earnDelete);await loadMine();await loadMarket();status.textContent='Service listing deleted.'}catch(error){button.disabled=false;status.textContent=error.message||'Could not delete listing.'}
+     }));
+     list.querySelectorAll('[data-earn-toggle]').forEach(button=>button.addEventListener('click',async()=>{
+       button.disabled=true;try{await backend.updateEarnService(button.dataset.earnToggle,{status:button.dataset.next});await loadMine();await loadMarket();status.textContent='Listing status updated.'}catch(error){button.disabled=false;status.textContent=error.message||'Could not update listing.'}
+     }));
+   }catch(error){list.innerHTML='<div class="empty">'+esc(error.message||'Could not load your listings.')+'</div>'}
+ }
+ form.addEventListener('submit',async event=>{
+   event.preventDefault();status.textContent='';
+   if(!backend?.ready){status.textContent='Marketplace connection is unavailable.';return}
+   const title=$('#earn-service-title').value.trim(),description=$('#earn-service-description').value.trim(),price=Number($('#earn-service-price').value);
+   if(!title||!description||!Number.isFinite(price)||price<0){status.textContent='Please check the service details and price.';return}
+   const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent='Publishing…';
+   try{await backend.createEarnService({title,category:$('#earn-service-category').value,description,starting_price:price});form.reset();status.textContent='Your service is now published for the TrendPulse community.';await loadMine();await loadMarket()}
+   catch(error){status.textContent=error.message||'Could not publish your service. Sign in and try again.'}
+   finally{button.disabled=false;button.textContent='Publish service'}
+ });
+ $('#earn-market-search').addEventListener('input',()=>{clearTimeout(window.tpEarnSearchTimer);window.tpEarnSearchTimer=setTimeout(loadMarket,350)});
+ $('#earn-market-category').addEventListener('change',loadMarket);
+ loadMarket();loadMine();
  const nav=document.createElement('nav');nav.className='tp-bottom-nav';nav.setAttribute('aria-label','Main navigation');nav.innerHTML='<a href="./"><span>⌂</span><small>Home</small></a><a href="./discover.html"><span>⌕</span><small>Discover</small></a><a href="./shorts.html"><span>▣</span><small>Shorts</small></a><a href="./community.html"><span>◎</span><small>Community</small></a><a href="./profile.html"><span>◉</span><small>Profile</small></a><a href="./earn.html" aria-current="page"><span>₦</span><small>Earn</small></a>';document.body.append(nav);
 }
 const map={watchlist,reviews,community:posts,shorts,messages,profile,catalog,earn};if(map[page])map[page]();
