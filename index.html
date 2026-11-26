@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TrendPulse – Discover Anime, Movies, Series & Dramas</title>
-<meta name="description" content="Discover anime, movies, TV series, K-dramas, C-dramas and Nollywood on TrendPulse. Browse entertainment, save your watchlist and connect with fans.">
+<title>TrendPulse — Discover. Vote. Shape What’s Trending.</title>
+<meta name="description" content="Discover entertainment trends, join fan battles, take daily challenges and connect with communities on TrendPulse.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://adeyemilukman495-netizen.github.io/Trendplus-/">
 <meta property="og:url" content="https://adeyemilukman495-netizen.github.io/Trendplus-/">
@@ -21,6 +21,27 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./tp.css?v=20261126-tiktok-nav2">\n<link rel="stylesheet" href="./home-pina.css?v=20261126-pina1">
+<style>
+/* TrendPulse signature hub: discover, influence and participate */
+.pulse-hub{padding:1.4rem 0 1.8rem;background:radial-gradient(ellipse at 50% 0,rgba(37,244,238,.08),transparent 65%)}
+.pulse-hub-head{display:flex;justify-content:space-between;align-items:end;gap:1rem;margin-bottom:1rem}
+.pulse-hub-head h2{font-size:clamp(1.65rem,4vw,2.5rem);letter-spacing:-.04em}
+.pulse-hub-head p{max-width:520px;color:var(--pina-muted);margin:.45rem 0 0}
+.pulse-hub-grid{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:.8rem}
+.pulse-tile{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:205px;padding:1.25rem;border:1px solid #343744;border-radius:19px;overflow:hidden;background:linear-gradient(145deg,#171c29,#10131b);text-decoration:none;transition:transform .18s,border-color .18s}
+.pulse-tile:hover{transform:translateY(-3px);border-color:var(--pina-cyan)}
+.pulse-tile.radar{background:radial-gradient(circle at 88% 18%,#25f4ee25,transparent 36%),linear-gradient(145deg,#17242b,#10131b)}
+.pulse-tile.battles{background:radial-gradient(circle at 90% 15%,#fe2c5526,transparent 38%),linear-gradient(145deg,#281923,#11131b)}
+.pulse-tile.challenges{background:radial-gradient(circle at 90% 15%,#a98bff25,transparent 38%),linear-gradient(145deg,#201d31,#11131b)}
+.pulse-tile .pulse-icon{font-size:2rem;line-height:1.1}
+.pulse-tile .pulse-tag{color:var(--pina-cyan);font-size:.68rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+.pulse-tile.battles .pulse-tag{color:#ff6c8b}.pulse-tile.challenges .pulse-tag{color:#b9a2ff}
+.pulse-tile h3{font-size:1.45rem;margin:.5rem 0}.pulse-tile p{color:#b9bdc9;font-size:.86rem;max-width:340px;margin:0}
+.pulse-tile .pulse-go{margin-top:1rem;font-weight:800;font-size:.86rem}
+@media(max-width:760px){.pulse-hub-grid{grid-template-columns:1fr 1fr}.pulse-tile.radar{grid-column:1/-1;min-height:180px}}
+@media(max-width:440px){.pulse-hub-grid{grid-template-columns:1fr}.pulse-tile.radar{grid-column:auto}.pulse-tile{min-height:175px}.pulse-hub-head{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.pulse-tile{transition:none}}
+</style>
 <script type="application/ld+json">
 {"@context": "https://schema.org", "@type": "WebSite", "@id": "https://adeyemilukman495-netizen.github.io/Trendplus-/#website", "name": "Trend Pulse", "alternateName": "TrendPulse Entertainment", "url": "https://adeyemilukman495-netizen.github.io/Trendplus-/", "description": "Discover what’s trending in anime, movies, K-dramas, C-dramas, J-dramas, Hollywood, Bollywood and Nollywood. Explore entertainment trends, reviews, watchlists and fan battles on Trend Pulse.", "inLanguage": "en"}
 </script>
@@ -33,11 +54,18 @@
 </div></header>
 <main id="main" class="pina-home">
 <section class="pina-welcome"><div class="wrap">
-  <div class="pina-welcome-top"><div><p class="pina-eyebrow">YOUR ENTERTAINMENT DESTINATION</p><h1>What are you <span>watching today?</span></h1><p class="pina-intro">Explore series, anime and dramas from around the world. Find a new favourite and keep your watchlist close.</p></div><a class="pina-watchlist-link" href="./watchlist.html">♡ My Watchlist</a></div>
+  <div class="pina-welcome-top"><div><p class="pina-eyebrow">DISCOVER · VOTE · PARTICIPATE</p><h1>What are you <span>watching today?</span></h1><p class="pina-intro">Explore entertainment from around the world, discover what is gaining attention and join the conversations behind the trends.</p></div><a class="pina-watchlist-link" href="./watchlist.html">♡ My Watchlist</a></div>
   <form class="pina-search" id="tvmaze-form" role="search"><span aria-hidden="true">⌕</span><label class="sr-only" for="tvmaze-query">Search TV shows</label><input id="tvmaze-query" type="search" placeholder="Search series, anime or dramas…" autocomplete="off"><button type="submit">Search</button></form>
   <p class="pina-search-status" id="tvmaze-status" aria-live="polite">Search the entertainment catalogue by title.</p>
   <div class="pina-search-results grid" id="tvmaze-results"></div>
 </div></section>
+<section class="pulse-hub" aria-labelledby="pulse-hub-title"><div class="wrap">
+<div class="pulse-hub-head"><div><p class="pina-eyebrow">THE TRENDPULSE EXPERIENCE</p><h2 id="pulse-hub-title">Don't just watch trends. <span style="color:var(--pina-cyan)">Move them.</span></h2><p>Discover what people are talking about, take a side and join the challenges shaping the conversation.</p></div></div>
+<div class="pulse-hub-grid">
+<a class="pulse-tile radar" href="./trending.html"><div><span class="pulse-icon" aria-hidden="true">◉</span><p class="pulse-tag">Discover the signal</p><h3>Pulse Radar</h3><p>Explore entertainment topics attracting attention, then spot what is starting to rise.</p></div><span class="pulse-go">Explore trending topics →</span></a>
+<a class="pulse-tile battles" href="./battles.html"><div><span class="pulse-icon" aria-hidden="true">⚔</span><p class="pulse-tag">Choose your side</p><h3>Pulse Battles</h3><p>Settle fan debates with head-to-head matchups and community votes.</p></div><span class="pulse-go">Enter the arena →</span></a>
+<a class="pulse-tile challenges" href="./challenge.html"><div><span class="pulse-icon" aria-hidden="true">✦</span><p class="pulse-tag">Join the moment</p><h3>Trend Challenges</h3><p>Take on the daily prompt and add your voice to the community.</p></div><span class="pulse-go">See today's challenge →</span></a>
+</div></div></section>
 <section class="pina-featured-section"><div class="wrap"><div id="home-featured" class="pina-featured"><div class="pina-featured-copy"><span class="pina-label">FEATURED DISCOVERY</span><h2>Find your next favourite</h2><p>Explore stories, series and characters worth discovering.</p><a class="pina-primary" href="./discover.html">Explore the catalogue <span>→</span></a></div><div class="pina-featured-art" aria-hidden="true"><span>✦</span></div></div></div></section>
 <section class="pina-section"><div class="wrap"><div class="pina-section-head"><div><p class="pina-eyebrow">PICK A MOOD</p><h2>Browse categories</h2></div><a href="./discover.html">See all <span>→</span></a></div><div class="pina-category-row">
 <a href="./anime.html"><span>🎌</span>Anime</a><a href="./k-drama.html"><span>🇰🇷</span>K-Drama</a><a href="./c-drama.html"><span>🏮</span>C-Drama</a><a href="./j-drama.html"><span>🌸</span>J-Drama</a><a href="./movies.html"><span>🎬</span>Movies</a><a href="./tv-series.html"><span>📺</span>TV Series</a><a href="./nollywood.html"><span>🌍</span>Nollywood</a><a href="./bollywood.html"><span>🎭</span>Bollywood</a>
