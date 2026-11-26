@@ -342,4 +342,6 @@
     window.currentTrendPulseUserId = user?.id || null;
     await signedIn(user);
   });
+  const creatorSearch = new URLSearchParams(location.search).get('search');
+  if (creatorSearch) $('member-search').value = creatorSearch;
 })();
