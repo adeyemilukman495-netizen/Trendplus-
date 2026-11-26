@@ -1,6 +1,6 @@
 (()=>{'use strict';
 if(document.getElementById('tp-guide-launcher'))return;
-const css=\`
+const css=`
 #tp-guide-launcher{position:fixed;right:18px;bottom:92px;z-index:9998;border:0;border-radius:999px;padding:13px 17px;background:linear-gradient(135deg,#25f4ee,#fe2c55);color:#071016;font:800 14px/1.2 system-ui;box-shadow:0 10px 32px #0007;cursor:pointer}
 #tp-guide-panel{position:fixed;right:16px;bottom:150px;z-index:9999;width:min(370px,calc(100vw - 24px));height:min(590px,calc(100dvh - 180px));display:none;flex-direction:column;overflow:hidden;border:1px solid #343b4c;border-radius:20px;background:#10131d;color:#f7f8fc;box-shadow:0 22px 70px #000a;font:14px/1.45 system-ui}
 #tp-guide-panel[data-open="true"]{display:flex}
@@ -17,7 +17,7 @@ const css=\`
 #tp-guide-send{border:0;border-radius:12px;padding:0 15px;background:#25f4ee;color:#071016;font-weight:800;cursor:pointer}
 .tp-guide-note{padding:0 12px 9px;color:#9da8b8;font-size:10px}
 @media(max-width:520px){#tp-guide-launcher{right:12px;bottom:84px}#tp-guide-panel{right:8px;bottom:138px;width:calc(100vw - 16px);height:min(600px,calc(100dvh - 160px))}}
-\`;
+`;
 const style=document.createElement('style');style.textContent=css;document.head.appendChild(style);
 const launcher=document.createElement('button');launcher.id='tp-guide-launcher';launcher.type='button';launcher.textContent='✦ Pulse Guide';launcher.setAttribute('aria-expanded','false');launcher.setAttribute('aria-controls','tp-guide-panel');
 const panel=document.createElement('section');panel.id='tp-guide-panel';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Pulse Guide support');
