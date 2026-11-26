@@ -5,7 +5,24 @@ let serverMode=false,serverChallenges=[],serverAnswered=new Set(),backend=window
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function renderTotal(total){const n=Math.min(1000,Math.max(0,Number(total)||0));$('#points-total').textContent=Number(total||0).toLocaleString();$('#points-fill').style.width=n/10+'%';$('#points-progress').setAttribute('aria-valuenow',String(n));$('#points-percent').textContent=Math.round(n/10)+'% complete';$('#points-left').textContent=Math.max(0,1000-n).toLocaleString()+' to go'}
 function renderHistory(rows){const hist=$('#points-history');hist.innerHTML=rows.length?rows.slice(0,8).map(x=>'<div><span>'+esc(labels[x.challenge_id?.split('-')[0]]||x.name||'Challenge')+' · '+esc(x.challenge_date||x.date||'')+'</span><b>+'+Number(x.points_awarded??x.points??0)+' pts</b></div>').join(''):'<p class="points-muted">No challenges completed yet.</p>'}
-function renderServerStats(stats){renderTotal(stats.total_points);$('#streak-count').textContent=stats.current_streak||0;$('#streak-best').textContent=stats.best_streak||0;$('#streak-message').textContent='Your daily check-in is saved to your TrendPulse account.'}
+const xpLevels=[{name:'Newcomer',min:0},{name:'Explorer',min:100},{name:'Rising Star',min:300},{name:'Trend Hunter',min:700},{name:'Pulse Legend',min:1500}];
+function renderXpProgress(total){
+ const points=Math.max(0,Number(total)||0);
+ let index=0;for(let i=0;i<xpLevels.length;i++){if(points>=xpLevels[i].min)index=i}
+ const current=xpLevels[index],next=xpLevels[index+1];
+ const start=current.min,end=next?next.min:current.min;
+ const progress=next?Math.max(0,Math.min(100,((points-start)/(end-start))*100)):100;
+ const name=document.getElementById('xp-level-name');if(!name)return;
+ name.textContent=current.name;
+ document.getElementById('xp-level-next').textContent=next?(end-points)+' XP to '+next.name:'Highest level reached';
+ document.getElementById('xp-level-fill').style.width=progress+'%';
+ document.getElementById('xp-level-progress').setAttribute('aria-valuenow',String(Math.round(progress)));
+ document.getElementById('xp-level-progress-label').textContent=next?(points-start)+' / '+(end-start)+' XP to next level':'Pulse Legend unlocked';
+ document.getElementById('xp-level-total').textContent=points.toLocaleString()+' XP';
+ document.querySelectorAll('.xp-level-item').forEach((el,i)=>{el.classList.toggle('active',i===index);el.classList.toggle('unlocked',i<=index)});
+ document.querySelectorAll('#xp-reward-grid .xp-reward-item').forEach((el,i)=>{const thresholds=[100,300,700,1500];el.classList.toggle('locked',points<thresholds[i])});
+}
+function renderServerStats(stats){renderTotal(stats.total_points);renderXpProgress(stats.total_points);$('#streak-count').textContent=stats.current_streak||0;$('#streak-best').textContent=stats.best_streak||0;$('#streak-message').textContent='Your daily check-in is saved to your TrendPulse account.'}
 function notice(mode,text){$('#points-mode-notice').innerHTML='<b>'+mode+'</b> '+text}
 function start(type){if(!serverMode)return;const q=serverChallenges.find(x=>x.category===type);if(!q)return;const panel=$('#quiz-panel');panel.hidden=false;panel.dataset.type=type;panel.dataset.challengeId=q.challenge_id||'';const options=q.options||q.a;panel.innerHTML='<span class="tag">QUESTION · '+Number(q.points??q.p)+' POINTS</span><h3>'+esc(q.question||q.q)+'</h3><div class="points-options">'+options.map((v,i)=>'<button type="button" data-answer="'+i+'">'+esc(v)+'</button>').join('')+'</div><p class="points-feedback" id="quiz-feedback" role="status"></p>';panel.querySelectorAll('[data-answer]').forEach(btn=>btn.addEventListener('click',()=>answer(type,q,+btn.dataset.answer)))}
 async function refreshServer(){const [statsResult,historyResult]=await Promise.all([backend.client.rpc('get_my_pulse_points'),backend.client.rpc('get_my_pulse_history')]);if(statsResult.error)throw statsResult.error;if(historyResult.error)throw historyResult.error;const stats=Array.isArray(statsResult.data)?statsResult.data[0]:statsResult.data;renderServerStats(stats||{});renderHistory(historyResult.data||[])}
@@ -39,7 +56,7 @@ async function init(){
      notice('Sign in required:','Your Pulse Points belong to your TrendPulse account. <a href="./profile.html" style="color:#25f4ee;text-decoration:underline">Sign in or create an account</a> to take challenges and save points.');
      document.querySelectorAll('[data-start]').forEach(btn=>{btn.disabled=true;btn.textContent='Sign in to play'});
      $('#streak-message').textContent='Sign in to build your account streak.';
-     renderTotal(0);
+     renderTotal(0);renderXpProgress(0);
      return;
    }
    serverMode=true;
@@ -63,7 +80,7 @@ async function init(){
    serverMode=false;
    notice('Live points connection issue:',esc(e.message||'Verified scoring is temporarily unavailable. Please try again.'));
    document.querySelectorAll('[data-start]').forEach(btn=>{btn.disabled=true;btn.textContent='Unavailable'});
-   renderTotal(0);
+   renderTotal(0);renderXpProgress(0);
    $('#streak-message').textContent='Unable to load your verified streak.';
  }
 }
