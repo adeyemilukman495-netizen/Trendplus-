@@ -589,6 +589,27 @@ function earn(){
    catch(error){status.textContent=error.message||'Could not publish your service. Sign in and try again.'}
    finally{button.disabled=false;button.textContent='Publish service'}
  });
+ const demoButton=$('#earn-create-demo-service'),demoStatus=$('#earn-demo-service-status');
+ if(demoButton)demoButton.addEventListener('click',async()=>{
+   if(!backend?.ready){demoStatus.textContent='Marketplace connection is unavailable.';return}
+   demoButton.disabled=true;demoButton.textContent='Creating test listing…';demoStatus.textContent='';
+   try{
+     const user=await backend.currentUser();
+     if(!user)throw new Error('Sign in first. The test listing will belong to your own account.');
+     const mine=await backend.getMyEarnServices();
+     const existing=mine.find(item=>item.title==='TrendPulse sandbox test listing');
+     if(existing){demoStatus.textContent='Your sandbox test listing already exists. Find it under Your published services.';return}
+     await backend.createEarnService({
+       title:'TrendPulse sandbox test listing',
+       category:'Other',
+       description:'TEST LISTING ONLY — created to check the TrendPulse service request and order-tracking flow. This is not a real service offer.',
+       starting_price:100
+     });
+     demoStatus.textContent='Test listing created on your account. It is visible in the public directory and can be deleted from Your published services.';
+     await loadMine();await loadMarket();
+   }catch(error){demoStatus.textContent=error.message||'Could not create the test listing.'}
+   finally{demoButton.disabled=false;demoButton.textContent='Create test listing (public)'}
+ });
  $('#earn-market-search').addEventListener('input',()=>{clearTimeout(window.tpEarnSearchTimer);window.tpEarnSearchTimer=setTimeout(loadMarket,350)});
  $('#earn-market-category').addEventListener('change',loadMarket);
  loadMarket();loadMine();
