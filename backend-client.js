@@ -435,6 +435,27 @@
       return data;
     },
 
+    getMyServiceOrders: async () => {
+      const user = await requireUser();
+      const { data, error } = await client.from('service_orders')
+        .select('id,service_request_id,service_id,buyer_id,seller_id,conversation_id,agreed_price,currency,status,accepted_at,started_at,delivered_at,completed_at,cancelled_at,created_at,updated_at,service:earn_services(title,category),buyer:profiles!service_orders_buyer_id_fkey(display_name,username),seller:profiles!service_orders_seller_id_fkey(display_name,username),events:service_order_events(id,actor_id,event_type,note,created_at,actor:profiles!service_order_events_actor_id_fkey(display_name,username))')
+        .or('buyer_id.eq.' + user.id + ',seller_id.eq.' + user.id)
+        .order('created_at', { ascending: false }).limit(100);
+      if (error) throw error;
+      return data || [];
+    },
+    transitionServiceOrder: async (orderId, nextStatus, note = '') => {
+      await requireUser();
+      const clean = String(note || '').trim().slice(0, 1000);
+      const { data, error } = await client.rpc('transition_service_order', {
+        order_uuid: orderId,
+        next_status: nextStatus,
+        event_note: clean,
+      });
+      if (error) throw error;
+      return data;
+    },
+
     startConversation: async otherUserId => {
       const user = await requireUser();
       if (!otherUserId || otherUserId === user.id) throw new Error('Choose another member.');
