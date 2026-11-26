@@ -532,19 +532,25 @@ function earn(){
      const user=await backend.currentUser();
      if(!user){orderList.innerHTML='<div class="empty">Sign in to view your orders.</div>';orderStatus.textContent='';return}
      const rows=await backend.getMyServiceOrders();
+     let testPayments=[],sandboxReady=true;
+     try{testPayments=await backend.getMyServiceTestPayments()}catch(_){sandboxReady=false}
      if(!rows.length){orderList.innerHTML='<div class="empty">No orders yet. When a seller accepts one of your service requests, it will appear here.</div>';orderStatus.textContent='';return}
+     const paymentByOrder=new Map(testPayments.map(payment=>[payment.order_id,payment]));
      const labels={accepted:'Accepted',in_progress:'In progress',delivered:'Delivered',completed:'Completed',cancelled:'Cancelled'};
      orderList.innerHTML=rows.map(order=>{
        const isBuyer=order.buyer_id===user.id,other=isBuyer?(order.seller||{}):(order.buyer||{});
+       const testPayment=paymentByOrder.get(order.id);
        const person=other.display_name||other.username||'TrendPulse member';
        let actions='';
        if(!isBuyer&&order.status==='accepted')actions+='<button class="primary" data-order-action="in_progress" data-order-id="'+esc(order.id)+'">Start work</button>';
        if(!isBuyer&&order.status==='in_progress')actions+='<button class="primary" data-order-action="delivered" data-order-id="'+esc(order.id)+'">Mark delivered</button>';
        if(isBuyer&&order.status==='delivered')actions+='<button class="primary" data-order-action="completed" data-order-id="'+esc(order.id)+'">Confirm completion</button>';
        if(order.status==='accepted')actions+='<button class="secondary" data-order-action="cancelled" data-order-id="'+esc(order.id)+'">Cancel order</button>';
+       if(isBuyer&&!testPayment&&sandboxReady&&['accepted','in_progress','delivered'].includes(order.status))actions+='<button class="secondary" data-test-payment="'+esc(order.id)+'">Run test payment (no real money)</button>';
        const events=(order.events||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
        const history=events.length?'<ol class="earn-order-history">'+events.map(ev=>'<li><b>'+esc(labels[ev.event_type]||ev.event_type)+'</b><span>'+esc(ev.actor?.display_name||ev.actor?.username||'Member')+' · '+new Date(ev.created_at).toLocaleString()+'</span>'+(ev.note?'<p>'+esc(ev.note)+'</p>':'')+'</li>').join('')+'</ol>':'';
-       return '<article class="panel earn-order-card" data-order-id="'+esc(order.id)+'"><div class="earn-card-top"><span class="tag">Order</span><span class="tag order-status-'+esc(order.status)+'">'+esc(labels[order.status]||order.status)+'</span></div><h3>'+esc(order.service?.title||'Community service')+'</h3><p class="muted small">'+(isBuyer?'Seller: ':'Buyer: ')+esc(person)+'</p><strong>'+money(order.listing_price)+'</strong><p class="muted small">Listing price snapshot · Final price can be discussed in chat; TrendPulse has not processed payment.</p><div class="earn-card-actions"><a class="btn secondary" href="./messages.html?conversation='+encodeURIComponent(order.conversation_id)+'">Open chat</a>'+actions+'</div><details class="earn-order-details"><summary>Order history</summary>'+history+'</details></article>';
+       const paymentNote=testPayment?'<p class="earn-trust-note">TEST ONLY: simulated payment recorded for '+money(testPayment.amount)+'. No real money was collected and no payout is available.</p>':'<p class="muted small">No payment recorded. The order price is not proof of payment.</p>';
+       return '<article class="panel earn-order-card" data-order-id="'+esc(order.id)+'"><div class="earn-card-top"><span class="tag">Order</span><span class="tag order-status-'+esc(order.status)+'">'+esc(labels[order.status]||order.status)+'</span></div><h3>'+esc(order.service?.title||'Community service')+'</h3><p class="muted small">'+(isBuyer?'Seller: ':'Buyer: ')+esc(person)+'</p><strong>'+money(order.listing_price)+'</strong>'+paymentNote+'<div class="earn-card-actions"><a class="btn secondary" href="./messages.html?conversation='+encodeURIComponent(order.conversation_id)+'">Open chat</a>'+actions+'</div><details class="earn-order-details"><summary>Order history</summary>'+history+'</details></article>';
      }).join('');
      const requestedOrder=new URLSearchParams(location.search).get('order');
      if(requestedOrder){
@@ -556,6 +562,13 @@ function earn(){
        }
      }
      orderStatus.textContent=rows.length+' order'+(rows.length===1?'':'s');
+     orderList.querySelectorAll('[data-test-payment]').forEach(button=>button.addEventListener('click',async()=>{
+       if(!confirm('Run a sandbox-only payment simulation? This does not charge anyone or create withdrawable money.'))return;
+       button.disabled=true;button.textContent='Recording test…';
+       try{await backend.simulateServiceTestPayment(button.dataset.testPayment);await loadOrders();orderStatus.textContent='Sandbox payment recorded. No real money was collected.'}
+       catch(error){button.disabled=false;button.textContent='Run test payment (no real money)';orderStatus.textContent=error.message||'Could not record the test payment.'}
+     }));
+     if(!sandboxReady)orderStatus.textContent='Payment sandbox is not installed yet. Orders still work; no payment has been taken.';
      orderList.querySelectorAll('[data-order-action]').forEach(button=>button.addEventListener('click',async()=>{
        const action=button.dataset.orderAction;
        const note=action==='delivered'?prompt('Add a delivery note (optional, up to 1,000 characters).'):null;
