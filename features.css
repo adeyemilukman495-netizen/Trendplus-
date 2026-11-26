@@ -837,3 +837,6 @@ body[data-feature="profile"] .profile-settings[hidden]{display:none!important}
 .earn-order-history li span{display:block;color:#aaa;font-size:.78rem}.earn-order-history li p{margin:4px 0;color:#ddd;font-size:.88rem;overflow-wrap:anywhere}
 .order-status-completed{border-color:#25f4ee;color:#25f4ee}.order-status-cancelled{border-color:#ff6878;color:#ff9aa5}
 @media(max-width:520px){.earn-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+body[data-feature="earn"] .earn-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:600px){body[data-feature="earn"] .earn-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
