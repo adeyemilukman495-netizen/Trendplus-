@@ -638,3 +638,12 @@ body[data-feature="profile"] #profile-form[hidden]{display:none!important}
  body[data-feature="profile"] .tiktok-profile-stats div{flex-direction:column;gap:0}
  body[data-feature="profile"] .tiktok-profile-stats span{font-size:.78rem}
 }
+
+body[data-feature="shorts"] .shorts-top-actions{display:flex;align-items:center;gap:16px}
+body[data-feature="shorts"] .shorts-create{min-height:40px;padding:7px 13px;border:1px solid #25f4ee;border-radius:9px;background:#25f4ee;color:#050505;font-weight:850}
+body[data-feature="profile"] .tiktok-video-grid{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+body[data-feature="profile"] .tiktok-video-tile{position:relative;min-height:170px;display:flex;align-items:flex-end;padding:12px;background:linear-gradient(145deg,#262626,#111);color:#fff;text-decoration:none;overflow:hidden}
+body[data-feature="profile"] .tiktok-video-tile:before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#000b,transparent 65%)}
+body[data-feature="profile"] .tiktok-video-tile b{position:relative;font-size:.85rem;line-height:1.25}
+body[data-feature="profile"] .tiktok-video-play{position:absolute;top:12px;left:12px;color:#25f4ee}
+@media(max-width:560px){body[data-feature="profile"] .tiktok-video-tile{min-height:125px;padding:8px}body[data-feature="profile"] .tiktok-video-tile b{font-size:.72rem}}
