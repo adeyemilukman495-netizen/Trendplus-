@@ -5,6 +5,8 @@ async function openDailyDuel(page, signedIn) {
     window.__TEST_USER = user ? { id: '00000000-0000-4000-8000-000000000001' } : null;
     window.__RPC_CALLS = [];
   }, signedIn);
+  await page.route('**/analytics.js*', route => route.fulfill({ contentType: 'application/javascript', body: '' }));
+  await page.route('**/pulse-assistant.js*', route => route.fulfill({ contentType: 'application/javascript', body: '' }));
   await page.route('https://**/*', route => route.abort());
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', route =>
     route.fulfill({
