@@ -784,3 +784,7 @@ body[data-feature="earn"] .tp-bottom-nav a[aria-current="page"] span{color:#25f4
 
 /* Shared Earn marketplace controls */
 .earn-market-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(145px,.45fr);gap:10px;margin:8px 0}.earn-market-filters input,.earn-market-filters select{min-width:0;background:#101010;border:1px solid #454545;color:#fff;border-radius:11px;padding:12px}.earn-card-top,.earn-card-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}.earn-card-actions{justify-content:flex-start;margin-top:12px}.earn-card-actions button{flex:1}.earn-service-card{min-width:0}.earn-service-card strong{display:block;margin-top:10px;color:#25f4ee}@media(max-width:520px){.earn-market-filters{grid-template-columns:1fr}.earn-card-actions{flex-wrap:wrap}}
+
+/* Earn service request workflow */
+.earn-request-card{min-width:0}.earn-request-card .earn-card-actions{justify-content:flex-start;flex-wrap:wrap}.earn-request-card .earn-card-actions .btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:10px 14px;border-radius:10px}.earn-request-card .tag{text-transform:capitalize}
+#earn-requests{padding-bottom:30px}
