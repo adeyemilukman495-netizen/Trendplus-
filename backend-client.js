@@ -644,7 +644,7 @@
     getShorts: async () => {
       const user = await currentUser();
       const { data, error } = await client.from('shorts')
-        .select('*, profiles!shorts_author_id_fkey(display_name, username), short_likes(count)')
+        .select('*, profiles!shorts_author_id_fkey(display_name, username, bio, avatar_url), short_likes(count)')
         .order('created_at', { ascending: false }).limit(50);
       if (error) throw error;
       const rows = data || [];
@@ -655,6 +655,8 @@
         if (likeError) throw likeError;
         liked = new Set((mine || []).map(x => x.short_id));
       }
+      let saved = new Set();
+      if (user && rows.length) { const {data:mineSaved,error:savedError}=await client.from('short_watchlist').select('short_id').eq('user_id',user.id).in('short_id',rows.map(x=>x.id)); if(savedError)throw savedError; saved=new Set((mineSaved||[]).map(x=>x.short_id)); }
       const playable = await Promise.all(rows.map(async x => {
         let playbackUrl = x.video_url || '';
         if (x.video_path) {
@@ -670,7 +672,7 @@
           console.warn('Skipping a Short without a playable media URL:', x.id);
           return null;
         }
-        return { ...x, video_url: playbackUrl, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id) };
+        return { ...x, video_url: playbackUrl, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id), saved_by_me: saved.has(x.id) };
       }));
       return playable.filter(Boolean);
     },
