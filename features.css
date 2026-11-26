@@ -673,6 +673,57 @@ body[data-feature="profile"] #profile-settings[hidden],body[data-feature="profil
 @media(max-width:560px){body[data-feature="profile"] .tiktok-profile-top{gap:14px;padding-top:18px}body[data-feature="profile"] .tiktok-avatar{width:82px;height:82px;flex-basis:82px;font-size:2rem}body[data-feature="profile"] .tiktok-profile-stats{gap:20px}body[data-feature="profile"] .tiktok-profile-stats span{font-size:.8rem}body[data-feature="profile"] .tiktok-video-tile{min-height:145px}}
 
 
+/* TrendPulse profile: expanded settings, working profile tabs and activity timeline */
+body[data-feature="profile"] .tiktok-profile-content[hidden],
+body[data-feature="profile"] .tiktok-profile-activity[hidden]{display:none!important}
+body[data-feature="profile"] .tiktok-profile-activity{scroll-margin-top:20px}
+body[data-feature="profile"] .profile-activity-feed{display:grid;gap:10px;margin-top:18px}
+body[data-feature="profile"] .activity-item{display:flex;gap:13px;padding:15px;border:1px solid #343b4d;border-radius:15px;background:#171d2b}
+body[data-feature="profile"] .activity-dot{width:10px;height:10px;flex:none;margin-top:7px;border-radius:50%;background:#25f4ee;box-shadow:0 0 0 5px #25f4ee18}
+body[data-feature="profile"] .activity-item h3{margin:3px 0;font-size:1rem}
+body[data-feature="profile"] .activity-item p{margin:4px 0;color:#c1c8d7;overflow-wrap:anywhere}
+body[data-feature="profile"] .activity-item time{font-size:.76rem;color:#8995aa}
+body[data-feature="profile"] .settings-hero{padding:8px 0 22px;border-bottom:1px solid #30394d}
+body[data-feature="profile"] .settings-hero h2{font-size:clamp(1.8rem,5vw,2.5rem);margin:5px 0}
+body[data-feature="profile"] .settings-layout{display:grid;grid-template-columns:180px minmax(0,1fr);gap:18px;margin-top:18px}
+body[data-feature="profile"] .settings-index{position:sticky;top:14px;align-self:start;display:grid;gap:5px;padding:10px;border:1px solid #30394d;border-radius:15px;background:#151b29}
+body[data-feature="profile"] .settings-index a{padding:10px 11px;border-radius:9px;color:#d8deeb;text-decoration:none;font-size:.9rem}
+body[data-feature="profile"] .settings-index a:hover{background:#26344d}
+body[data-feature="profile"] .settings-sections{display:grid;gap:13px;min-width:0}
+body[data-feature="profile"] .settings-card{display:flex;gap:14px;padding:17px;border:1px solid #30394d;border-radius:16px;background:linear-gradient(145deg,#1a2232,#141b29);scroll-margin-top:14px}
+body[data-feature="profile"] .settings-card-icon{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:12px;background:#26344d;font-size:1.2rem}
+body[data-feature="profile"] .settings-card-body{min-width:0;flex:1}
+body[data-feature="profile"] .settings-card h3{margin:0 0 4px;font-size:1.08rem}
+body[data-feature="profile"] .settings-card p{margin:0 0 12px;color:#aeb9cd;font-size:.88rem}
+body[data-feature="profile"] .account-security-form{display:grid;gap:8px;max-width:460px}
+body[data-feature="profile"] .account-security-form label{margin:5px 0 0}
+body[data-feature="profile"] .account-security-form input{min-height:46px}
+body[data-feature="profile"] .settings-feedback{min-height:1.2em;color:#9de7c0;font-size:.82rem}
+body[data-feature="profile"] .settings-option{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #30394d;margin:0}
+body[data-feature="profile"] .settings-option span{display:grid;gap:3px}
+body[data-feature="profile"] .settings-option small{font-size:.78rem;color:#9eabc0;font-weight:400}
+body[data-feature="profile"] .settings-option input{width:22px;height:22px;accent-color:#25f4ee;flex:none}
+body[data-feature="profile"] .settings-links{display:grid}
+body[data-feature="profile"] .settings-links a{display:flex;justify-content:space-between;padding:12px 2px;border-top:1px solid #30394d;color:#dce5f6;text-decoration:none}
+body[data-feature="profile"] .settings-signout{width:100%;padding:14px;border:1px solid #8d4653;border-radius:13px;background:#321e27;color:#ffc5ce;font-weight:800}
+body[data-feature="profile"] .profile-settings{padding-bottom:22px}
+html.tp-reduce-motion *,html.tp-reduce-motion *::before,html.tp-reduce-motion *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+html.tp-compact-layout .panel,html.tp-compact-layout .card{padding:12px}
+@media(max-width:650px){body[data-feature="profile"] .settings-layout{grid-template-columns:1fr}body[data-feature="profile"] .settings-index{position:static;display:flex;overflow-x:auto}body[data-feature="profile"] .settings-index a{white-space:nowrap}body[data-feature="profile"] .settings-card{padding:14px;gap:10px}}
+/* Dark watchlist theme: prevent white/default form controls and page backgrounds */
+body[data-feature="watchlist"]{min-height:100vh;background:radial-gradient(ellipse at 12% 0%,#202b50 0,transparent 42%),#090d18;color:#f3f6ff;padding-bottom:40px}
+body[data-feature="watchlist"] .wrap{max-width:980px}
+body[data-feature="watchlist"] .panel{background:linear-gradient(145deg,#121a2b,#101728);border-color:#2b3853;color:#f3f6ff}
+body[data-feature="watchlist"] .library-card{background:#121a2b;border-color:#2b3853;color:#f3f6ff}
+body[data-feature="watchlist"] .library-info h3{color:#f3f6ff}
+body[data-feature="watchlist"] .library-info select{background:#0b1221;color:#f3f6ff;border:1px solid #3b4964;color-scheme:dark}
+body[data-feature="watchlist"] .library-remove{color:#ffaaa5}
+body[data-feature="watchlist"] .library-tab{background:#19243a;color:#c4cde0;border-color:#34415c}
+body[data-feature="watchlist"] .library-tab.active{background:#a6f36b;color:#10200c;border-color:#a6f36b}
+body[data-feature="watchlist"] .poster-placeholder{background:#19243a;color:#a6f36b}
+body[data-feature="watchlist"] .empty{background:#111a2b;color:#c3cce0;border-color:#3b4964}
+
+
 /* Creator upload management lives inside Profile Settings. */
 body[data-feature="profile"] .profile-upload-management{margin:22px 0;padding:16px;border:1px solid #303030;border-radius:14px;background:#171717}
 body[data-feature="profile"] .profile-upload-management h3{margin:0 0 6px;font-size:1.05rem}
