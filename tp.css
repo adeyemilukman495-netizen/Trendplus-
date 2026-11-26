@@ -573,3 +573,40 @@ footer{font-size:.82rem}
 @media(max-width:760px){
  .btn,.btn.small,.chip,.field input,.discover-search-form input,.discover-search-form select{min-height:44px}
 }
+
+
+/* Compact type scale v2 — overrides older page-specific oversized settings. */
+html{font-size:14px!important}
+body{font-size:14px!important;line-height:1.5!important}
+body p,body li,body label,body input,body select,body textarea{font-size:13px!important;line-height:1.5}
+body h1,body .page-h{font-size:1.75rem!important;line-height:1.12!important;letter-spacing:-.035em!important}
+body h2,body .sec-head h2,body .panel h2{font-size:1.35rem!important;line-height:1.2!important}
+body h3,body .card h3,body .hub-card h3,body .row h3,body .threads h3{font-size:1rem!important;line-height:1.3!important}
+body .hero h1{font-size:2.15rem!important;line-height:1.08!important}
+body .hero .lead,body .lead,body .sub{font-size:13px!important;line-height:1.55!important}
+body .logo{font-size:1.08rem!important}
+body nav a,body .nav-more summary,body .header-profile{font-size:12px!important}
+body .btn,body .btn.small{font-size:12px!important;line-height:1.2!important;padding:.62rem .9rem!important}
+body .chip{font-size:12px!important;padding:.42rem .72rem!important}
+body .tag,body .badge,body .note,body .avg,body .hub-card p,body .row p,body .threads p,body footer{font-size:12px!important;line-height:1.45!important}
+body .avg b,body .stat b{font-size:1.15rem!important}
+body .panel,body .card{padding:.9rem!important}
+body .hub-card{padding:1rem!important}
+body .pulse-tile h3{font-size:1.05rem!important}
+@media(max-width:760px){
+ html{font-size:14px!important}
+ body{font-size:13px!important}
+ body .hero h1{font-size:1.9rem!important}
+ body h1,body .page-h{font-size:1.6rem!important}
+ body h2,body .sec-head h2{font-size:1.25rem!important}
+ body h3,body .card h3,body .hub-card h3{font-size:.98rem!important}
+ body p,body li,body label,body .lead,body .sub{font-size:12px!important}
+ body nav a{font-size:11px!important}
+ body .btn,body .btn.small,body .chip{font-size:11px!important}
+ body .tp-bottom-nav>a{font-size:10px!important}
+ body .tp-bottom-nav>a>small{font-size:9px!important}
+}
+/* Preserve accessible touch target dimensions independently of label size. */
+@media(max-width:760px){
+ body .btn,body .btn.small,body .chip{min-height:44px}
+}
