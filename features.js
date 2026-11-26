@@ -411,10 +411,11 @@ $('#profile-share').onclick=async()=>{const url=location.href.split('?')[0];try{
 }
 async function catalog(){let form=$('#search-form'),root=$('#content'),status=$('#status');form.onsubmit=async e=>{e.preventDefault();let q=$('#query').value.trim(),kind=$('#kind').value;if(!q)return;root.innerHTML='';status.textContent='Searching public catalogue…';let data=[];try{if(kind==='Anime'||kind==='Manga'){let type=kind==='Anime'?'anime':'manga';let r=await fetch('https://kitsu.io/api/edge/'+type+'?filter[text]='+encodeURIComponent(q)+'&page[limit]=12');if(!r.ok)throw Error();let j=await r.json();data=(j.data||[]).map(x=>{let a=x.attributes||{};return{title:a.canonicalTitle||a.titles?.en||a.titles?.en_jp||'Untitled',poster:a.posterImage?.small||a.posterImage?.medium,genres:'',year:(a.startDate||'').slice(0,4),summary:a.synopsis||'',url:'https://kitsu.io/'+type+'/'+a.slug,type:kind,score:a.averageRating}})}else if(kind==='TV / Drama'){let r=await fetch('https://api.tvmaze.com/search/shows?q='+encodeURIComponent(q));if(!r.ok)throw Error();let j=await r.json();data=j.slice(0,12).map(v=>({title:v.show.name,poster:v.show.image?.medium,genres:(v.show.genres||[]).join(', '),year:v.show.premiered?.slice(0,4)||'',summary:(v.show.summary||'').replace(/<[^>]*>/g,' '),url:v.show.url,type:'TV / Drama'}))}else{let search=q+' film movie';if(kind==='Hollywood Movies')search=q+' Hollywood film';if(kind==='Bollywood Movies')search=q+' Bollywood Indian film';if(kind==='International Movies')search=q+' international cinema film';let r=await fetch('https://en.wikipedia.org/w/rest.php/v1/search/page?q='+encodeURIComponent(search)+'&limit=12');if(!r.ok)throw Error();let j=await r.json();data=(j.pages||[]).map(x=>({title:x.title,poster:x.thumbnail?.url,genres:x.description||'Wikipedia result',year:'',summary:x.excerpt||'Open the article for more information.',url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(x.key||x.title.replace(/ /g,'_')),type:'Film / Wikipedia'}))}}catch(e){status.textContent='The selected public catalogue is temporarily unavailable. Try again later.';return}if(!data.length){status.textContent='No matching titles found.';return}status.textContent='Found '+data.length+' results. Add a title to your watchlist. Film results are Wikipedia knowledge results, not verified ratings or streaming availability.';root.innerHTML='<div class="grid">'+data.map(x=>'<article class="card">'+(x.poster?'<img class="poster" loading="lazy" src="'+esc(x.poster)+'" alt="Artwork for '+esc(x.title)+'">':'')+'<span class="tag">'+esc(x.type)+'</span><h3>'+esc(x.title)+'</h3><p class="muted small">'+esc([x.year,x.genres,x.score?'Community rating '+x.score:''].filter(Boolean).join(' · '))+'</p><p class="small">'+esc(x.summary).slice(0,240)+'</p><button data-add="'+encodeURIComponent(JSON.stringify(x))+'">＋ Watchlist</button> <a class="btn secondary" href="'+esc(x.url)+'" target="_blank" rel="noopener">Details</a></article>').join('')+'</div>';root.querySelectorAll('[data-add]').forEach(b=>b.onclick=async()=>{try{const x=JSON.parse(decodeURIComponent(b.dataset.add));const user=await backend.currentUser();if(!user){b.textContent='Sign in first';return}await backend.addWatchlist({external_id:x.url,title:x.title,media_type:x.type,poster_url:x.poster||null});b.textContent='Added ✓'}catch(err){b.textContent=err.message||'Could not save'}})}}
 function earn(){
- const tabs=[...document.querySelectorAll('[data-earn-tab]')],sections={opportunities:$('#earn-opportunities'),services:$('#earn-services'),dashboard:$('#earn-dashboard'),requests:$('#earn-requests')};
- function show(name){tabs.forEach(t=>{const active=t.dataset.earnTab===name;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active))});Object.entries(sections).forEach(([key,node])=>{node.hidden=key!==name});if(name==='requests')loadRequests()}
+ const tabs=[...document.querySelectorAll('[data-earn-tab]')],sections={opportunities:$('#earn-opportunities'),services:$('#earn-services'),dashboard:$('#earn-dashboard'),requests:$('#earn-requests'),orders:$('#earn-orders')};
+ function show(name){tabs.forEach(t=>{const active=t.dataset.earnTab===name;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active))});Object.entries(sections).forEach(([key,node])=>{node.hidden=key!==name});if(name==='requests')loadRequests();if(name==='orders')loadOrders()}
  tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.earnTab)));
  const backend=window.TPBackend,form=$('#earn-service-form'),list=$('#earn-service-list'),publicList=$('#earn-public-service-list'),status=$('#earn-service-status'),publicStatus=$('#earn-market-status'),requestList=$('#earn-request-list'),requestStatus=$('#earn-request-status');
+ const orderList=$('#earn-order-list'),orderStatus=$('#earn-order-status');
  const money=value=>'₦'+Number(value||0).toLocaleString('en-NG',{maximumFractionDigits:2});
  function serviceCard(x,own=false){
    const profile=x.profiles||{},seller=profile.display_name||profile.username||'TrendPulse member',price=money(x.starting_price);
@@ -464,9 +465,41 @@ function earn(){
      }).join('');
      requestStatus.textContent=rows.length+' request'+(rows.length===1?'':'s');
      requestList.querySelectorAll('[data-request-action]').forEach(button=>button.addEventListener('click',async()=>{
-       button.disabled=true;try{await backend.respondServiceRequest(button.dataset.requestId,button.dataset.requestAction);await loadRequests();requestStatus.textContent='Request updated.'}catch(error){button.disabled=false;requestStatus.textContent=error.message||'Could not update request.'}
+       button.disabled=true;try{await backend.respondServiceRequest(button.dataset.requestId,button.dataset.requestAction);if(button.dataset.requestAction==='accepted'){await loadRequests();await loadOrders();show('orders');orderStatus.textContent='Order created from the accepted request.'}else{await loadRequests();requestStatus.textContent='Request updated.'}}catch(error){button.disabled=false;requestStatus.textContent=error.message||'Could not update request.'}
      }));
    }catch(error){requestStatus.textContent=error.message||'Could not load requests.';requestList.innerHTML='<div class="empty">Your requests could not be loaded.</div>'}
+ }
+ async function loadOrders(){
+   if(!backend?.ready){orderList.innerHTML='<div class="empty">Orders are unavailable until the backend is connected.</div>';return}
+   orderStatus.textContent='Loading your orders…';
+   try{
+     const user=await backend.currentUser();
+     if(!user){orderList.innerHTML='<div class="empty">Sign in to view your orders.</div>';orderStatus.textContent='';return}
+     const rows=await backend.getMyServiceOrders();
+     if(!rows.length){orderList.innerHTML='<div class="empty">No orders yet. When a seller accepts one of your service requests, it will appear here.</div>';orderStatus.textContent='';return}
+     const labels={accepted:'Accepted',in_progress:'In progress',delivered:'Delivered',completed:'Completed',cancelled:'Cancelled'};
+     orderList.innerHTML=rows.map(order=>{
+       const isBuyer=order.buyer_id===user.id,other=isBuyer?(order.seller||{}):(order.buyer||{});
+       const person=other.display_name||other.username||'TrendPulse member';
+       let actions='';
+       if(!isBuyer&&order.status==='accepted')actions+='<button class="primary" data-order-action="in_progress" data-order-id="'+esc(order.id)+'">Start work</button>';
+       if(!isBuyer&&order.status==='in_progress')actions+='<button class="primary" data-order-action="delivered" data-order-id="'+esc(order.id)+'">Mark delivered</button>';
+       if(isBuyer&&order.status==='delivered')actions+='<button class="primary" data-order-action="completed" data-order-id="'+esc(order.id)+'">Confirm completion</button>';
+       if(order.status==='accepted')actions+='<button class="secondary" data-order-action="cancelled" data-order-id="'+esc(order.id)+'">Cancel order</button>';
+       const events=(order.events||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+       const history=events.length?'<ol class="earn-order-history">'+events.map(ev=>'<li><b>'+esc(labels[ev.event_type]||ev.event_type)+'</b><span>'+esc(ev.actor?.display_name||ev.actor?.username||'Member')+' · '+new Date(ev.created_at).toLocaleString()+'</span>'+(ev.note?'<p>'+esc(ev.note)+'</p>':'')+'</li>').join('')+'</ol>':'';
+       return '<article class="panel earn-order-card"><div class="earn-card-top"><span class="tag">Order</span><span class="tag order-status-'+esc(order.status)+'">'+esc(labels[order.status]||order.status)+'</span></div><h3>'+esc(order.service?.title||'Community service')+'</h3><p class="muted small">'+(isBuyer?'Seller: ':'Buyer: ')+esc(person)+'</p><strong>'+money(order.listing_price)+'</strong><p class="muted small">Listing price snapshot · Final price can be discussed in chat; TrendPulse has not processed payment.</p><div class="earn-card-actions"><a class="btn secondary" href="./messages.html?conversation='+encodeURIComponent(order.conversation_id)+'">Open chat</a>'+actions+'</div><details class="earn-order-details"><summary>Order history</summary>'+history+'</details></article>';
+     }).join('');
+     orderStatus.textContent=rows.length+' order'+(rows.length===1?'':'s');
+     orderList.querySelectorAll('[data-order-action]').forEach(button=>button.addEventListener('click',async()=>{
+       const action=button.dataset.orderAction;
+       const note=action==='delivered'?prompt('Add a delivery note (optional, up to 1,000 characters).'):null;
+       if(action==='delivered'&&note===null)return;
+       button.disabled=true;
+       try{await backend.transitionServiceOrder(button.dataset.orderId,action,note||'');await loadOrders();orderStatus.textContent='Order updated.'}
+       catch(error){button.disabled=false;orderStatus.textContent=error.message||'Could not update the order.'}
+     }));
+   }catch(error){orderStatus.textContent=error.message||'Could not load orders.';orderList.innerHTML='<div class="empty">Your orders could not be loaded.</div>'}
  }
  form.addEventListener('submit',async event=>{
    event.preventDefault();status.textContent='';
@@ -482,7 +515,7 @@ function earn(){
  $('#earn-market-category').addEventListener('change',loadMarket);
  loadMarket();loadMine();
  const nav=document.createElement('nav');nav.className='tp-bottom-nav';nav.setAttribute('aria-label','Main navigation');nav.innerHTML='<a href="./"><span>⌂</span><small>Home</small></a><a href="./discover.html"><span>⌕</span><small>Discover</small></a><a href="./shorts.html"><span>▣</span><small>Shorts</small></a><a href="./community.html"><span>◎</span><small>Community</small></a><a href="./profile.html"><span>◉</span><small>Profile</small></a><a href="./earn.html" aria-current="page"><span>₦</span><small>Earn</small></a>';document.body.append(nav);
- const params=new URLSearchParams(location.search);if(params.has('request'))show('requests');
+ const params=new URLSearchParams(location.search);if(params.has('request'))show('requests');if(params.has('order'))show('orders');
 }
 const map={watchlist,reviews,community:posts,shorts,messages,profile,catalog,earn};if(map[page])map[page]();
 })();
