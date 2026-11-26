@@ -781,3 +781,6 @@ body[data-feature="earn"] .tp-bottom-nav a span{font-size:21px;color:#f5f5f5;lin
 body[data-feature="earn"] .tp-bottom-nav a[aria-current="page"]{color:#fff;font-weight:800}
 body[data-feature="earn"] .tp-bottom-nav a[aria-current="page"] span{color:#25f4ee;text-shadow:2px 0 #fe2c55}
 @media(max-width:600px){.earn-stats{grid-template-columns:1fr}.earn-hero{padding-top:12px}.earn-section-head{align-items:flex-start;flex-direction:column}}
+
+/* Shared Earn marketplace controls */
+.earn-market-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(145px,.45fr);gap:10px;margin:8px 0}.earn-market-filters input,.earn-market-filters select{min-width:0;background:#101010;border:1px solid #454545;color:#fff;border-radius:11px;padding:12px}.earn-card-top,.earn-card-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}.earn-card-actions{justify-content:flex-start;margin-top:12px}.earn-card-actions button{flex:1}.earn-service-card{min-width:0}.earn-service-card strong{display:block;margin-top:10px;color:#25f4ee}@media(max-width:520px){.earn-market-filters{grid-template-columns:1fr}.earn-card-actions{flex-wrap:wrap}}
