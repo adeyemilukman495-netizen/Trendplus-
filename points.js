@@ -3,7 +3,7 @@ const today=new Date().toISOString().slice(0,10);
 const labels={trend:'Trend IQ',screen:'Screen Test',brain:'Brain Circuit',expert:'Expert Arena'};
 let serverMode=false,serverChallenges=[],serverAnswered=new Set(),backend=window.TPBackend;
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function renderTotal(total){const n=Math.min(1500,Math.max(0,Number(total)||0));$('#points-total').textContent=Number(total||0).toLocaleString();$('#points-fill').style.width=n/15+'%';$('#points-progress').setAttribute('aria-valuenow',String(n));$('#points-percent').textContent=Math.round(n/15)+'% complete';$('#points-left').textContent=Math.max(0,1500-n).toLocaleString()+' to go'}
+function renderTotal(total){const n=Math.min(1000,Math.max(0,Number(total)||0));$('#points-total').textContent=Number(total||0).toLocaleString();$('#points-fill').style.width=n/10+'%';$('#points-progress').setAttribute('aria-valuenow',String(n));$('#points-percent').textContent=Math.round(n/10)+'% complete';$('#points-left').textContent=Math.max(0,1000-n).toLocaleString()+' to bucket full'}
 function renderHistory(rows){const hist=$('#points-history');hist.innerHTML=rows.length?rows.slice(0,8).map(x=>'<div><span>'+esc(labels[x.challenge_id?.split('-')[0]]||x.name||'Challenge')+' · '+esc(x.challenge_date||x.date||'')+'</span><b>+'+Number(x.points_awarded??x.points??0)+' pts</b></div>').join(''):'<p class="points-muted">No challenges completed yet.</p>'}
 const xpLevels=[{name:'Newcomer',min:0},{name:'Explorer',min:100},{name:'Rising Star',min:300},{name:'Trend Hunter',min:700},{name:'Pulse Legend',min:1500}];
 function renderXpProgress(total){
