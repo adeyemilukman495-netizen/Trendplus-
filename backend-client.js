@@ -697,20 +697,25 @@
       if (user && rows.length) { const {data:mineSaved,error:savedError}=await client.from('short_watchlist').select('short_id').eq('user_id',user.id).in('short_id',rows.map(x=>x.id)); if(savedError)throw savedError; saved=new Set((mineSaved||[]).map(x=>x.short_id)); }
       const playable = await Promise.all(rows.map(async x => {
         let playbackUrl = x.video_url || '';
+        let downloadUrl = '';
         if (x.video_path) {
-          const { data: signed, error: signedError } = await client.storage
-            .from('trendpulse-short-media').createSignedUrl(x.video_path, 3600);
+          const storage = client.storage.from('trendpulse-short-media');
+          const { data: signed, error: signedError } = await storage.createSignedUrl(x.video_path, 3600);
           if (signedError || !signed?.signedUrl) {
             console.warn('Skipping a Short whose media is not currently available:', x.id, signedError?.message);
             return null;
           }
           playbackUrl = signed.signedUrl;
+          const extension = String(x.video_path).split('.').pop().toLowerCase() === 'webm' ? 'webm' : 'mp4';
+          const filename = String(x.title || 'trendpulse-short').replace(/[^a-z0-9_-]/gi, '_').slice(0, 80) + '.' + extension;
+          const { data: downloadable, error: downloadError } = await storage.createSignedUrl(x.video_path, 3600, { download: filename });
+          if (!downloadError && downloadable?.signedUrl) downloadUrl = downloadable.signedUrl;
         }
         if (!playbackUrl) {
           console.warn('Skipping a Short without a playable media URL:', x.id);
           return null;
         }
-        return { ...x, video_url: playbackUrl, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id), saved_by_me: saved.has(x.id) };
+        return { ...x, video_url: playbackUrl, download_url: downloadUrl, like_count: x.short_likes?.[0]?.count || 0, liked_by_me: liked.has(x.id), saved_by_me: saved.has(x.id) };
       }));
       return playable.filter(Boolean);
     },
