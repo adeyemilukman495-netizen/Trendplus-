@@ -24,6 +24,7 @@
 <link rel="stylesheet" href="./home-pina.css?v=20261127-mobilefix1">
 <link rel="stylesheet" href="./daily-pulse.css?v=20261127-mobilefix1">
 <link rel="stylesheet" href="./film-catalog.css?v=20261127-mobilefix1">
+<link rel="stylesheet" href="./home-engagement.css?v=20261127-retention1">
 <style id="trendpulse-theme-fallback">
 /* Critical mobile-safe layout: keeps the homepage usable if a CSS request fails. */
 :root{color-scheme:dark;--bg:#090d18;--panel:#121a2b;--line:#2b3a59;--text:#f4f6ff;--muted:#aab6d0;--accent:#7cf7d4}
@@ -137,6 +138,23 @@ img,video{max-width:100%;height:auto}
 <section class="pina-section"><div class="wrap"><div class="pina-section-head"><div><p class="pina-eyebrow">ANIMATION PICKS</p><h2>Anime &amp; animation</h2></div><a href="./anime.html">Explore anime <span>→</span></a></div><div class="pina-poster-row" id="home-anime"><div class="pina-loading">Loading titles…</div></div></div></section>
 <section class="pina-section"><div class="wrap"><div class="pina-section-head"><div><p class="pina-eyebrow">STORIES THAT STAY WITH YOU</p><h2>Drama series</h2></div><a href="./k-drama.html">Browse dramas <span>→</span></a></div><div class="pina-poster-row" id="home-drama"><div class="pina-loading">Loading titles…</div></div></div></section>
 <section class="pina-section pina-community-section"><div class="wrap"><div class="pina-section-head"><div><p class="pina-eyebrow">MORE THAN WATCHING</p><h2>Join the conversation</h2><p>Share your opinions, meet other fans and save the titles you want to revisit.</p></div></div><div class="pina-feature-links"><a href="./community.html"><span>◎</span><b>Community</b><small>Talk about the stories you love.</small></a><a href="./reviews.html"><span>★</span><b>Reviews</b><small>Read and share your ratings.</small></a><a href="./watchlist.html"><span>♡</span><b>My Watchlist</b><small>Keep your next watches together.</small></a><a href="./shorts.html"><span>▶</span><b>Shorts</b><small>Discover short-form videos.</small></a></div></div></section>
+
+<section class="return-hub" aria-labelledby="return-hub-title">
+ <div class="wrap">
+  <div class="return-head"><div><p class="pina-eyebrow">A FRESH PULSE EVERY DAY</p><h2 id="return-hub-title">Your TrendPulse, <span>today.</span></h2><p>Discover something new, take part and watch your progress grow.</p></div><a class="return-profile-link" href="./earn.html">My progress →</a></div>
+  <div class="return-daily-grid" id="tp-daily-drop" aria-live="polite"><article class="return-card"><p class="return-kicker">TODAY'S DAILY DROP</p><h3>Loading today's discoveries…</h3><p>Finding fresh picks for you.</p></article></div>
+  <div class="return-lower-grid">
+   <section class="return-panel"><div class="return-panel-head"><div><p class="return-kicker">YOUR WEEK</p><h3>Weekly missions</h3></div><a href="./earn.html">Earn →</a></div><div id="tp-weekly-missions"><p class="return-muted">Sign in to track your weekly progress.</p></div></section>
+   <section class="return-panel"><div class="return-panel-head"><div><p class="return-kicker">COLLECT THEM</p><h3>Your badges</h3></div><a href="./profile.html">Profile →</a></div><div class="return-badges" id="tp-badges"><p class="return-muted">Your achievements will appear here.</p></div></section>
+  </div>
+  <div class="return-lower-grid">
+   <section class="return-panel spotlight-panel"><div class="return-panel-head"><div><p class="return-kicker">CREATOR SPOTLIGHT</p><h3>This week's creator</h3></div><a href="./shorts.html">All Shorts →</a></div><div id="tp-creator-spotlight"><p class="return-muted">Loading original Shorts…</p></div></section>
+   <section class="return-panel weekly-battle-panel"><div class="return-panel-head"><div><p class="return-kicker">VOTE THIS WEEK</p><h3>Weekly Trend Battle</h3></div><span class="return-live">WEEKLY</span></div><div id="tp-weekly-battle"><p class="return-muted">Loading this week's matchup…</p></div></section>
+  </div>
+  <p class="return-footnote">Points reward genuine participation, not repeated clicks or spam. Weekly mission progress and badges are based on activity recorded on your account.</p>
+ </div>
+</section>
+
 <section class="pina-section pina-trends"><div class="wrap"><div class="pina-section-head"><div><p class="pina-eyebrow">COMMUNITY BUZZ</p><h2>Entertainment topics trending now</h2><p id="home-note">A snapshot of public interest across tracked entertainment topics.</p></div><a href="./trending.html">All trends <span>→</span></a></div><div class="grid" id="home-trend"></div></div></section>
 <section class="pina-section pina-trends"><div class="wrap"><div class="pina-section-head"><div><p class="pina-eyebrow">ON THE RISE</p><h2>Rising topics</h2></div><a href="./rising.html">See what's rising <span>→</span></a></div><div class="grid" id="home-rise"></div></div></section>
 <div class="wrap related"><p>TrendPulse helps you discover entertainment and connect with the people who enjoy it.</p></div>
@@ -151,5 +169,5 @@ img,video{max-width:100%;height:auto}
 <script src="./topics.js?v=20261125-catalogue1"></script>
 <script src="./film-catalog.js?v=20261127-fast-first"></script><script src="./tp.js?v=20261125-global-buzz2"></script>
 <script src="./tvmaze.js?v=20261123"></script><script src="./home-catalog.js?v=20261126-pina1"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./analytics.js?v=20261125-analytics1"></script><script src="./pulse-assistant.js?v=20261127-faq10"></script><script src="./daily-pulse.js?v=20261126-daily1"></script></body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script><script src="./analytics.js?v=20261125-analytics1"></script><script src="./pulse-assistant.js?v=20261127-faq10"></script><script src="./daily-pulse.js?v=20261126-daily1"></script><script src="./home-engagement.js?v=20261127-retention1"></script></body>
 </html>
