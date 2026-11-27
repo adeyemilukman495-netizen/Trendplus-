@@ -439,6 +439,8 @@ $('#profile-share').onclick=async()=>{const url=location.href.split('?')[0];try{
 async function catalog(){
  const form=$('#search-form'),root=$('#content'),status=$('#status');
  if(!form||!root||!status)return;
+ const selectedKind=new URLSearchParams(location.search).get('kind');
+ if(selectedKind&&$('#kind')&&Array.from($('#kind').options).some(option=>option.value===selectedKind||option.text===selectedKind))$('#kind').value=selectedKind;
  const filmKinds=['Movies','Hollywood Movies','Bollywood Movies','International Movies','Nollywood','Animation'];
  const dramaFilters={
   'K-Drama':{languages:['Korean'],countries:['KR']},
@@ -486,7 +488,7 @@ async function catalog(){
      const language=String(show.language||'');
      const genres=show.genres||[];
      if(kind==='International Drama')return genres.includes('Drama');
-     return !!filter&&(filter.languages.includes(language)||filter.countries.includes(country))&&genres.includes('Drama');
+     return !!filter&&(filter.countries.includes(country)||(filter.languages.includes(language)&&!['Chinese','English'].includes(language)))&&genres.includes('Drama');
     });
     data=matches.slice(0,15).map(show=>({title:show.name,poster:show.image?.medium||'',genres:(show.genres||[]).join(', ')+(show.language?' · '+show.language:''),year:show.premiered?.slice(0,4)||'',summary:(show.summary||'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim(),url:show.url,type:kind}));
    }else{
