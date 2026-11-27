@@ -31,6 +31,9 @@ draw();
 function posts(){
 const root=$('#community-root'),roomList=$('#community-room-list'),chat=$('#community-chat'),welcome=$('#community-welcome');
 const signIn=$('#community-signin'),title=$('#community-room-title'),subtitle=$('#community-room-subtitle'),feed=$('#community-chat-messages'),form=$('#community-message-form'),input=$('#community-message-input'),send=$('#community-send'),back=$('#community-back');
+const searchBox=$('#community-search'),filterButtons=[...document.querySelectorAll('[data-room-filter]')];let roomFilter='all';
+function filterRoomRows(){const q=(searchBox?.value||'').trim().toLowerCase();roomList.querySelectorAll('.wa-room').forEach(row=>{const matchesText=!q||row.dataset.roomName.includes(q)||row.dataset.roomCategory.includes(q);const matchesFilter=roomFilter==='all'||roomFilter==='groups'||(roomFilter==='unread'&&false)||(roomFilter==='favourites'&&JSON.parse(localStorage.getItem('tp-community-favourites')||'[]').includes(row.dataset.roomName));row.hidden=!(matchesText&&matchesFilter)});}
+searchBox?.addEventListener('input',filterRoomRows);filterButtons.forEach(button=>button.addEventListener('click',()=>{roomFilter=button.dataset.roomFilter;filterButtons.forEach(x=>x.classList.toggle('active',x===button));filterRoomRows()}));
 let currentUser=null,activeRoom=null,activeChannel=null,typingTimer=null;
 const stamp=value=>new Date(value).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
 function appendMessage(item){
@@ -73,9 +76,10 @@ async function drawRooms(){
  if(!rooms.length){const empty=document.createElement('div');empty.className='wa-empty-communities';empty.innerHTML='<strong>No communities yet</strong><p>Be the first to create one and start a conversation.</p>';roomList.append(empty);return}
  rooms.forEach(room=>{
   const member=memberships.includes(room.id),item=document.createElement('button');
-  item.type='button';item.className='wa-room';item.innerHTML='<span class="wa-room-avatar">'+esc((room.name||'T').slice(0,1).toUpperCase())+'</span><span class="wa-room-copy"><b></b><small></small></span><span class="wa-room-count"></span>';
+  item.type='button';item.className='wa-room';item.dataset.roomName=(room.name||'').toLowerCase();item.dataset.roomCategory=(room.category||'').toLowerCase();item.dataset.member=String(member);
+  item.innerHTML='<span class="wa-room-avatar">'+esc((room.name||'T').slice(0,1).toUpperCase())+'</span><span class="wa-room-copy"><b></b><small></small></span><span class="wa-room-count"></span>';
   item.querySelector('b').textContent=room.name;
-  item.querySelector('small').textContent=room.description||room.category;
+  item.querySelector('small').textContent=room.description||room.category||'Community group';
   item.querySelector('.wa-room-count').textContent=member?((room.group_room_members?.[0]?.count||0)+' members'):'Join';
   item.onclick=()=>openRoom(room,member);roomList.append(item);
  });
