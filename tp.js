@@ -15,7 +15,7 @@ const dateA=ymd(start7),dateB=ymd(end),dateC=ymd(start7),dateD=ymd(endPrev);
 const cacheKey="tp-data-v5";
 const imageCacheKey="tp-images-v1";
 let records=[];
-function cacheRead(){try{const x=JSON.parse(localStorage.getItem(cacheKey)||"null");if(x&&Date.now()-x.time<30*60000)return x.data;}catch(e){}return null;}
+function cacheRead(){try{const x=JSON.parse(localStorage.getItem(cacheKey)||"null");if(x&&Array.isArray(x.data))return {data:x.data,age:Date.now()-Number(x.time||0)};}catch(e){}return null;}
 async function loadOne(t){
  // Wikimedia's Analytics API expects the agent value "all-agents", not "all".
  // Identify the browser client as recommended by Wikimedia for browser-based requests.
@@ -43,7 +43,9 @@ async function loadImages(){
  let saved={};
  try{const raw=JSON.parse(localStorage.getItem(imageCacheKey)||"null");if(raw&&Date.now()-raw.time<7*86400000)saved=raw.data||{};}catch(e){}
  const unique=[...new Map(topics.map(t=>[t.article,t])).values()];
- const missing=unique.filter(t=>!Object.prototype.hasOwnProperty.call(saved,t.article));
+ // Load only the first few visible-card images initially; the cards themselves render immediately.
+ const priority=new Set(records.slice(0,12).map(t=>t.article));
+ const missing=unique.filter(t=>priority.has(t.article)&&!Object.prototype.hasOwnProperty.call(saved,t.article));
  for(let i=0;i<missing.length;i+=6){
    const batch=await Promise.all(missing.slice(i,i+6).map(async t=>{
      try{
@@ -60,24 +62,32 @@ async function loadImages(){
  try{localStorage.setItem(imageCacheKey,JSON.stringify({time:Date.now(),data:saved}));}catch(e){}
  records=records.map(t=>({...t,image:saved[t.article]||null}));
 }
+async function refreshData(){
+ const unique=[...new Map(topics.map(t=>[t.article,t])).values()];
+ const output=[];
+ // Keep Wikimedia requests sequential to respect its Analytics API guidance.
+ for(let i=0;i<unique.length;i++){
+   const t=unique[i];
+   try{output.push(await loadOne(t));}
+   catch(e){output.push({...t,views:0,previous:0,avg:0,growth:0,series:[],error:true});}
+ }
+ const byArticle=new Map(output.map(x=>[x.article,x]));
+ records=topics.map(t=>({...byArticle.get(t.article),...t}));
+ try{localStorage.setItem(cacheKey,JSON.stringify({time:Date.now(),data:records}));}catch(e){}
+ render();
+}
 async function loadData(){
  const cached=cacheRead();
- if(cached){records=cached;}
- else{
-   const unique=[...new Map(topics.map(t=>[t.article,t])).values()];
-   const output=[];
-   // Wikimedia asks clients to wait for each Analytics API request to finish
-   // before sending the next one. Keep requests sequential to avoid throttling.
-   for(let i=0;i<unique.length;i++){
-     const t=unique[i];
-     try{output.push(await loadOne(t));}
-     catch(e){output.push({...t,views:0,previous:0,avg:0,growth:0,series:[],error:true});}
-   }
-   const byArticle=new Map(output.map(x=>[x.article,x]));
-   records=topics.map(t=>({...byArticle.get(t.article),...t}));
-   try{localStorage.setItem(cacheKey,JSON.stringify({time:Date.now(),data:records}));}catch(e){}
+ if(cached){
+   records=cached.data;
+   // Never hold up the home cards while poster thumbnails are fetched.
+   render();
+   loadImages().then(render).catch(()=>{});
+   if(cached.age>30*60000)refreshData().then(()=>loadImages()).then(render).catch(()=>{});
+   return records;
  }
- await loadImages();
+ await refreshData();
+ loadImages().then(render).catch(()=>{});
  return records;
 }
 function starButton(t){const saved=JSON.parse(localStorage.getItem("tp-follows")||"[]");const yes=saved.includes(t.article);return '<button class="star" type="button" data-star="'+safe(t.article)+'" aria-label="'+(yes?"Unfollow ":"Follow ")+safe(t.title)+'" aria-pressed="'+yes+'">'+(yes?"★":"☆")+'</button>';}
@@ -135,5 +145,5 @@ function init(){
  loadData().then(render).catch(()=>{ $$(".grid").forEach(el=>el.innerHTML='<p class="demo">Live trend data is temporarily unavailable. Please refresh in a little while.</p>');});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
-setInterval(()=>{if(document.visibilityState==="visible")loadData().then(render).catch(()=>{});},30*60*1000);
+setInterval(()=>{if(document.visibilityState==="visible")refreshData().then(()=>loadImages()).then(render).catch(()=>{});},30*60*1000);
 })();
