@@ -455,6 +455,16 @@ async function catalog(){
   'Arabic Drama':{languages:['Arabic'],countries:['EG','SA','AE','JO','LB','MA','TN','DZ','IQ','KW','QA']},
   'Latin American Drama':{languages:['Spanish','Portuguese'],countries:['MX','BR','AR','CO','CL','PE','VE','UY']},
   'Western Drama':{languages:['English'],countries:['US','GB','CA','AU','IE','NZ']},
+  'Pakistani Drama':{languages:['Urdu'],countries:['PK']},
+  'Indonesian Drama':{languages:['Indonesian'],countries:['ID']},
+  'Malaysian Drama':{languages:['Malay'],countries:['MY']},
+  'Vietnamese Drama':{languages:['Vietnamese'],countries:['VN']},
+  'Ghanaian Drama':{languages:['English'],countries:['GH']},
+  'South African Drama':{languages:['Afrikaans','Zulu','Xhosa'],countries:['ZA']},
+  'Spanish-language Drama':{languages:['Spanish'],countries:[]},
+  'Brazilian Drama':{languages:['Portuguese'],countries:['BR']},
+  'African Drama':{languages:[],countries:['NG','GH','ZA','KE','UG','TZ','RW','ET','SN','CI','CM']},
+  'European Drama':{languages:[],countries:['ES','PT','FR','DE','IT','SE','NO','DK','NL','BE','PL','GR','IS','CH','AT','FI','IE','GB','CZ','HU','RO']},
   'International Drama':null
  };
  const localCategory={'K-Drama':'k-drama','C-Drama':'c-drama','J-Drama':'j-drama','Nollywood':'nollywood','Bollywood Movies':'bollywood','Hollywood Movies':'hollywood','International Movies':'international-movies','Animation':'animation','Movies':'movies','TV / Drama':'tv-series'};
