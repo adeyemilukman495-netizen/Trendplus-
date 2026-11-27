@@ -238,8 +238,17 @@ form.onsubmit=async e=>{
   status.textContent='Uploading your film… Keep TrendPulse open until it finishes.';
   const videoPath=await backend.uploadShortMedia(file);
   status.textContent='Publishing your short film…';
-  await backend.createShort({title:$('#short-title').value.trim(),caption:$('#caption').value.trim(),category:$('#short-topic').value,video_path:videoPath,visibility:$('#short-visibility-upload').value,allow_comments:$('#short-allow-comments-upload').checked,allow_download:$('#short-allow-download-upload').checked});
-  form.reset();resetShortUpload();status.textContent='Your short film has been published.';dialog.close();await draw()
+  const published=await backend.createShort({title:$('#short-title').value.trim(),caption:$('#caption').value.trim(),category:$('#short-topic').value,video_path:videoPath,visibility:$('#short-visibility-upload').value,allow_comments:$('#short-allow-comments-upload').checked,allow_download:$('#short-allow-download-upload').checked});
+  let publishMessage='Your short film has been published.';
+  if(published.creator_points){
+   const reward=published.creator_points;
+   publishMessage+=Number(reward.points_awarded)>0?' You earned +'+Number(reward.points_awarded)+' Pulse Points for today’s public Short!': ' Your daily Short-upload points have already been claimed.';
+  }else if(published.visibility!=='public'){
+   publishMessage+=' Followers-only and private Shorts do not qualify for the daily upload bonus.';
+  }else{
+   publishMessage+=' Your upload is live; the daily points bonus could not be confirmed, so check Earn before assuming it was added.';
+  }
+  form.reset();resetShortUpload();status.textContent=publishMessage;dialog.close();await draw()
  }catch(err){status.textContent=err.message||'Upload failed. Your film was not published.'}
  finally{button.disabled=false}
 };
