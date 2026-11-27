@@ -18,6 +18,7 @@
 @media(max-width:480px){.tp-film-card{grid-template-columns:92px minmax(0,1fr);gap:.75rem;padding:.75rem}.tp-film-poster{width:92px;height:138px}.tp-film-summary{font-size:.78rem}}
 
 /* Lawful offline download actions */
+.tp-film-download-options{display:inline-flex;align-items:center;justify-content:center;margin:.55rem .45rem 0 0;padding:.55rem .75rem;border-radius:10px;background:rgba(114,245,208,.12);color:#8ff5d8!important;border:1px solid rgba(114,245,208,.4);font-size:.76rem;font-weight:800;text-decoration:none;max-width:100%}.tp-film-download-note{font-size:.7rem;line-height:1.4;color:var(--mut);margin:.4rem 0 0}.tp-film-download-options:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .tp-film-download,.tp-film-official-download{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;margin:.55rem .45rem 0 0;padding:.55rem .75rem;border-radius:10px;font-size:.76rem;font-weight:800;text-decoration:none;max-width:100%}
 .tp-film-download{background:var(--lime);color:#10150b!important;border:1px solid var(--lime)}
 .tp-film-official-download{background:rgba(168,190,230,.1);color:#e8efff!important;border:1px solid rgba(168,190,230,.3)}
