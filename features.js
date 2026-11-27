@@ -436,7 +436,50 @@ $('#settings-signout').onclick=()=>$('#profile-signout').click();
 $('#settings-back-to-profile')?.addEventListener('click',()=>{settings.hidden=true;$('#profile-panel').scrollIntoView({behavior:'smooth',block:'start'})});
 $('#profile-share').onclick=async()=>{const url=location.href.split('?')[0];try{if(navigator.share)await navigator.share({title:'TrendPulse profile',url});else{await navigator.clipboard.writeText(url);message('Profile link copied.','success')}}catch(e){}};
 }
-async function catalog(){let form=$('#search-form'),root=$('#content'),status=$('#status');form.onsubmit=async e=>{e.preventDefault();let q=$('#query').value.trim(),kind=$('#kind').value;if(!q)return;root.innerHTML='';status.textContent='Searching public catalogue…';let data=[];try{if(kind==='Anime'||kind==='Manga'){let type=kind==='Anime'?'anime':'manga';let r=await fetch('https://kitsu.io/api/edge/'+type+'?filter[text]='+encodeURIComponent(q)+'&page[limit]=12');if(!r.ok)throw Error();let j=await r.json();data=(j.data||[]).map(x=>{let a=x.attributes||{};return{title:a.canonicalTitle||a.titles?.en||a.titles?.en_jp||'Untitled',poster:a.posterImage?.small||a.posterImage?.medium,genres:'',year:(a.startDate||'').slice(0,4),summary:a.synopsis||'',url:'https://kitsu.io/'+type+'/'+a.slug,type:kind,score:a.averageRating}})}else if(kind==='TV / Drama'){let r=await fetch('https://api.tvmaze.com/search/shows?q='+encodeURIComponent(q));if(!r.ok)throw Error();let j=await r.json();data=j.slice(0,12).map(v=>({title:v.show.name,poster:v.show.image?.medium,genres:(v.show.genres||[]).join(', '),year:v.show.premiered?.slice(0,4)||'',summary:(v.show.summary||'').replace(/<[^>]*>/g,' '),url:v.show.url,type:'TV / Drama'}))}else{let search=q+' film movie';if(kind==='Hollywood Movies')search=q+' Hollywood film';if(kind==='Bollywood Movies')search=q+' Bollywood Indian film';if(kind==='International Movies')search=q+' international cinema film';let r=await fetch('https://en.wikipedia.org/w/rest.php/v1/search/page?q='+encodeURIComponent(search)+'&limit=12');if(!r.ok)throw Error();let j=await r.json();data=(j.pages||[]).map(x=>({title:x.title,poster:x.thumbnail?.url,genres:x.description||'Wikipedia result',year:'',summary:x.excerpt||'Open the article for more information.',url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(x.key||x.title.replace(/ /g,'_')),type:'Film / Wikipedia'}))}}catch(e){status.textContent='The selected public catalogue is temporarily unavailable. Try again later.';return}if(!data.length){status.textContent='No matching titles found.';return}status.textContent='Found '+data.length+' results. Add a title to your watchlist. Film results are Wikipedia knowledge results, not verified ratings or streaming availability.';root.innerHTML='<div class="grid">'+data.map(x=>'<article class="card">'+(x.poster?'<img class="poster" loading="lazy" src="'+esc(x.poster)+'" alt="Artwork for '+esc(x.title)+'">':'')+'<span class="tag">'+esc(x.type)+'</span><h3>'+esc(x.title)+'</h3><p class="muted small">'+esc([x.year,x.genres,x.score?'Community rating '+x.score:''].filter(Boolean).join(' · '))+'</p><p class="small">'+esc(x.summary).slice(0,240)+'</p><button data-add="'+encodeURIComponent(JSON.stringify(x))+'">＋ Watchlist</button> <a class="btn secondary" href="'+esc(x.url)+'" target="_blank" rel="noopener">Details</a></article>').join('')+'</div>';root.querySelectorAll('[data-add]').forEach(b=>b.onclick=async()=>{try{const x=JSON.parse(decodeURIComponent(b.dataset.add));const user=await backend.currentUser();if(!user){b.textContent='Sign in first';return}await backend.addWatchlist({external_id:x.url,title:x.title,media_type:x.type,poster_url:x.poster||null});b.textContent='Added ✓'}catch(err){b.textContent=err.message||'Could not save'}})}}
+async function catalog(){
+ const form=$('#search-form'),root=$('#content'),status=$('#status');
+ if(!form||!root||!status)return;
+ const filmKinds=['Movies','Hollywood Movies','Bollywood Movies','International Movies','Nollywood','Animation'];
+ const localCategory={'K-Drama':'k-drama','C-Drama':'c-drama','J-Drama':'j-drama','Nollywood':'nollywood','Bollywood Movies':'bollywood','Hollywood Movies':'hollywood','International Movies':'international-movies','Animation':'animation','Movies':'movies','TV / Drama':'tv-series'};
+ form.onsubmit=async e=>{
+  e.preventDefault();
+  const q=$('#query').value.trim(),kind=$('#kind').value;
+  if(!q)return;
+  root.innerHTML='';
+  status.textContent='Searching '+kind+'…';
+  let data=[],apiFailed=false;
+  const local=(window.TP_TOPICS||[]).filter(x=>{
+   const category=localCategory[kind];
+   return (!category||x.category===category)&&String(x.title||'').toLowerCase().includes(q.toLowerCase());
+  }).map(x=>({title:x.title,poster:'',genres:kind,year:'',summary:'Explore this title in the TrendPulse catalogue.',url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(x.article||x.title.replace(/ /g,'_')),type:kind}));
+  try{
+   if(kind==='Anime'||kind==='Manga'){
+    const type=kind==='Anime'?'anime':'manga';
+    const r=await fetch('https://kitsu.io/api/edge/'+type+'?filter[text]='+encodeURIComponent(q)+'&page[limit]=12');
+    if(!r.ok)throw Error('Catalogue request failed');
+    const j=await r.json();
+    data=(j.data||[]).map(x=>{const a=x.attributes||{};return{title:a.canonicalTitle||a.titles?.en||a.titles?.en_jp||'Untitled',poster:a.posterImage?.small||a.posterImage?.medium||'',genres:'',year:(a.startDate||'').slice(0,4),summary:a.synopsis||'',url:'https://kitsu.io/'+type+'/'+a.slug,type:kind}});
+   }else if(kind==='TV / Drama'){
+    const r=await fetch('https://api.tvmaze.com/search/shows?q='+encodeURIComponent(q));
+    if(!r.ok)throw Error('Catalogue request failed');
+    const j=await r.json();
+    data=j.slice(0,12).map(v=>({title:v.show.name,poster:v.show.image?.medium||'',genres:(v.show.genres||[]).join(', '),year:v.show.premiered?.slice(0,4)||'',summary:(v.show.summary||'').replace(/<[^>]*>/g,' '),url:v.show.url,type:kind}));
+   }else{
+    const suffix=kind==='Hollywood Movies'?' Hollywood film':kind==='Bollywood Movies'?' Bollywood Indian film':kind==='International Movies'?' international film cinema':kind==='Nollywood'?' Nigerian Nollywood film':kind==='Animation'?' animated film':kind==='Movies'?' film movie':' '+kind;
+    const r=await fetch('https://en.wikipedia.org/w/rest.php/v1/search/page?q='+encodeURIComponent(q+suffix)+'&limit=15',{headers:{Accept:'application/json'}});
+    if(!r.ok)throw Error('Film search request failed');
+    const j=await r.json();
+    data=(j.pages||[]).map(x=>({title:x.title,poster:x.thumbnail?.url||'',genres:x.description||kind,year:'',summary:(x.excerpt||'').replace(/<[^>]*>/g,' ')||'Open the article for more information.',url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(x.key||x.title.replace(/ /g,'_')),type:kind}));
+   }
+  }catch(err){apiFailed=true}
+  const seen=new Set();
+  data=[...local,...data].filter(x=>{const k=String(x.title).toLowerCase();if(seen.has(k))return false;seen.add(k);return true}).slice(0,18);
+  if(!data.length){status.textContent=apiFailed?'The '+kind+' catalogue is temporarily unavailable. Please try again shortly.':'No matching titles found. Try another title or category.';root.innerHTML='<div class="empty">'+esc(status.textContent)+'</div>';return}
+  status.textContent='Found '+data.length+' '+kind+' result'+(data.length===1?'':'s')+'. '+(apiFailed?'Showing matching TrendPulse titles while the public catalogue is unavailable.':'Select a title to view details or save it to your watchlist.');
+  root.innerHTML='<div class="grid">'+data.map(x=>'<article class="card">'+(x.poster?'<img class="poster" loading="lazy" decoding="async" src="'+esc(x.poster)+'" alt="Artwork for '+esc(x.title)+'">':'<div class="poster poster-placeholder" aria-hidden="true">✦</div>')+'<span class="tag">'+esc(x.type)+'</span><h3>'+esc(x.title)+'</h3><p class="muted small">'+esc([x.year,x.genres].filter(Boolean).join(' · '))+'</p><p class="small">'+esc(x.summary).slice(0,240)+'</p><button type="button" data-add="'+encodeURIComponent(JSON.stringify(x))+'">＋ Watchlist</button> <a class="btn secondary" href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer">Details</a></article>').join('')+'</div>';
+  root.querySelectorAll('[data-add]').forEach(b=>b.onclick=async()=>{try{const x=JSON.parse(decodeURIComponent(b.dataset.add));const user=await backend.currentUser();if(!user){b.textContent='Sign in first';return}await backend.addWatchlist({external_id:x.url,title:x.title,media_type:x.type,poster_url:x.poster||null});b.textContent='Added ✓'}catch(err){b.textContent=err.message||'Could not save'}});
+ };
+}
 function services(){
  const root=$('#service-directory-list'),status=$('#service-directory-status'),search=$('#service-directory-search'),category=$('#service-directory-category');
  const backend=window.TPBackend,money=value=>'₦'+Number(value||0).toLocaleString('en-NG',{maximumFractionDigits:2});
