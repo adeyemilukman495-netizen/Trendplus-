@@ -740,7 +740,16 @@
         if (error.code === '23505') throw new Error('That Short could not be saved because of a duplicate record.');
         throw error;
       }
-      return data;
+      let creatorPoints = null;
+      if (payload.visibility === 'public' && payload.video_path) {
+        const reward = await client.rpc('award_short_upload_points', { p_short_id: data.id });
+        if (reward.error) {
+          console.warn('Short published, but creator points could not be confirmed:', reward.error);
+        } else {
+          creatorPoints = Array.isArray(reward.data) ? reward.data[0] : reward.data;
+        }
+      }
+      return { ...data, creator_points: creatorPoints };
     },
     getClubs: async () => {
       const { data, error } = await client.from('fan_clubs').select('*').order('created_at', { ascending: false }).limit(100);
