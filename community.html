@@ -12,11 +12,18 @@ input,textarea,select{color-scheme:dark}
 </head>
 <body data-feature="community">
 <main class="wa-app" id="community-root">
-<header class="wa-topbar"><a class="brand" href="./">✦ Trend<span>Pulse</span></a><div class="wa-top-actions"><a href="./messages.html">Private messages</a><a href="./profile.html">Profile</a></div></header>
+<header class="wa-topbar"><a class="brand" href="./">TrendPulse</a><div class="wa-top-actions"><a href="./messages.html" aria-label="Private messages">✉</a><a href="./profile.html" aria-label="Profile">⋮</a></div></header>
 <section class="wa-layout">
-<aside class="wa-sidebar"><div class="wa-sidebar-heading"><div><p class="eyebrow">TRENDPULSE COMMUNITY</p><h1>Chats</h1></div><span class="wa-chat-mark">●</span></div>
-<p class="wa-sidebar-note">Create a community around what you enjoy, then invite others to join the conversation.</p>
-<div class="wa-community-actions"><div class="wa-filter-label">COMMUNITIES</div><button type="button" id="community-create-open" class="wa-create-button">＋ Create a community</button></div><div id="community-room-list" class="wa-room-list"><p class="wa-muted">Loading conversations…</p></div>
+<aside class="wa-sidebar"><div class="wa-sidebar-heading"><div><h1>Chats</h1></div><span class="wa-chat-mark">◉</span></div>
+<label class="wa-search"><span aria-hidden="true">⌕</span><input id="community-search" type="search" placeholder="Search communities" autocomplete="off" aria-label="Search communities"></label>
+<div class="wa-filter-chips" role="group" aria-label="Filter communities">
+<button type="button" class="wa-filter-chip active" data-room-filter="all">All</button>
+<button type="button" class="wa-filter-chip" data-room-filter="unread">Unread</button>
+<button type="button" class="wa-filter-chip" data-room-filter="favourites">Favourites</button>
+<button type="button" class="wa-filter-chip" data-room-filter="groups">Groups</button>
+</div>
+<div class="wa-archived"><span aria-hidden="true">▣</span> Archived <small>0</small></div>
+<div class="wa-community-actions"><button type="button" id="community-create-open" class="wa-create-button">＋ Create a community</button></div><div id="community-room-list" class="wa-room-list" aria-live="polite"><p class="wa-muted">Loading conversations…</p></div>
 <div id="community-signin" class="wa-signin" hidden><b>Sign in to join chats</b><p>Create an account or log in to send and receive messages.</p><a class="wa-signin-button" href="./profile.html?next=community">Sign in / Sign up</a></div>
 <dialog id="community-create-dialog" class="wa-create-dialog"><form id="community-create-form" class="wa-create-form"><div class="wa-create-heading"><div><p class="eyebrow">START SOMETHING NEW</p><h2>Create a community</h2></div><button type="button" id="community-create-close" class="wa-dialog-close" aria-label="Close">×</button></div><label for="community-create-name">Community name</label><input id="community-create-name" name="name" maxlength="50" minlength="3" required placeholder="e.g. Anime Discussions"><label for="community-create-category">Category</label><select id="community-create-category" name="category" required><option>Anime</option><option>Manga</option><option>Movies</option><option>TV Series</option><option>K-Drama</option><option>C-Drama</option><option>J-Drama</option><option>Gaming</option><option>Music</option><option>Sports</option><option>Books</option><option>General</option><option>Other</option></select><label for="community-create-description">Description <span>(optional)</span></label><textarea id="community-create-description" name="description" maxlength="300" rows="3" placeholder="What will people talk about?"></textarea><p id="community-create-error" class="wa-create-error" role="alert"></p><button id="community-create-submit" class="wa-create-submit" type="submit">Create community</button></form></dialog>
 </aside>
