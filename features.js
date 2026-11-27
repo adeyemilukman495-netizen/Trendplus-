@@ -500,7 +500,7 @@ async function catalog(){
      if(kind==='International Drama')return genres.includes('Drama');
      return !!filter&&(filter.countries.includes(country)||(filter.languages.includes(language)&&!['Chinese','English'].includes(language)))&&genres.includes('Drama');
     });
-    data=matches.slice(0,15).map(show=>({title:show.name,poster:show.image?.medium||'',genres:(show.genres||[]).join(', ')+(show.language?' · '+show.language:''),year:show.premiered?.slice(0,4)||'',summary:(show.summary||'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim(),url:show.url,type:kind}));
+    data=matches.slice(0,15).map(show=>({title:show.name,poster:show.image?.medium||'',genres:(show.genres||[]).join(', ')+(show.language?' · '+show.language:''),year:show.premiered?.slice(0,4)||'',summary:(show.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(),url:show.url,type:kind}));
    }else{
     const suffix=kind==='Hollywood Movies'?' Hollywood film':kind==='Bollywood Movies'?' Bollywood Indian film':kind==='International Movies'?' international film cinema':kind==='Nollywood'?' Nigerian Nollywood film':kind==='Animation'?' animated film':kind==='Movies'?' film movie':' '+kind;
     const r=await fetch('https://en.wikipedia.org/w/rest.php/v1/search/page?q='+encodeURIComponent(q+suffix)+'&limit=15',{headers:{Accept:'application/json'}});
