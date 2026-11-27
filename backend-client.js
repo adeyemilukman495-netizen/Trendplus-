@@ -158,8 +158,9 @@
 
     getGroupRooms: async () => {
       const { data, error } = await client.from('group_rooms')
-        .select('id,name,slug,description,category,created_at,updated_at,group_room_members(count)')
+        .select('id,name,slug,description,category,created_at,updated_at,created_by,group_room_members(count)')
         .eq('is_archived', false)
+        .not('created_by', 'is', null)
         .order('name');
       if (error) throw error;
       return data || [];
