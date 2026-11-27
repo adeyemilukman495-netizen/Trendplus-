@@ -1,6 +1,20 @@
 (()=>{'use strict';
 if(document.getElementById('tp-guide-launcher'))return;
 const css=`
+.tp-guide-bot-avatar{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#25f4ee,#77d9c8);box-shadow:0 3px 12px #25f4ee35}
+.tp-guide-bot-avatar svg{width:25px;height:25px;display:block}
+.tp-guide-launcher-inner{display:flex;align-items:center;gap:9px}
+.tp-guide-launcher-copy{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.tp-guide-launcher-copy strong{font-size:13px;line-height:1.1}
+.tp-guide-launcher-copy small{font-size:9px;letter-spacing:.09em;line-height:1.1;color:#153238}
+.tp-guide-head-main{display:flex;align-items:center;gap:10px}
+.tp-guide-head .tp-guide-bot-avatar{width:40px;height:40px;flex-basis:40px;border-radius:14px}
+.tp-guide-head .tp-guide-bot-avatar svg{width:29px;height:29px}
+.tp-guide-head-copy{display:flex;flex-direction:column;gap:2px}
+.tp-guide-head-copy strong{font-size:15px}
+.tp-guide-head-copy small{color:#b8c1cf;font-size:11px}
+.tp-guide-bot-tag{display:inline-flex;align-items:center;gap:5px;margin-top:3px;color:#6ee7dc;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.tp-guide-bot-tag:before{content:"";width:6px;height:6px;border-radius:50%;background:#42dfad;box-shadow:0 0 8px #42dfad}
 #tp-guide-launcher{position:fixed;right:18px;bottom:92px;z-index:9998;border:0;border-radius:999px;padding:13px 17px;background:linear-gradient(135deg,#25f4ee,#fe2c55);color:#071016;font:800 14px/1.2 system-ui;box-shadow:0 10px 32px #0007;cursor:pointer}
 #tp-guide-panel{position:fixed;right:16px;bottom:150px;z-index:9999;width:min(370px,calc(100vw - 24px));height:min(590px,calc(100dvh - 180px));display:none;flex-direction:column;overflow:hidden;border:1px solid #343b4c;border-radius:20px;background:#10131d;color:#f7f8fc;box-shadow:0 22px 70px #000a;font:14px/1.45 system-ui}
 #tp-guide-panel[data-open="true"]{display:flex}
@@ -19,9 +33,9 @@ const css=`
 @media(max-width:520px){#tp-guide-launcher{right:12px;bottom:84px}#tp-guide-panel{right:8px;bottom:138px;width:calc(100vw - 16px);height:min(600px,calc(100dvh - 160px))}}
 `;
 const style=document.createElement('style');style.textContent=css;document.head.appendChild(style);
-const launcher=document.createElement('button');launcher.id='tp-guide-launcher';launcher.type='button';launcher.textContent='✦ Pulse Guide';launcher.setAttribute('aria-expanded','false');launcher.setAttribute('aria-controls','tp-guide-panel');
+const launcher=document.createElement('button');launcher.id='tp-guide-launcher';launcher.type='button';launcher.innerHTML='<span class="tp-guide-bot-avatar" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 5v6" stroke="#10232A" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="4" r="3" fill="#FE2C55"/><rect x="7" y="12" width="34" height="28" rx="10" fill="#10232A"/><rect x="11" y="16" width="26" height="18" rx="6" fill="#DDFCF6"/><circle cx="19" cy="25" r="2.6" fill="#10232A"/><circle cx="29" cy="25" r="2.6" fill="#10232A"/><path d="M19 30c2.8 2 7.2 2 10 0" stroke="#10232A" stroke-width="2" stroke-linecap="round"/><path d="M5 23H8M40 23h3" stroke="#10232A" stroke-width="3" stroke-linecap="round"/></svg></span><span class="tp-guide-launcher-copy"><strong>Pulse Guide</strong><small>HELPER BOT</small></span>';launcher.setAttribute('aria-expanded','false');launcher.setAttribute('aria-controls','tp-guide-panel');
 const panel=document.createElement('section');panel.id='tp-guide-panel';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Pulse Guide support');
-panel.innerHTML='<div class="tp-guide-head"><div><strong>✦ Pulse Guide</strong><small>Your guide to everything on TrendPulse</small></div><button id="tp-guide-close" type="button" aria-label="Close help">×</button></div><div id="tp-guide-messages" aria-live="polite"></div><div class="tp-guide-quick"><button type="button">Can I post comedy?</button><button type="button">What can I upload?</button><button type="button">How do points work?</button><button type="button">How do I join?</button></div><div class="tp-guide-note">Answers explain published features. Never share passwords or private information in chats.</div><form class="tp-guide-form" id="tp-guide-form"><input id="tp-guide-input" maxlength="300" autocomplete="off" placeholder="Ask about TrendPulse…" aria-label="Ask Pulse Guide"><button id="tp-guide-send" type="submit">Send</button></form>';
+panel.innerHTML='<div class="tp-guide-head"><div class="tp-guide-head-main"><span class="tp-guide-bot-avatar" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 5v6" stroke="#10232A" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="4" r="3" fill="#FE2C55"/><rect x="7" y="12" width="34" height="28" rx="10" fill="#10232A"/><rect x="11" y="16" width="26" height="18" rx="6" fill="#DDFCF6"/><circle cx="19" cy="25" r="2.6" fill="#10232A"/><circle cx="29" cy="25" r="2.6" fill="#10232A"/><path d="M19 30c2.8 2 7.2 2 10 0" stroke="#10232A" stroke-width="2" stroke-linecap="round"/><path d="M5 23H8M40 23h3" stroke="#10232A" stroke-width="3" stroke-linecap="round"/></svg></span><div class="tp-guide-head-copy"><strong>Pulse Guide</strong><small>Your TrendPulse helper</small><span class="tp-guide-bot-tag">HELPER BOT</span></div></div><button id="tp-guide-close" type="button" aria-label="Close help">×</button></div><div id="tp-guide-messages" aria-live="polite"></div><div class="tp-guide-quick"><button type="button">Can I post comedy?</button><button type="button">What can I upload?</button><button type="button">How do points work?</button><button type="button">How do I join?</button></div><div class="tp-guide-note">Answers explain published features. Never share passwords or private information in chats.</div><form class="tp-guide-form" id="tp-guide-form"><input id="tp-guide-input" maxlength="300" autocomplete="off" placeholder="Ask about TrendPulse…" aria-label="Ask Pulse Guide"><button id="tp-guide-send" type="submit">Send</button></form>';
 document.body.append(launcher,panel);
 const messages=panel.querySelector('#tp-guide-messages'),input=panel.querySelector('#tp-guide-input');
 const links={home:'./',shorts:'./shorts.html',discover:'./discover.html',community:'./community.html',earn:'./earn.html',profile:'./profile.html',battles:'./battles.html',challenge:'./challenge.html',members:'./members.html',watchlist:'./watchlist.html',messages:'./messages.html',reviews:'./reviews.html'};
