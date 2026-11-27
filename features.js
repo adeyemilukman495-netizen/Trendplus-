@@ -440,6 +440,21 @@ async function catalog(){
  const form=$('#search-form'),root=$('#content'),status=$('#status');
  if(!form||!root||!status)return;
  const filmKinds=['Movies','Hollywood Movies','Bollywood Movies','International Movies','Nollywood','Animation'];
+ const dramaFilters={
+  'K-Drama':{languages:['Korean'],countries:['KR']},
+  'C-Drama':{languages:['Chinese'],countries:['CN']},
+  'J-Drama':{languages:['Japanese'],countries:['JP']},
+  'Thai Drama':{languages:['Thai'],countries:['TH']},
+  'Taiwanese Drama':{languages:['Chinese'],countries:['TW']},
+  'Filipino Drama':{languages:['Tagalog','Filipino'],countries:['PH']},
+  'Turkish Drama':{languages:['Turkish'],countries:['TR']},
+  'Indian Drama':{languages:['Hindi','Tamil','Telugu','Malayalam','Bengali','Marathi','Kannada','Punjabi','Urdu'],countries:['IN']},
+  'Nigerian Drama':{languages:['English','Yoruba','Igbo','Hausa'],countries:['NG']},
+  'Arabic Drama':{languages:['Arabic'],countries:['EG','SA','AE','JO','LB','MA','TN','DZ','IQ','KW','QA']},
+  'Latin American Drama':{languages:['Spanish','Portuguese'],countries:['MX','BR','AR','CO','CL','PE','VE','UY']},
+  'Western Drama':{languages:['English'],countries:['US','GB','CA','AU','IE','NZ']},
+  'International Drama':null
+ };
  const localCategory={'K-Drama':'k-drama','C-Drama':'c-drama','J-Drama':'j-drama','Nollywood':'nollywood','Bollywood Movies':'bollywood','Hollywood Movies':'hollywood','International Movies':'international-movies','Animation':'animation','Movies':'movies','TV / Drama':'tv-series'};
  form.onsubmit=async e=>{
   e.preventDefault();
@@ -459,11 +474,21 @@ async function catalog(){
     if(!r.ok)throw Error('Catalogue request failed');
     const j=await r.json();
     data=(j.data||[]).map(x=>{const a=x.attributes||{};return{title:a.canonicalTitle||a.titles?.en||a.titles?.en_jp||'Untitled',poster:a.posterImage?.small||a.posterImage?.medium||'',genres:'',year:(a.startDate||'').slice(0,4),summary:a.synopsis||'',url:'https://kitsu.io/'+type+'/'+a.slug,type:kind}});
-   }else if(kind==='TV / Drama'){
+   }else if(kind==='TV / Drama'||kind==='TV Series'||Object.prototype.hasOwnProperty.call(dramaFilters,kind)){
     const r=await fetch('https://api.tvmaze.com/search/shows?q='+encodeURIComponent(q));
     if(!r.ok)throw Error('Catalogue request failed');
     const j=await r.json();
-    data=j.slice(0,12).map(v=>({title:v.show.name,poster:v.show.image?.medium||'',genres:(v.show.genres||[]).join(', '),year:v.show.premiered?.slice(0,4)||'',summary:(v.show.summary||'').replace(/<[^>]*>/g,' '),url:v.show.url,type:kind}));
+    const filter=dramaFilters[kind];
+    const matches=j.map(v=>v.show).filter(show=>{
+     if(!show)return false;
+     if(kind==='TV / Drama'||kind==='TV Series')return true;
+     const country=show.network?.country?.code||show.webChannel?.country?.code||'';
+     const language=String(show.language||'');
+     const genres=show.genres||[];
+     if(kind==='International Drama')return genres.includes('Drama');
+     return !!filter&&(filter.languages.includes(language)||filter.countries.includes(country))&&genres.includes('Drama');
+    });
+    data=matches.slice(0,15).map(show=>({title:show.name,poster:show.image?.medium||'',genres:(show.genres||[]).join(', ')+(show.language?' · '+show.language:''),year:show.premiered?.slice(0,4)||'',summary:(show.summary||'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim(),url:show.url,type:kind}));
    }else{
     const suffix=kind==='Hollywood Movies'?' Hollywood film':kind==='Bollywood Movies'?' Bollywood Indian film':kind==='International Movies'?' international film cinema':kind==='Nollywood'?' Nigerian Nollywood film':kind==='Animation'?' animated film':kind==='Movies'?' film movie':' '+kind;
     const r=await fetch('https://en.wikipedia.org/w/rest.php/v1/search/page?q='+encodeURIComponent(q+suffix)+'&limit=15',{headers:{Accept:'application/json'}});
