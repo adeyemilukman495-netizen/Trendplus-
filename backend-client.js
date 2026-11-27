@@ -174,9 +174,14 @@
         room_name:name,room_description:description,room_category:category
       });
       if(error)throw error;
+      // The SQL RPC returns a group_rooms composite row (not a UUID).
+      // Accept a UUID too for compatibility with older deployed function versions.
+      const returned=Array.isArray(data)?data[0]:data;
+      const roomId=typeof returned==='string'?returned:returned?.id;
+      if(!roomId)throw new Error('Community was created, but its room details could not be loaded. Refresh and check your community list.');
       const {data:room, error:roomError}=await client.from('group_rooms')
-        .select('id,name,slug,description,category,created_at,updated_at,group_room_members(count)')
-        .eq('id',data).single();
+        .select('id,name,slug,description,category,created_at,updated_at,created_by,group_room_members(count)')
+        .eq('id',roomId).single();
       if(roomError)throw roomError;
       return room;
     },
